@@ -17,8 +17,6 @@
 *.pch
 
 # Libraries
-*.lib
-*.a
 *.la
 *.lo
 
@@ -35,6 +33,8 @@
 *.i*86
 *.x86_64
 *.hex
+*.elf
+*.srec
 
 # Debug files
 *.dSYM/
@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# folders
+r0301010A_PcuEvtCode_20230109/.metadata/
+r0301010A_PcuEvtCode_20230109/.settings/
+r0301010A_PcuEvtCode_20230109/DebugBME/
+r0301010A_PcuEvtCode_20230109/Release/
