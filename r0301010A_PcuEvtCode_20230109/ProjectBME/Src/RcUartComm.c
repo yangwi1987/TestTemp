@@ -225,7 +225,6 @@ void RcComm_10HzLoop(StructUartCtrl*p){
 	if(p->TimeoutCnt == RC_COMM_TIMEOUT_THRESHOLD_100MS){
 		p->pRxInterface->ThrottleCmd =0;
 		p->Reset(p);
-//		p->TimeoutCnt = RC_COMM_TIMEOUT_THRESHOLD_100MS+1;
 #if RC_TEIMOUT_TEST
 		p->TxBuff[0] = 0x77;
 		p->TxBuff[2] = 0x88;
@@ -248,7 +247,7 @@ void RcComm_Reset(StructUartCtrl*p){
 	memset(p->RxBuff,0,RC_COMM_RX_BUFF_SIZE);
 	p->RxReadIdx=0;
 	p->RxPutIdx=0;
-	p->TimeoutCnt=0;
+	p->TimeoutCnt=0; // Reset time out counter after "time out warning" is triggered.
 	p->RxDlc=0;
 //	p->RcEnable=0;
 	p->RxFlag = RC_COMM_RX_STATE_IDLE;

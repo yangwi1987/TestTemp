@@ -21,7 +21,7 @@
 #define RC_COMM_TX_BUFF_SIZE 40
 #define RC_COMM_HEAD_VALUE 0x03
 #define RC_COMM_END_VALUE 0xFF
-#define RC_COMM_TIMEOUT_THRESHOLD_100MS 10	//10*100ms = 1000ms
+#define RC_COMM_TIMEOUT_THRESHOLD_100MS 11	// 11*100ms = 1100ms
 
 typedef void (*functypeRcComm_Init)( void *,void *,void *,void*,void* );
 typedef uint16_t (*functypeRcComm_CalCrc)( void *, uint8_t*, uint8_t);
