@@ -46,8 +46,6 @@ void ThermoStrategy_Calc( ThermoStrategy_t *v )
 		MaxMosTemp = *(v->TempNow[PCU_NTC_1]);
 	}
 
-	// MaxMosTemp = MAX(*(v->TempNow[PCU_NTC_0]), *(v->TempNow[PCU_NTC_1]));
-
 	v->WindingLimit = v->WindingDerating.Calc(&v->WindingDerating,*(v->TempNow[MOTOR_NTC_0_A0]));
 	v->MOSACLimit = v->MosDerating.Calc(&v->MosDerating, MaxMosTemp);
 	//v->CapLimit = v->CapDerating.Calc( &v->CapDerating, *(v->TempNow[PCU_NTC_2]) );
