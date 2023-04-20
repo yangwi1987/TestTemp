@@ -35,12 +35,24 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 void ThermoStrategy_Calc( ThermoStrategy_t *v )
 {
 	float ACCurrLimitTarget = v->MaxCurrPeak;
+	float MaxMosTemp = 0; // max MOS temperature between side an center.
 
-		v->WindingLimit = v->WindingDerating.Calc( &v->WindingDerating, *(v->TempNow[MOTOR_NTC_0_A0]) );
-		v->MOSACLimit = v->MosDerating.Calc( &v->MosDerating, *(v->TempNow[PCU_NTC_0]) );
-		//v->CapLimit = v->CapDerating.Calc( &v->CapDerating, *(v->TempNow[PCU_NTC_2]) );
-		v->CapLimit = v->MaxCurrPeak;
-		ACCurrLimitTarget = MIN3( v->WindingLimit, v->MOSACLimit, v->CapLimit );
+	if( *(v->TempNow[PCU_NTC_0]) > *(v->TempNow[PCU_NTC_1]) )
+	{
+		MaxMosTemp = *(v->TempNow[PCU_NTC_0]);
+	}
+	else
+	{
+		MaxMosTemp = *(v->TempNow[PCU_NTC_1]);
+	}
+
+	// MaxMosTemp = MAX(*(v->TempNow[PCU_NTC_0]), *(v->TempNow[PCU_NTC_1]));
+
+	v->WindingLimit = v->WindingDerating.Calc(&v->WindingDerating,*(v->TempNow[MOTOR_NTC_0_A0]));
+	v->MOSACLimit = v->MosDerating.Calc(&v->MosDerating, MaxMosTemp);
+	//v->CapLimit = v->CapDerating.Calc( &v->CapDerating, *(v->TempNow[PCU_NTC_2]) );
+	v->CapLimit = v->MaxCurrPeak;
+	ACCurrLimitTarget = MIN3(v->WindingLimit, v->MOSACLimit, v->CapLimit);
 
 	if( ACCurrLimitTarget > v->MaxCurrPeak )
 	{
