@@ -633,6 +633,9 @@ void drive_Init(void)
 	// TODO when add motor2 parameters, check if the check sum mechanism is still OK?
 	ParamMgr1.Init( &ParamMgr1, &ExtFlash1 );
 
+	// set flag after DriveParam has been updated. and before AlarmDetect init.
+	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
+
 	// notice that: parameters in each axis have to be independent.
 	for ( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )
 	{
@@ -704,8 +707,6 @@ void drive_Init(void)
 
 	// Register alarm depend on AlarmTableInfo table and error status of each module.
 	GlobalAlarmDetect_init();
-
-	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
 
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
