@@ -13,6 +13,7 @@
 #define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
 
 static uint8_t CurrToPLCCnt = 0;
+extern uint16_t IsUseAnalogFoilSensor;
 
 void AxisSync_SyncFourQuadParams( Axis_t *v )
 {
@@ -62,21 +63,6 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 {
 
 #if (BME & EVT)
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-	if( ( v->pAdcStation->AdcTraOut.Foil >= 1.59f ) && ( v->pAdcStation->AdcTraOut.Foil <= 1.69f ) )  // Foil mode
-	{
-		v->pCANRxInterface->OutputModeCmd = 3;
-	}
-	else if ( ( v->pAdcStation->AdcTraOut.Foil >= 2.95f ) && ( v->pAdcStation->AdcTraOut.Foil <= 3.05f ) )	// Surf mode
-	{
-		v->pCANRxInterface->OutputModeCmd = 2;
-	}
-	else if ( ( v->pAdcStation->AdcTraOut.Foil >= 4.71f ) && ( v->pAdcStation->AdcTraOut.Foil <= 4.81f ) )	// PADDLE mode
-	{
-		v->pCANRxInterface->OutputModeCmd = 1;
-	}
-	else;
-#endif
 
 	if( v->TriggerLimpHome == 1)
 	{
@@ -661,15 +647,46 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 	// Detect Digital Foil Position Sensor Read
 	v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
 	v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
-	if( v->FoilState.All== MAST_PADDLE ){
-		v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-	}else if( v->FoilState.All== MAST_SURF ){
-		v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-	}else if( v->FoilState.All== MAST_FOIL ){
-		v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-	}else{
-		v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
+
+	// Detect foil sensor by different hardware setting
+	if(IsUseAnalogFoilSensor == 1) // use analog foil sensor
+	{
+#if USE_ANALOG_FOIL_SENSOR_FUNC
+		if( ( v->pAdcStation->AdcTraOut.Foil >= 1.59f ) && ( v->pAdcStation->AdcTraOut.Foil <= 1.69f ) )  // Foil mode
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
+		}
+		else if ( ( v->pAdcStation->AdcTraOut.Foil >= 2.95f ) && ( v->pAdcStation->AdcTraOut.Foil <= 3.05f ) )	// Surf mode
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
+		}
+		else	// PADDLE mode
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
+		}
+#endif
 	}
+	else // use digital foil sensor
+	{
+		if( v->FoilState.All== MAST_PADDLE )
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
+		}
+		else if( v->FoilState.All== MAST_SURF )
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
+		}
+		else if( v->FoilState.All== MAST_FOIL )
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
+		}
+		else
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
+		}
+	}
+
+
 
 	// Update scooter speed for report
 	v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
