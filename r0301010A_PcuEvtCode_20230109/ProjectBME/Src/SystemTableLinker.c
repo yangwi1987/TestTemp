@@ -8,6 +8,9 @@
 #include "SystemTableLinker.h"
 #include "ConstantParamAndUseFunction.h"
 
+#define BREAK_FOIL_ADC 100
+#define SHORT_FOIL_ADC 4000
+
 __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker SystemTable =
 {
 		.Version = {01, 0x02, 1, 2}, /* Version numbers are undefined now. If version number are all zero, const table cannot work in bootloader. */
@@ -62,8 +65,8 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 #if USE_ANALOG_FOIL_SENSOR_FUNC
-				{ALARMID_FOIL_BREAK, ALARM_ENABLE, ALARM_TYPE_ERROR, TRIG_MODE_HIGH,  3973, 10, ALARM_COUNTER_MAX},
-				{ALARMID_FOIL_SHORT, ALARM_ENABLE, ALARM_TYPE_ERROR, TRIG_MODE_LOW,  205, 10, ALARM_COUNTER_MAX},
+				{ALARMID_FOIL_BREAK, ALARM_ENABLE, ALARM_TYPE_ERROR, TRIG_MODE_LOW,  BREAK_FOIL_ADC, 10, ALARM_COUNTER_MAX},
+				{ALARMID_FOIL_SHORT, ALARM_ENABLE, ALARM_TYPE_ERROR, TRIG_MODE_HIGH,  SHORT_FOIL_ADC, 10, ALARM_COUNTER_MAX},
 #else
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
@@ -358,12 +361,12 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			0,			0,			0,		0},	//P1-27
 				{		0,			0,			0,			0,		0},	//P1-28
 				{		0,			0,			0,			0,		0},	//P1-29
-				{		0,			0,			0,			0,		0},	//P1-30
-				{		0,			0,			0,			0,		0},	//P1-31
-				{		0,			0,			0,			0,		0},	//P1-32
-				{		0,			0,			0,			0,		0},	//P1-33
-				{		0,			0,			0,			0,		0},	//P1-34
-				{		0,			0,			0,			0,		0},	//P1-35
+				{	 2000,		 4095,SHORT_FOIL_ADC ,	 0x41,		&DriveParams.SystemParams.MaxAnalogFoilADC},	//P1-30
+				{		0,		 2000,BREAK_FOIL_ADC ,	 0x41,		&DriveParams.SystemParams.MinAnalogFoilADC},	//P1-31
+				{	    3,	  	   51,		  13,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenSurf0p1V},	//P1-32
+				{	    3,	  	   51,		  5,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenSurf0p1V},	//P1-33
+				{	    3,	  	   51,		  36,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenFoil0p1V},	//P1-34
+				{	    3,	  	   51,		  30,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenFoil0p1V},	//P1-35
 				{		0,			0,			0,			0,		0},	//P1-36
 				{		0,			0,			0,			0,		0},	//P1-37
 				{		0,			0,			0,			0,		0},	//P1-38

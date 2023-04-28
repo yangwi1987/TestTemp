@@ -13,7 +13,12 @@
 #define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
 
 static uint8_t CurrToPLCCnt = 0;
-extern uint16_t IsUseAnalogFoilSensor;
+extern uint16_t IsUseDigitalFoilSensor;
+
+float MaxAnaSurf = 0.0f;
+float MinAnaSurf = 0.0f;
+float MaxAnaFoil = 0.0f;
+float MinAnaFoil = 0.0f;
 
 void AxisSync_SyncFourQuadParams( Axis_t *v )
 {
@@ -514,6 +519,12 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 	v->PhaseLoss.Init(&(v->PhaseLoss),16.0f,20.8f,0.004f,v->MotorControl.CurrentControl.PwmPeriod);
 
 	v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
+
+	// Init analog foil sensor boundary
+	 MaxAnaSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
+	 MinAnaSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
+	 MaxAnaFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
+	 MinAnaFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )
@@ -649,24 +660,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 	v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
 
 	// Detect foil sensor by different hardware setting
-	if(IsUseAnalogFoilSensor == 1) // use analog foil sensor
-	{
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-		if( ( v->pAdcStation->AdcTraOut.Foil >= 1.59f ) && ( v->pAdcStation->AdcTraOut.Foil <= 1.69f ) )  // Foil mode
-		{
-			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-		}
-		else if ( ( v->pAdcStation->AdcTraOut.Foil >= 2.95f ) && ( v->pAdcStation->AdcTraOut.Foil <= 3.05f ) )	// Surf mode
-		{
-			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-		}
-		else	// PADDLE mode
-		{
-			v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-		}
-#endif
-	}
-	else // use digital foil sensor
+	if(IsUseDigitalFoilSensor == 1) // use digitals foil sensor
 	{
 		if( v->FoilState.All== MAST_PADDLE )
 		{
@@ -684,6 +678,23 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
 		}
+	}
+	else // use digital foil sensor
+	{
+#if USE_ANALOG_FOIL_SENSOR_FUNC
+		if( ( v->pAdcStation->AdcTraOut.Foil >= MinAnaFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= MaxAnaFoil  ) )  // Foil mode
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
+		}
+		else if ( ( v->pAdcStation->AdcTraOut.Foil >= MinAnaSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= MaxAnaSurf ) )	// Surf mode
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
+		}
+		else	// PADDLE mode
+		{
+			v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
+		}
+#endif
 	}
 
 
