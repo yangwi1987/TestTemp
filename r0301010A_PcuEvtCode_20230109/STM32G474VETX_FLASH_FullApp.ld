@@ -153,13 +153,14 @@ SECTIONS
   {
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
-    . = ALIGN(4);
+    BYTE(0xFF);
+    . = ALIGN(8);
   } >APP_IN_FLASH
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :
   {
-    . = ALIGN(4);
+    . = ALIGN(8);
     _stext = .;        /* define a global symbols at start of code */
     *(.text)           /* .text sections (code) */
     *(.text*)          /* .text* sections (code) */
