@@ -65,6 +65,7 @@ int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t
 
 /*For BRP UDS implementation*/
 
+EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
 static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
 
@@ -516,6 +517,124 @@ void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN )
 	int AxisIndex = AXIS_ID_TO_AXIS_INDEX (AxisID );
 	Axis[AxisIndex].OnParamValueChanged(&Axis[AxisIndex], PN);
 }
+EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx )
+{
+	EnumUdsBRPNRC tempRsp = NRC_0x10_GR;
+    switch ( DID )
+    {
+//        case DID_0xF190_Vehicle_Identification_Number:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF190_Vehicle_Identification_Number, pRx, pTx );
+//        	break;
+//        }
+        case DID_0xF180_Boot_Version:
+        {
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    memcpy( &(pTx->Data[3]),  (uint32_t*)BOOT_VER_ADDRESS, 4 );
+    	    pTx->LengthTotal = 7;
+	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+//        case DID_0xF185_Fingerprint:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF185_Fingerprint, pRx, pTx );
+//        	break;
+//        }
+        case DID_0xF186_Active_Diagnostic_Session:
+        {
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    pTx->Data[3] = IntranetCANStation.ServiceCtrlBRP.DiagnosticSession;
+    	    pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+//        case DID_0xF188_BRP_Sw_Number:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF188_BRP_Sw_Number, pRx, pTx );
+//        	break;
+//        }
+//        case DID_0xF191_BRP_Hw_Number:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF191_BRP_Hw_Number, pRx, pTx );
+//        	break;
+//        }
+        case DID_0xF192_Manufacturer_Hw_Number:
+        {
+        	break;
+        }
+        case DID_0xF194_Manufacturer_Sw_Number:
+        {
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		for( uint16_t i = 0; i < 4; i++ )
+    		{
+    			pTx->Data[i + 3] = ( AppVersion[i] );
+    		}
+    		pTx->LengthTotal = 7;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+//        case DID_0xF18B_ECU_Build_Date:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18B_ECU_Build_Date, pRx, pTx );
+//        	break;
+//        }
+//        case DID_0xF18C_ECU_Serial_Number:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18C_ECU_Serial_Number, pRx, pTx );
+//        	break;
+//        }
+//        case DID_0xF1A6_Vehicle_Model:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF1A6_Vehicle_Model, pRx, pTx );
+//        	break;
+//        }
+//        case DID_0xF1A0_Customer_Name:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF1A0_Customer_Name, pRx, pTx );
+//        	break;
+//        }
+//        case DID_0xF1A1_Delivery_Date:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF1A1_Delivery_Date, pRx, pTx );
+//        	break;
+//        }
+//        case DID_0xF1CD_CDID_Raw_Value:
+//        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF1CD_CDID_Raw_Value, pRx, pTx );
+//        	break;
+//        }
+        case DID_0xF100_Diagnostic_Code:
+        {
+//        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF100_Diagnostic_Code, pRx, pTx );
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    pTx->Data[3] = 0xE3;
+    	    pTx->Data[4] = 0;
+    	    pTx->Data[5] = 0;
+    	    pTx->Data[6] = 0;
+    		pTx->LengthTotal = 7;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+
+        default:
+        {
+        	tempRsp = NRC_0x31_ROOR;
+        	break;
+        }
+
+    }
+    if ( pTx->LengthTotal > MAX_BUFFER_SIZE )
+    	tempRsp = NRC_0x14_RTL;
+    return tempRsp;
+}
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
@@ -715,6 +834,7 @@ void drive_Init(void)
 	ParamMgr1.OnParamValueChanged = &Drive_OnParamValueChanged;
 	IntranetCANStation.AccessParam = &AccessParam;
 	IntranetCANStation.pParamMgr = &ParamMgr1;
+	IntranetCANStation.ServiceCtrlBRP.RDBI_Function = &drive_RDBI_Function;
 	IntranetCANStation.ServiceCtrlBRP.pDTCStation = &DTCStation1;
 	// Initialize total time.
 	ExtFlash1.pBufferTotalTimeQW = &TotalTime1.BufferTotalTimeQW;

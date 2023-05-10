@@ -9,6 +9,8 @@
 #include "string.h"
 
 
+static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
 static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
 static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
 
@@ -772,30 +774,30 @@ void UdsServiceCtrlBRP_ServiceHandler_Functional( NetWorkService_t *p, NetworkCt
     	lSID = v->Rx.Data[0];
     	switch (lSID)
     	{
-//    	    case SID_0x3E_TP_with_SF:
-//    	    {
-//    	    	if ( m->DiagnosticSession == Session_0x01_DS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
-//    	    	{
-//    	    	    UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m);
-//    	    	}
-//    	    	else
-//    	    	{
-//    	    		m->Response_Code = NRC_0x7F_SNSIAS;
-//    	    	}
-//    		    break;
-//    	    }
-//    	    case SID_0x22_RDBI_without_SF:
-//    	    {
-//    	    	if ( m->DiagnosticSession == Session_0x01_DS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
-//    	    	{
-//    	    	    UdsServiceCtrlBRP_RDBI( &v->Rx, &v->Tx, m);
-//    	    	}
-//    	    	else
-//    	    	{
-//    	    		m->Response_Code = NRC_0x7F_SNSIAS;
-//    	    	}
-//    		    break;
-//    	    }
+    	    case SID_0x3E_TP_with_SF:
+    	    {
+    	    	if ( m->DiagnosticSession == Session_0x01_DS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    		    break;
+    	    }
+    	    case SID_0x22_RDBI_without_SF:
+    	    {
+    	    	if ( m->DiagnosticSession == Session_0x01_DS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_RDBI( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    		    break;
+    	    }
     	    case SID_0x14_CDTCI_without_SF:
     	    {
     	    	if ( m->DiagnosticSession == Session_0x01_DS )
@@ -890,16 +892,16 @@ void UdsServiceCtrlBRP_ServiceHandler_Physical( NetWorkService_t *p, NetworkCtrl
 //    	    	}
 //    	        break;
 //            }
-//            case SID_0x3E_TP_with_SF:
-//            {
-//            	UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m );
-//    	        break;
-//            }
-//            case SID_0x22_RDBI_without_SF:
-//            {
-//            	UdsServiceCtrlBRP_RDBI( &v->Rx, &v->Tx, m);
-//    	        break;
-//            }
+            case SID_0x3E_TP_with_SF:
+            {
+            	UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m );
+    	        break;
+            }
+            case SID_0x22_RDBI_without_SF:
+            {
+            	UdsServiceCtrlBRP_RDBI( &v->Rx, &v->Tx, m);
+    	        break;
+            }
 //            case SID_0x2E_WDBI_without_SF:
 //            {
 //            	UdsServiceCtrlBRP_WDBI( &v->Rx, &v->Tx, m);
@@ -985,7 +987,49 @@ void UdsServiceCtrlBRP_ServiceHandler_Physical( NetWorkService_t *p, NetworkCtrl
 	    }
     }
 }
+static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+	if ( pRx->LengthTotal == 2)
+	{
+	    Union_UdsDataParameter DataParameter;
+	    DataParameter.All = pRx->Data[1];
+	    m->SuppressPosRspMsgIndicationBit = DataParameter.Bits.SuppressPosRspMsgIndicationBit;
+	    switch (DataParameter.Bits.SunFunctionType)
+	    {
+	        case NONE:
+	        {
+	        	m->Response_Code = NRC_0x00_PR;
+        	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+        	    pTx->Data[1] = pRx->Data[1];
+        	    pTx->LengthTotal = 2;
+	        	break;
+	        }
+	        default:
+	        {
+	        	m->Response_Code = NRC_0x12_SFNS;
+	        	break;
+	        }
+	    }
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
 
+}
+static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+	if ( pRx->LengthTotal == 3)
+	{
+		UdsDIDParameter_e DID = ( pRx->Data[1] << 8 ) + pRx->Data[2];
+        m->Response_Code = m->RDBI_Function ( DID, pRx, pTx );
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
+
+}
 static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
 {
 
