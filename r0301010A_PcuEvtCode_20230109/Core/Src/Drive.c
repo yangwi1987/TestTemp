@@ -62,6 +62,13 @@ IntFlashCtrl_t IntFlashCtrl = INT_FLASH_CTRL_DEFAULT;
 // Declare total time
 TotalTime_t TotalTime1 = TOTAL_TIME_DEFAULT;
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
+
+/*For BRP UDS implementation*/
+
+static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
+static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
+
+DTCStation_t DTCStation1 = DTC_STATION_DEFFAULT;
 void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
 
 uint32_t VersionAddressArray[5] =
@@ -509,6 +516,92 @@ void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN )
 	int AxisIndex = AXIS_ID_TO_AXIS_INDEX (AxisID );
 	Axis[AxisIndex].OnParamValueChanged(&Axis[AxisIndex], PN);
 }
+static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
+{
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0563_System_voltage_high                      ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OVER_VOLTAGE_BUS );
+ //   v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F03_ESC_High_temperature                     ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0 ) \
+    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1 ) \
+    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2 )  ;
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F04_Motor_High_temperature                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0 );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F05_ESC_current_sensor_abnormal              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F06_System_voltage_sensor_abnormal           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F0A_ESC_Internal_circuit_logical_failure     ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BUFFER_IC_ERROR );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0C05_Motor_Phase_lost                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_PHASE_LOSS );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0219_Motor_Overspeed                          ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTOR_OVER_SPEED );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK ) \
+    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0666_ESC_Temperature_sensor_abnormal          ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 ) \
+    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) \
+                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 ) \
+                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_1 ) \
+                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_2 ) \
+                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_2 );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0A2A_Motor_Temperature_sensor_abnormal        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_MOTOR_0 ) \
+    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F00_Motor_Stalled                            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTORSTALL );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0111_Lost_communication_with_BMS              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_CAN1_TIMEOUT );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0107_Lost_communication_with_RF               ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P060E_Throttle_position_performance            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0412_Invalid_data_received_from_BMS           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_UNINITIALIZED ) \
+    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_READ_FAILED )   \
+																										  || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_DAMAGED );
+    for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
+    {
+    	v->StatusOfDTC_Realtime[i].Confirmed_DTC = v->StatusOfDTC_Realtime[i].Confirmed_DTC | v->StatusOfDTC_Realtime[i].Test_Failed;
+    	if ( v->DTCStorePackge[i].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[i].Confirmed_DTC == TRUE )
+    	{
+    		 v->DTCStorePackge[i].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
+    		drive_DTC_Pickup_Freeze_Frame_data( v, i );
+
+    	    v->State = DTC_Process_State_Write;
+    	}
+    }
+}
+
+static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
+{
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Battery_Voltage =
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Dc_Bus_Voltage = AdcStation1.AdcTraOut.BatVdc;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current =
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Direct_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.D;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Quadrature_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Id = Axis[0].MotorControl.CurrentControl.IdCmd;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Iq = Axis[0].MotorControl.CurrentControl.IqCmd;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vd = Axis[0].MotorControl.VoltCmd.VdCmd;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vq = Axis[0].MotorControl.VoltCmd.VqCmd;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Currenc_Command_Limit
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Electrical_Angle  = Axis[0].MotorControl.CurrentControl.EleAngle;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[0];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[1];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[2];
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Side_NTC_Status
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Cap_NTC_Status
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_NTC_Status
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Sensorless_State
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Error_Occurred_Counter
+    v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredDataRecordNumberOfIdentifiers = 1;
+    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifier = DID_0xC2FF_Environmental_Data;
+}
+
 
 void Drive_PcuPowerStateMachine( void )
 {
@@ -621,7 +714,7 @@ void drive_Init(void)
 	ParamMgr1.OnParamValueChanged = &Drive_OnParamValueChanged;
 	IntranetCANStation.AccessParam = &AccessParam;
 	IntranetCANStation.pParamMgr = &ParamMgr1;
-
+	IntranetCANStation.ServiceCtrlBRP.pDTCStation = &DTCStation1;
 	// Initialize total time.
 	ExtFlash1.pBufferTotalTimeQW = &TotalTime1.BufferTotalTimeQW;
 	ExtFlash_Init( &ExtFlash1 );
@@ -700,6 +793,9 @@ void drive_Init(void)
 	ExtranetCANStation.Enable = ENABLE;
 	ExtranetCANStation.ForceDisable = DISABLE;
 	RCCommCtrl.Init(&RCCommCtrl,&huart5,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
+
+	// DTC Init
+	DTCStation1.Init( &DTCStation1 );
 
 	// Register alarm depend on AlarmTableInfo table and error status of each module.
 	GlobalAlarmDetect_init();
@@ -920,10 +1016,15 @@ void drive_DoPLCLoop(void)
 	{
 		ExtranetCANStation.DoPlcLoop ( &ExtranetCANStation );
 	}
+	IntranetCANStation.ServiceCtrlBRP.ServoOnOffState = Axis[0].ServoOn;
 	IntranetCANStation.DoPlcLoop( &IntranetCANStation );
 
-	Drive_PcuPowerStateMachine(); // note: Tx response will delay one PLCLoop(1ms)
+	if ( Axis[0].HasAlarm || Axis[0].HasWarning)
+	{
+	    drive_DTC_Pickup_Data_to_Store( &AlarmStack[0], &DTCStation1 );
+	}
 
+	Drive_PcuPowerStateMachine(); // note: Tx response will delay one PLCLoop(1ms)
 
 }
 
@@ -986,8 +1087,6 @@ void drive_Do1HzLoop(void)
 void drive_DoHouseKeeping(void)
 {
 	uint16_t lIdxTemp = 0;
-	//do active code operation
-	uint8_t InfFlashOpBuffer[20];
 
 	//latchTotalTimeservoonstate,toavoidAxis0.ServoOnchangebyotherIRQ.
 	TotalTime1.BufferServoOnState=Axis[0].ServoOn;
@@ -1015,8 +1114,6 @@ void drive_DoHouseKeeping(void)
 		DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
 	}
 
-	IntFlashCtrl.IDSectionErase( &IntFlashCtrl, &DriveFnRegs[FN_FLASH_ID_SECTION_EREASE - FN_BASE], PcuAuthorityCtrl.SecureLvNow );
-
 	Axis[0].pCANTxInterface->DebugU8[IDX_LOG_ENABLE_FLAG] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam10 );
 	Axis[0].pCANTxInterface->DebugU8[IDX_BMS_COMM_ENABLE] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam9 );
 
@@ -1037,6 +1134,31 @@ void drive_DoHouseKeeping(void)
 
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 	RCCommCtrl.MsgDecoder(&RCCommCtrl);
+
+	//DTC process to ExtFlash
+	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)
+	{
+        DTCStation1.DoHouseKeeping( &DTCStation1, &ExtFlash1 );
+        if ( DTCStation1.State == DTC_Process_State_Clear_Failed )
+        {
+        	IntranetCANStation.NetWork.Tx.Data[0] = 0x7F;
+        	IntranetCANStation.NetWork.Tx.Data[1] = SID_0x14_CDTCI_without_SF;
+        	IntranetCANStation.NetWork.Tx.Data[2] = NRC_0x72_GPF;
+        	IntranetCANStation.NetWork.Tx.LengthTotal = 3;
+        	IntranetCANStation.NetWork.Tx.Status = Tx_Request;
+        }
+        else if ( DTCStation1.State == DTC_Process_State_Clear )
+        {
+        	IntranetCANStation.NetWork.Tx.Data[0] = SID_0x14_CDTCI_without_SF + POSITIVE_RESPONSE_OFFSET;
+        	IntranetCANStation.NetWork.Tx.LengthTotal = 1;
+        	IntranetCANStation.NetWork.Tx.Status = Tx_Request;
+        	DTCStation1.State = DTC_Process_State_Idle;
+        	for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
+        	{
+        	DTCStation1.DTCStorePackge[i].DTC_Store_State = DTC_Store_State_None;
+        	}
+        }
+	}
 }
 
 void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT )
