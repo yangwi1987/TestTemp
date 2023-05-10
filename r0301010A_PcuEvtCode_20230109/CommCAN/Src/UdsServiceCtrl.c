@@ -750,7 +750,7 @@ void UdsServiceCtrl_Init ( NetWorkService_t *v, FDCAN_HandleTypeDef *p, UdsSecur
 //	v->NetWork.pIdConfigTable = t;
 	v->NetWork.Init(&v->NetWork,p);
 	v->pSecurityCtrl = u;
-		v->ServiceCtrlBRP.pSecurityCtrl = u;
+	v->ServiceCtrlBRP.pSecurityCtrl = u;
 	v->TransferCtrl.init(&v->TransferCtrl, v->NetWork.Rx.DataSize);
 	v->pSecurityCtrl->Init ( v->pSecurityCtrl );
 }
@@ -1059,6 +1059,7 @@ static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerC
     			    	{
     			    		if ( m->pDTCStation->DTCRespondPackgeFirst[i].DTCId.DTCStoredDataRecordNumber != 0 )
     			    		{
+    			    			m->pDTCStation->DTCRespondPackgeFirst[i].StatusOfDTC = m->pDTCStation->StatusOfDTC_Realtime[i];
     			    			memcpy( &(pTx->Data[ final_Tx_buffer_addr ]), &(m->pDTCStation->DTCRespondPackgeFirst[i]), DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
     			    			final_Tx_buffer_addr = final_Tx_buffer_addr +  DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset;
     			    		}
@@ -1068,6 +1069,7 @@ static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerC
     			    		}
     			    		if ( m->pDTCStation->DTCRespondPackgeLast[i].DTCId.DTCStoredDataRecordNumber != 0 )
     			    		{
+    			    			m->pDTCStation->DTCRespondPackgeLast[i].StatusOfDTC = m->pDTCStation->StatusOfDTC_Realtime[i];
     			    			memcpy( &(pTx->Data[ final_Tx_buffer_addr ]), &(m->pDTCStation->DTCRespondPackgeLast[i]), DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
     			    			final_Tx_buffer_addr = final_Tx_buffer_addr +  DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset;
     			    		}

@@ -14,7 +14,8 @@ void DTC_Init( DTCStation_t *v )
 	for (uint16_t i = 0; i < DTC_RecordNumber_Total; i++)
 	{
 		v->DTCStorePackge[i].StoreContent.DTCId.DTCStoredDataRecordNumber = i + 1;
-		v->DTCStorePackge[i].StoreContent.DTCId.DTCCode = v->DTC_Code[i];
+		v->DTCStorePackge[i].StoreContent.DTCId.DTCCodeHi = v->DTC_Code[i] >> 8;
+		v->DTCStorePackge[i].StoreContent.DTCId.DTCCodeLow = v->DTC_Code[i] & 0xFF;
 	}
 }
 void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
@@ -33,7 +34,7 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
                 memcpy( &v->DTCRespondPackgeFirst[i].DTCId, &tempDTCStoreContent0.DTCId, 4 );
                 memcpy( &v->DTCRespondPackgeFirst[i].StatusOfDTC, &v->StatusOfDTC_Realtime[i], 1);
                 memcpy( &v->DTCRespondPackgeFirst[i].DTCStoredDataRecordNumberOfIdentifiers, &tempDTCStoreContent0.DTCStoredDataRecordNumberOfIdentifiers, 1 );
-                memcpy( &v->DTCRespondPackgeFirst[i].DataIdentifier, &tempDTCStoreContent0.DataIdentifier, 2 );
+                memcpy( &v->DTCRespondPackgeFirst[i].DataIdentifierHi, &tempDTCStoreContent0.DataIdentifierHi, 2 );
                 memcpy( &v->DTCRespondPackgeFirst[i].DTCStoredData, &tempDTCStoreContent0.DTCStoredData, UdsDTCFreezeFrameEnvironmentalDataLength );
             }
             if ( tempDTCStoreContent1.DTCId.DTCStoredDataRecordNumber != 0 )
@@ -41,7 +42,7 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
                 memcpy( &v->DTCRespondPackgeLast[i].DTCId, &tempDTCStoreContent1.DTCId, 4 );
                 memcpy( &v->DTCRespondPackgeLast[i].StatusOfDTC, &v->StatusOfDTC_Realtime[i], 1);
                 memcpy( &v->DTCRespondPackgeLast[i].DTCStoredDataRecordNumberOfIdentifiers, &tempDTCStoreContent1.DTCStoredDataRecordNumberOfIdentifiers, 1 );
-                memcpy( &v->DTCRespondPackgeLast[i].DataIdentifier, &tempDTCStoreContent1.DataIdentifier, 2 );
+                memcpy( &v->DTCRespondPackgeLast[i].DataIdentifierHi, &tempDTCStoreContent1.DataIdentifierHi, 2 );
                 memcpy( &v->DTCRespondPackgeLast[i].DTCStoredData, &tempDTCStoreContent1.DTCStoredData, UdsDTCFreezeFrameEnvironmentalDataLength );
             }
         }
@@ -91,7 +92,7 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
                         memcpy( &v->DTCRespondPackgeFirst[i].DTCId, &tempDTCStoreContent0.DTCId, 4 );
                         memcpy( &v->DTCRespondPackgeFirst[i].StatusOfDTC, &v->StatusOfDTC_Realtime[i], 1);
                         memcpy( &v->DTCRespondPackgeFirst[i].DTCStoredDataRecordNumberOfIdentifiers, &tempDTCStoreContent0.DTCStoredDataRecordNumberOfIdentifiers, 1 );
-                        memcpy( &v->DTCRespondPackgeFirst[i].DataIdentifier, &tempDTCStoreContent0.DataIdentifier, 2 );
+                        memcpy( &v->DTCRespondPackgeFirst[i].DataIdentifierHi, &tempDTCStoreContent0.DataIdentifierHi, 2 );
                         memcpy( &v->DTCRespondPackgeFirst[i].DTCStoredData, &tempDTCStoreContent0.DTCStoredData, UdsDTCFreezeFrameEnvironmentalDataLength );
                 	}
                 	else
@@ -107,7 +108,7 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
                         memcpy( &v->DTCRespondPackgeLast[i].DTCId, &tempDTCStoreContent1.DTCId, 4 );
                         memcpy( &v->DTCRespondPackgeLast[i].StatusOfDTC, &v->StatusOfDTC_Realtime[i], 1);
                         memcpy( &v->DTCRespondPackgeLast[i].DTCStoredDataRecordNumberOfIdentifiers, &tempDTCStoreContent1.DTCStoredDataRecordNumberOfIdentifiers, 1 );
-                        memcpy( &v->DTCRespondPackgeLast[i].DataIdentifier, &tempDTCStoreContent1.DataIdentifier, 2 );
+                        memcpy( &v->DTCRespondPackgeLast[i].DataIdentifierHi, &tempDTCStoreContent1.DataIdentifierHi, 2 );
                         memcpy( &v->DTCRespondPackgeLast[i].DTCStoredData, &tempDTCStoreContent1.DTCStoredData, UdsDTCFreezeFrameEnvironmentalDataLength );
                 	}
                 	else

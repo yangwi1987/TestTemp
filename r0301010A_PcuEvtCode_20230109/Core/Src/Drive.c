@@ -599,7 +599,8 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Error_Occurred_Counter
     v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredDataRecordNumberOfIdentifiers = 1;
-    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifier = DID_0xC2FF_Environmental_Data;
+    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierHi = DID_0xC2FF_Environmental_Data >> 8;
+    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierLow = DID_0xC2FF_Environmental_Data & 0xFF;
 }
 
 

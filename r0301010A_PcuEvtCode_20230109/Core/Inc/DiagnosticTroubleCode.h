@@ -110,7 +110,8 @@ typedef struct
 typedef struct
 {
 	uint32_t DTCStoredDataRecordNumber : 8;
-	uint32_t DTCCode                   : 16;
+	uint32_t DTCCodeHi                 : 8;
+	uint32_t DTCCodeLow                : 8;
 	uint32_t FTB                       : 8;
 }DTCIdentifier_t;
 
@@ -119,7 +120,8 @@ typedef struct
 	DTCIdentifier_t DTCId;
 	DTCStatusOfDTC_t StatusOfDTC;
 	uint8_t DTCStoredDataRecordNumberOfIdentifiers ;
-	uint16_t DataIdentifier            ;
+	uint8_t DataIdentifierHi            ;
+	uint8_t DataIdentifierLow           ;
 	UdsDTCFreezeFrameEnvironmentalData_t DTCStoredData;
 }DTCRespondPackge_t;
 
@@ -129,7 +131,8 @@ typedef struct
 {
 	DTCIdentifier_t DTCId;
 	uint8_t DTCStoredDataRecordNumberOfIdentifiers ;
-	uint16_t DataIdentifier            ;
+	uint8_t DataIdentifierHi            ;
+	uint8_t DataIdentifierLow           ;          ;
 	UdsDTCFreezeFrameEnvironmentalData_t DTCStoredData;
 }DTCStoreContent_t;
 _Static_assert( sizeof(DTCStoreContent_t) == ( DATA_LENGTH_EACH_DTC_STORE - 1 ),"error");
@@ -184,9 +187,9 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p );
 #define DTC_STATION_DEFFAULT { \
 		0,                     /*DTC_Initial_Read_Finishied*/\
 		DTC_CODE_DEFFAULT,     /*DTC_Code*/\
-		{ {{0},{0},0,0,{0}} }, /*DTCRespondPackgeFirst*/\
-		{ {{0},{0},0,0,{0}} }, /*DTCRespondPackgeLast*/\
-		{ {0, {{0},0,0,{0}}} },  /*DTCStorePackge*/\
+		{ {{0},{0},0,0,0,{0}} }, /*DTCRespondPackgeFirst*/\
+		{ {{0},{0},0,0,0,{0}} }, /*DTCRespondPackgeLast*/\
+		{ {0, {{0},0,0,0,{0}}} },  /*DTCStorePackge*/\
 		{ {0} },                 /*StatusOfDTC_Realtime*/\
 		DTC_Process_State_Idle, /*State*/\
 		DTCStatusAvailabilityMask, /*StatusAvailabilityMask*/\
