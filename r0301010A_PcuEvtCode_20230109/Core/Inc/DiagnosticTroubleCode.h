@@ -132,7 +132,7 @@ typedef struct
 	DTCIdentifier_t DTCId;
 	uint8_t DTCStoredDataRecordNumberOfIdentifiers ;
 	uint8_t DataIdentifierHi            ;
-	uint8_t DataIdentifierLow           ;          ;
+	uint8_t DataIdentifierLow           ;
 	UdsDTCFreezeFrameEnvironmentalData_t DTCStoredData;
 }DTCStoreContent_t;
 _Static_assert( sizeof(DTCStoreContent_t) == ( DATA_LENGTH_EACH_DTC_STORE - 1 ),"error");

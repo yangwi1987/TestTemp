@@ -714,8 +714,8 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time = TotalTime1.LocalThisTime * 3;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour = TotalTime1.LocalTotalTime * 3;
     v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredDataRecordNumberOfIdentifiers = 1;
     v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierHi = DID_0xC2FF_Environmental_Data >> 8;
     v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierLow = DID_0xC2FF_Environmental_Data & 0xFF;
