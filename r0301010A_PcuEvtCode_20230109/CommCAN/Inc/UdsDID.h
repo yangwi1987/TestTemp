@@ -249,7 +249,7 @@ typedef struct
     float Set_Point_For_Vd                ;                     //
     float Set_Point_For_Vq                ;                     //
     float Modulation_Index                ;                     //
-    float Currenc_Command_Limit           ;                     //
+    float DC_Current_Limit                ;                     //
     float Electrical_Angle                ;                     //
     float ESC_Internal_circuit_voltage    ;                     //
     float Throttle_Position               ;                     //
