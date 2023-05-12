@@ -66,6 +66,7 @@ int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
+static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input );
 static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
 
@@ -624,6 +625,363 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         	break;
         }
 
+        case DID_0xC000_Battery_Voltage:
+        {
+
+        	break;
+        }
+        case DID_0xC001_Throttle_Raw:
+        {
+        	int8_t tempReturnValue = Axis[0].pCANRxInterface->ThrottleCmd;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempReturnValue;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC002_Throttle_Position:
+        {
+    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].ThrotMapping.PercentageOut );
+        	break;
+        }
+        case DID_0xC003_Odometer                                 :
+        {
+        	break;
+        }
+        case DID_0xC004_Vehicle_Hour                             :
+        {
+        	uint32_t tempCehicleHour = TotalTime1.LocalTotalTime * 3;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		memcpy( &(pTx->Data[3]), &tempCehicleHour, 4 );
+    		pTx->LengthTotal = 7;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC005_Dc_Bus_Voltage                           :
+        {
+    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.BatVdc );
+        	break;
+        }
+        case DID_0xC006_Motor_Current                            :
+        {
+        	float tempId = Axis[0].MotorControl.CurrentControl.RotorCurrFb.D;
+        	float tempIq = Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q;
+        	float tempIs = sqrtf(( tempId * tempId ) + ( tempIq * tempIq ));
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, tempIs );
+        	break;
+        }
+        case DID_0xC008_Motor_Temperature                        :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC );
+        	break;
+        }
+        case DID_0xC009_Motor_Temperature_Minimum                :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min );
+        	break;
+        }
+        case DID_0xC00A_Motor_Temperature_Maximum                :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max );
+        	break;
+        }
+        case DID_0xC00B_Motor_Speed                              :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].SpeedInfo.MotorMechSpeedRPM );
+        	break;
+        }
+        case DID_0xC00C_Torque_Reference                         :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].TorqCommandGenerator.Out );
+        	break;
+        }
+        case DID_0xC00E_ESC_Mosfets_Center_Temperature           :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[0] );
+        	break;
+        }
+        case DID_0xC00F_ESC_Mosfets_Center_Temperature_Minimum   :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min );
+        	break;
+        }
+        case DID_0xC010_ESC_Mosfets_Center_Temperature_Maximum   :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max );
+        	break;
+        }
+        case DID_0xC011_ESC_Mosfets_Side_Temperature             :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[1] );
+        	break;
+        }
+        case DID_0xC012_ESC_Mosfets_Side_Temperature_Minimum     :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min );
+        	break;
+        }
+        case DID_0xC013_ESC_Mosfets_Side_Temperature_Maximum     :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max );
+        	break;
+        }
+        case DID_0xC014_ESC_Capacitor_Temperature                :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[2] );
+        	break;
+        }
+        case DID_0xC015_ESC_Capacitor_Temperature_Minimum        :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min );
+        	break;
+        }
+        case DID_0xC016_ESC_Capacitor_Temperature_Maximum        :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max );
+        	break;
+        }
+
+        case DID_0xC017_Sensorless_State                         :
+        {
+        	UdsDIDSensorlessState_e tempSensorlessState = Axis[0].MotorControl.Sensorless.SensorlessState;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempSensorlessState;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC018_ESC_Operation_State                      :
+        {
+        	uint8_t tempESCOpState = Axis[0].ESCOperationState;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempESCOpState;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC019_Current_Limit                            :
+        {
+        	break;
+        }
+        case DID_0xC01A_Motor_Phase_U_Current                    :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Iu[0] );
+        	break;
+        }
+        case DID_0xC01B_Motor_Phase_V_Current                    :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Iv[0] );
+        	break;
+        }
+        case DID_0xC01C_Motor_Phase_W_Current                    :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Iw[0] );
+        	break;
+        }
+        case DID_0xC01D_Motor_Direct_Axis_Current                :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.CurrentControl.RotorCurrFb.D );
+        	break;
+        }
+        case DID_0xC01E_Motor_Quadrature_Axis_Current            :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q );
+        	break;
+        }
+        case DID_0xC01F_Motor_Stator_Current_Is                  :
+        {
+        	float tempId = Axis[0].MotorControl.CurrentControl.RotorCurrFb.D;
+        	float tempIq = Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q;
+        	float tempIs = sqrtf(( tempId * tempId ) + ( tempIq * tempIq ));
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, tempIs );
+        	break;
+        }
+        case DID_0xC020_Set_Point_For_Id                         :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.CurrentControl.IdCmd );
+        	break;
+        }
+        case DID_0xC021_Set_Point_For_Iq                         :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.CurrentControl.IqCmd );
+        	break;
+        }
+        case DID_0xC022_PWM_Frequency                            :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.CurrentControl.PwmHz );
+        	break;
+        }
+        case DID_0xC023_Set_Point_For_Vd                         :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.VoltCmd.VdCmd );
+        	break;
+        }
+        case DID_0xC024_Set_Point_For_Vq                         :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.VoltCmd.VqCmd );
+        	break;
+        }
+        case DID_0xC025_Modulation_Index                         :
+        {
+            float tempVsMax = AdcStation1.AdcTraOut.BatVdc * 0.577350269f;
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.VoltCmd.VcmdAmp / tempVsMax );
+        	break;
+        }
+        case DID_0xC026_Motor_Pole_Pairs                              :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.MotorPara.PM.Polepair );
+        	break;
+        }
+        case DID_0xC027_Motor_R                                  :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.Sensorless.EEMF.Res );
+        	break;
+        }
+        case DID_0xC028_Motor_Rs_Max                             :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec );
+        	break;
+        }
+        case DID_0xC029_Motor_Ld                                 :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.MotorPara.PM.Ld );
+        	break;
+        }
+        case DID_0xC02A_Motor_Lq                                 :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.MotorPara.PM.Lq );
+        	break;
+        }
+        case DID_0xC02B_Motor_Flux                                     :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.MotorPara.PM.Flux );
+        	break;
+        }
+        case DID_0xC02C_ESC_Internal_circuit_voltage             :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.V13 );
+        	break;
+        }
+        case DID_0xC02D_DC_Current_Limit                    :
+        {
+        	break;
+        }
+        case DID_0xC02E_Temperature_Max                          :
+        {
+        	break;
+        }
+        case DID_0xC02F_Foil_Position_State                      :
+        {
+        	UdsDIDFoilPositionState_e tempFoilPosState = 0;
+        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
+                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
+        	                   (( AdcStation1.AdcTraOut.Foil >= 1.59f ) && ( AdcStation1.AdcTraOut.Foil <= 1.69f )) ? Foil_Position_Foil : /*// Foil mode*/\
+                               (( AdcStation1.AdcTraOut.Foil >= 2.95f ) && ( AdcStation1.AdcTraOut.Foil <= 3.05f ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
+                                                                                                                                                  // PADDLE mode
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempFoilPosState;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC030_Tether_Cord_State                        :
+        {
+        	break;
+        }
+        case DID_0xC031_Session_Time                             :
+        {
+        	uint32_t tempSessionTime = TotalTime1.LocalThisTime * 3;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		memcpy( &(pTx->Data[3]), &tempSessionTime, 4 );
+    		pTx->LengthTotal = 7;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC032_Session_Distance                         :
+        {
+        	break;
+        }
+        case DID_0xC033_ESC_Mosfet_Center_NTC_Status                    :
+        {
+        	UdsDIDNTCStatus_e tempNTCStatus = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 )) ? NTC_Break : \
+        	                                  ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) ? NTC_Short : NTC_Normal );
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempNTCStatus;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC034_ESC_Mosfet_Side_NTC_Status                      :
+        {
+        	UdsDIDNTCStatus_e tempNTCStatus = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 )) ? NTC_Break : \
+        	                                  ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_1 ) ? NTC_Short : NTC_Normal );
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempNTCStatus;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC035_ESC_Mosfet_Cap_NTC_Status                       :
+        {
+        	UdsDIDNTCStatus_e tempNTCStatus = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_2 )) ? NTC_Break : \
+        	                                  ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_2 ) ? NTC_Short : NTC_Normal );
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempNTCStatus;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC036_Motor_NTC_Status                         :
+        {
+        	UdsDIDNTCStatus_e tempNTCStatus = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_MOTOR_0 )) ? NTC_Break : \
+        				                      ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 ) ? NTC_Short : NTC_Normal );
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempNTCStatus;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xC037_RC_connetion_status                      :
+        {
+        	break;
+        }
+        case DID_0xC038_Error_Code_from_RF                       :
+        {
+        	break;
+        }
+        case DID_0xC039_BMS_State_Read_by_ESC                    :
+        {
+        	break;
+        }
+        case DID_0xC03A_Estimated_Time_Remaining                 :
+        {
+        	break;
+        }
+        case DID_0xC03B_Foil_Position_Voltage                 :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+        	break;
+        }
         default:
         {
         	tempRsp = NRC_0x31_ROOR;
@@ -633,6 +991,19 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     }
     if ( pTx->LengthTotal > MAX_BUFFER_SIZE )
     	tempRsp = NRC_0x14_RTL;
+    return tempRsp;
+}
+
+static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input )
+{
+	EnumUdsBRPNRC tempRsp = NRC_0x10_GR;
+    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    pTx->Data[1] = pRx->Data[1];
+    pTx->Data[2] = pRx->Data[2];
+	memcpy( &(pTx->Data[3]), &input, 4 );
+	pTx->LengthTotal = 7;
+    tempRsp = NRC_0x00_PR;
+
     return tempRsp;
 }
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
@@ -706,12 +1077,16 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[1];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[2];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Side_NTC_Status
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Cap_NTC_Status
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_NTC_Status
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Sensorless_State
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 )) ? NTC_Break : \
+                                                                                      ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) ? NTC_Short : NTC_Normal );
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Side_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 )) ? NTC_Break : \
+                                                                                    ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_1 ) ? NTC_Short : NTC_Normal );
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Cap_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_2 )) ? NTC_Break : \
+                                                                            ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_2 ) ? NTC_Short : NTC_Normal );
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_NTC_Status =( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_MOTOR_0 )) ? NTC_Break : \
+			                                                             ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 ) ? NTC_Short : NTC_Normal );
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Sensorless_State = Axis[0].MotorControl.Sensorless.SensorlessState;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State = Axis[0].ESCOperationState;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time = TotalTime1.LocalThisTime * 3;
@@ -810,6 +1185,26 @@ void Drive_PcuPowerStateMachine( void )
 			Axis[0].PcuPowerState = PowerOnOff_Error;
 			break;
 
+	}
+
+	/*update ESCOperationState, Dealer_Test_Mode, Power_Off_ESC TBD*/
+	if( Axis[0].HasAlarm == ENABLE )
+	{
+        Axis[0].ESCOperationState = Fault_Mode;
+	}
+	else if(( Axis[0].ServoOn == MOTOR_STATE_ON ) && ( ParamMgr1.Session == Session_0x01_Default ))
+	{
+		Axis[0].ESCOperationState = ( Axis[0].pCANRxInterface->OutputModeCmd == DRIVE_PADDLE ) ? Paddle_Mode : \
+				                    ( Axis[0].pCANRxInterface->OutputModeCmd == DRIVE_SURF )   ? Surf_Mode   : \
+				                    ( Axis[0].pCANRxInterface->OutputModeCmd == DRIVE_FOIL )   ? Foil_Mode   : Limp_Home_Mode;
+	}
+	else if ( ParamMgr1.Session == Session_0x60_SystemSupplierSpecific )
+	{
+		Axis[0].ESCOperationState = Manufacturer_Test_Mode;
+	}
+	else
+	{
+		Axis[0].ESCOperationState = Standby_ESC;
 	}
 }
 
@@ -1150,6 +1545,7 @@ void drive_DoPLCLoop(void)
 
 void drive_Do100HzLoop(void)
 {
+	static uint8_t IsNotFirstLoop = 0;
 	int i;
 	AdcStation1.Do100HzLoop( &AdcStation1 );
 	Axis[0].MotorControl.Sensorless.EEMF.WindingTemp = AdcStation1.AdcTraOut.MOTOR_NTC;
@@ -1159,6 +1555,34 @@ void drive_Do100HzLoop(void)
 	}
 	MFStation1.GpioMfinfo( &MFStation1 );
 
+	/*update max and min value*/
+//	if ( IsPcuInitReady == PcuInitState_Ready )
+	if ( IsNotFirstLoop == 1 )
+	{
+	IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max = \
+			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[2]);
+	IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min = \
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[2]);
+
+	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
+			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[0]);
+	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[0]);
+
+	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
+	MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[1]);
+	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[1]);
+
+	IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
+	MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
+	IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min = \
+			MIN2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.MOTOR_NTC);
+
+	IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec = MAX2( IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec, Axis[0].MotorControl.Sensorless.EEMF.Res );
+
+	}
+	IsNotFirstLoop = 1;
 }
 
 void drive_Do10HzLoop(void)

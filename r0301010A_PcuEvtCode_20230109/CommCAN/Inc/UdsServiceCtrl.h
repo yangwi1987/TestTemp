@@ -246,6 +246,12 @@ typedef void (*funcTypeUdsServiceCtrlBRP_ServiceHandler_Physical)( void*, void* 
 
 typedef struct
 {
+	float Temperature_Max;
+	float Temperature_Min;
+}Temperature_Max_Min_t;
+
+typedef struct
+{
 	uint8_t		test;
 	int16_t     ServoOnOffState;
 	uint8_t     SuppressPosRspMsgIndicationBit;
@@ -253,6 +259,11 @@ typedef struct
 	uint32_t    BRPSessionCNT;
 	uint8_t     BRPECUSoftResetEnable;
 	uint32_t    FalseAccessExceedLimitCNT;
+	Temperature_Max_Min_t ESC_Mosfets_Center_Temp_Rec;
+	Temperature_Max_Min_t ESC_Mosfets_Side_Temp_Rec;
+	Temperature_Max_Min_t ESC_Capacitor_Temp_Rec;
+	Temperature_Max_Min_t Motor_Temp_Rec;
+	float                 Res_Max_Rec;
 	EnumUdsBRPNRC           Response_Code;
 	EnumDiagnosticSessionBRP DiagnosticSession;
 	EnumUdsBRPNRC (*RDBI_Function) (UdsDIDParameter_e , LinkLayerCtrlUnit_t *, LinkLayerCtrlUnit_t *);
@@ -272,6 +283,11 @@ typedef struct
 	0,                     /*BRPSessionCNT*/\
 	0,                     /*BRPECUSoftResetEnable*/\
 	0,                     /*FalseAccessExceedLimitCNT*/\
+	{ -999,999 },               /*ESC_Mosfets_Center_Temp_Rec*/\
+    { -999,999 },               /*ESC_Mosfets_Side_Temp_Rec; */\
+    { -999,999 },               /*ESC_Capacitor_Temp_Rec;    */\
+    { -999,999 },               /*Motor_Temp_Rec;            */\
+	0,                     /*Res_Max_Rec;               */\
 	NRC_0x00_PR,           /*Response_Code*/\
 	Session_0x01_DS,      /*DiagnosticSession*/\
 	0,                     /*RDBI_Function*/\

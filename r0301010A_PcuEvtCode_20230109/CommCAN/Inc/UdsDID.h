@@ -74,7 +74,7 @@ typedef enum
 	DID_0xC02A_Motor_Lq                                             = 0xC02A,
 	DID_0xC02B_Motor_Flux                                           = 0xC02B,
 	DID_0xC02C_ESC_Internal_circuit_voltage                         = 0xC02C,
-	DID_0xC02D_Current_Command_Limit                                = 0xC02D,
+	DID_0xC02D_DC_Current_Limit                                     = 0xC02D,
 	DID_0xC02E_Temperature_Max                                      = 0xC02E,
 	DID_0xC02F_Foil_Position_State                                  = 0xC02F,
 	DID_0xC030_Tether_Cord_State                                    = 0xC030,
@@ -192,7 +192,7 @@ typedef struct
 {
 	UdsDIDTemperatureMaxItem_e Temperature_Max_Item;
 	float   Temperature_Max_Value;
-}UdsDIDTemperatureMax_e;
+}UdsDIDTemperatureMax_t;
 
 typedef struct
 {

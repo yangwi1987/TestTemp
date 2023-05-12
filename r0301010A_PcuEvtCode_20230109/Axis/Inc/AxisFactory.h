@@ -101,6 +101,7 @@ typedef struct {
 	int16_t AxisID;
 	uint16_t PcuID;
 	uint16_t PIDCheckResult;
+	uint16_t ESCOperationState;
 	int16_t ServoOn;
 	int16_t ServoOnOffState;
 	uint16_t HasWarning;
@@ -143,40 +144,41 @@ typedef struct {
 } Axis_t;
 
 #define AXIS_DEFAULT { \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	100,	\
-	10,	\
-	1, \
-	0, \
-	0, \
-	0.0f, \
-	0, \
-	0, \
-	PowerOnOff_Initial, \
-	{0}, \
-	0,	\
-	MOTOR_CONTROL_DEFAULT, \
-	PWM_RC_TYPE_DEFAULT, \
-	TORQ_COMMAND_GENERTATOR_DEFAULT, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
+	0,      /*AxisID;             */ \
+	0,      /* PcuID;             */ \
+	0,      /* PIDCheckResult;    */ \
+	0,      /*ESCOperationState   */ \
+	0,      /*ServoOn;            */ \
+	0,      /*ServoOnOffState;    */ \
+	0,      /* HasWarning;        */ \
+	0,      /* HasAlarm;          */ \
+	0,      /*BootstrapCounter;   */ \
+	100,	/*BootstrapMaxCounter;*/ \
+	10,     /*BoostrapTimeMs;     */ \
+	1,      /*MotorCtrlMode;      */ \
+	0,      /*CtrlUiEnable;       */ \
+	0,      /*VCUServoOnCommand;  */ \
+	0.0f,   /*ThrottleGain*/ \
+	0,      /*ThrottleGainState;*/ \
+	0,      /*DcBusGainState;   */ \
+	PowerOnOff_Initial,    /*PcuPowerState;       */\
+	{0},                   /*    FoilState;       */\
+	0,	                   /* TriggerLimpHome;    */\
+	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\
+	PWM_RC_TYPE_DEFAULT,   /*   	PwmRc;        */\
+	TORQ_COMMAND_GENERTATOR_DEFAULT, /*TorqCommandGenerator*/\
+	0, /* pAlarmStack; */\
+	0, /* *pDriveParams*/\
+	0, /*pAdcStation;  */\
+	0, /*pPwmStation;  */\
+	0, /*pCANStaion*/\
 	ALARM_DETECT_DEFAULT, \
 	THROTTLE_CALIB_DEFAULT, \
 	FOURQUADCONTROL_DEFAULT, \
 	MOTORSTALL_DEFAULT, \
 	THERMOSTRATEGY_DEFAULT, \
-	0, \
-	0, \
+	0,                             /*pCANTxInterface*/\
+	0,                             /*pCANRxInterface*/\
 	PHASE_LOSS_DEFAULT,	\
 	SPEED_INFO_DEFAULT,	\
 	(functypeAxis_Init)AxisFactory_Init, \
