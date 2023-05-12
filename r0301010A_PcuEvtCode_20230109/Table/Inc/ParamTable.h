@@ -145,12 +145,12 @@ typedef struct {
 	uint16_t Reserved127;	//P1-27
 	uint16_t Reserved128;	//P1-28
 	uint16_t Reserved129;	//P1-29
-	uint16_t Reserved130;	//P1-30
-	uint16_t Reserved131;	//P1-31
-	uint16_t Reserved132;	//P1-32
-	uint16_t Reserved133;	//P1-33
-	uint16_t Reserved134;	//P1-34
-	uint16_t Reserved135;	//P1-35
+	uint16_t MaxAnalogFoilADC;	//P1-30
+	uint16_t MinAnalogFoilADC;	//P1-31
+	uint16_t MaxAnaFoilSenSurf0p1V;	//P1-32
+	uint16_t MinAnaFoilSenSurf0p1V;	//P1-33
+	uint16_t MaxAnaFoilSenFoil0p1V;	//P1-34
+	uint16_t MinAnaFoilSenFoil0p1V;	//P1-35
 	uint16_t Reserved136;	//P1-36
 	uint16_t Reserved137;	//P1-37
 	uint16_t Reserved138;	//P1-38
