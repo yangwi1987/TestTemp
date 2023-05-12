@@ -8,6 +8,7 @@
 #include "AlarmDetect.h"
 #include "RcUartComm.h"
 #define ABS(x) 	( (x) > 0 ? (x) : -(x) )
+extern uint16_t IsUseDigitalFoilSensor;
 
 static uint16_t AlarmDetect_Accumulation( AlarmDetect_t *v, PROTECT_POLLING_TYPE *p, int Signal )
 {
@@ -165,9 +166,16 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->RC_ABNORMAL.Counter = 0;
 #if USE_FOIL_ABNORMAL_DETECT
 	v->FOIL_SENSOR_BREAK.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_FOIL_BREAK];
+	v->FOIL_SENSOR_BREAK.AlarmInfo.AlarmThreshold = DriveParams.SystemParams.MinAnalogFoilADC;
 	v->FOIL_SENSOR_BREAK.Counter = 0;
 	v->FOIL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_FOIL_SHORT];
+	v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmThreshold = DriveParams.SystemParams.MaxAnalogFoilADC;
 	v->FOIL_SENSOR_SHORT.Counter = 0;
+	if(IsUseDigitalFoilSensor==1)
+	{
+		v->FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+		v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	}
 #endif
 	v->Do100HzLoop = (functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop;
 }

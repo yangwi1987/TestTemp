@@ -58,6 +58,7 @@ NetWorkService_t IntranetCANStation = NetWorkService_t_Default;
 MFStation MFStation1 = MF_STATION_DEFAULT;
 UdsSecurityAccessCtrl_t PcuAuthorityCtrl = UDS_SECURITY_ACCESS_CTRL_DEFAULT;
 uint16_t IsPcuInitReady = PcuInitState_Inital;
+uint16_t IsUseDigitalFoilSensor = 0;
 IntFlashCtrl_t IntFlashCtrl = INT_FLASH_CTRL_DEFAULT;
 // Declare total time
 TotalTime_t TotalTime1 = TOTAL_TIME_DEFAULT;
@@ -631,6 +632,9 @@ void drive_Init(void)
 	// Read Parameter From IntFlash / ExtFlash ( except for MR)
 	// TODO when add motor2 parameters, check if the check sum mechanism is still OK?
 	ParamMgr1.Init( &ParamMgr1, &ExtFlash1 );
+
+	// set flag after DriveParam has been updated. and before AlarmDetect init.
+	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
 
 	// notice that: parameters in each axis have to be independent.
 	for ( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )

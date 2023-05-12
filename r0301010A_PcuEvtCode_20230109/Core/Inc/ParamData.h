@@ -102,6 +102,13 @@
 #define PN_THROT_SHORT_BOUNDARY		124
 #define PN_THROT_BREAK_BOUNDARY		125
 
+#define PN_Max_Analog_Foil_ADC		130
+#define PN_Min_Analog_Foil_ADC		131
+#define PN_Max_AnaFoil_Sen_Surf		132
+#define PN_Min_AnaFoil_Sen_Surf		133
+#define PN_Max_AnaFoil_Sen_Foil		134
+#define PN_Min_AnaFoil_Sen_Foil		135
+
 #define PN_HIGH_PWM_SPEED			180
 #define PN_LOW_PWM_SPEED			181
 #define PN_PWM_FREQ_TIMES_N			182
