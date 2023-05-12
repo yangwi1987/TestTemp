@@ -15,10 +15,7 @@
 static uint8_t CurrToPLCCnt = 0;
 extern uint16_t IsUseDigitalFoilSensor;
 
-float MaxAnaSurf = 0.0f;
-float MinAnaSurf = 0.0f;
-float MaxAnaFoil = 0.0f;
-float MinAnaFoil = 0.0f;
+AnalogFoilInfo_t AnalogFoil1 = ANALOG_FOIL_INFO_DEFAULT;
 
 void AxisSync_SyncFourQuadParams( Axis_t *v )
 {
@@ -521,10 +518,10 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 	v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
 
 	// Init analog foil sensor boundary
-	 MaxAnaSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
-	 MinAnaSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
-	 MaxAnaFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
-	 MinAnaFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
+	AnalogFoil1.MaxSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
+	AnalogFoil1.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
+	AnalogFoil1.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
+	AnalogFoil1.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )
@@ -682,11 +679,11 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 	else // use digital foil sensor
 	{
 #if USE_ANALOG_FOIL_SENSOR_FUNC
-		if( ( v->pAdcStation->AdcTraOut.Foil >= MinAnaFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= MaxAnaFoil  ) )  // Foil mode
+		if( ( v->pAdcStation->AdcTraOut.Foil >= AnalogFoil1.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= AnalogFoil1.MaxFoil  ) )  // Foil mode
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
 		}
-		else if ( ( v->pAdcStation->AdcTraOut.Foil >= MinAnaSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= MaxAnaSurf ) )	// Surf mode
+		else if ( ( v->pAdcStation->AdcTraOut.Foil >= AnalogFoil1.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= AnalogFoil1.MaxSurf ) )	// Surf mode
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
 		}

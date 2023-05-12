@@ -91,6 +91,17 @@ typedef struct
 	uint16_t Reserved:14;
 }FoilInfor_t;
 
+
+
+typedef struct
+{
+	float MaxSurf;
+	float MinSurf;
+	float MaxFoil;
+	float MinFoil;
+}AnalogFoilInfo_t;
+
+
 typedef union
 {
 	uint16_t All;
@@ -187,6 +198,13 @@ typedef struct {
 	(functypeAxis_OnParamValueChanged)AxisFactory_OnParamValueChanged \
 }
 #endif
+
+#define ANALOG_FOIL_INFO_DEFAULT { \
+	0.0f, \
+	0.0f, \
+	0.0f, \
+	0.0f, \
+}
 
 void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex );
 void AxisFactory_DoCurrentLoop( Axis_t *v );
