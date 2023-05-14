@@ -145,6 +145,7 @@ typedef struct {
 	STRUCT_CANRxInterface	*pCANRxInterface;
 	PHASE_LOSS_TYPE	PhaseLoss;
 	SpeedInfo_t SpeedInfo;
+	AnalogFoilInfo_t AnalogFoilInfo;
 	functypeAxis_Init Init;
 	functypeAxis_DoCurrentLoop DoCurrentLoop;
 	functypeAxis_DoPLCLoop DoPLCLoop;
@@ -190,6 +191,7 @@ typedef struct {
 	0, \
 	PHASE_LOSS_DEFAULT,	\
 	SPEED_INFO_DEFAULT,	\
+	ANALOG_FOIL_INFO_DEFAULT, \
 	(functypeAxis_Init)AxisFactory_Init, \
 	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
 	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \
