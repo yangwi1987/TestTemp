@@ -102,6 +102,25 @@ static void AlarmDetect_PowerICOverCurrent( AlarmDetect_t *v, PROTECT_POLLING_TY
 	}
 }
 
+static void SetAlarmThreshold(PROTECT_POLLING_TYPE *v, uint16_t index)
+	{
+	        //index = index + 100; // shift start address P2-00 to P3-00
+	// set threshold from external flash (P3-00~P3-xx)
+	// This function sholud be executed after ParamMgr1.Init
+	if (v->AlarmInfo.AlarmType == ALARM_TYPE_WARNING)
+	{
+		//v.AlarmInfo.WarningCounter = &DriveParams.PCUParams.Reserved304;
+		v->AlarmInfo.WarningCounter = *(&DriveParams.PCUParams.Reserved300 + index);
+		v->AlarmInfo.ErrorCounter = ALARM_COUNTER_MAX;
+	}
+	else
+	{
+		v->AlarmInfo.WarningCounter = ALARM_COUNTER_MAX;
+		//v.AlarmInfo.ErrorCounter =	DriveParams.PCUParams.Reserved304;
+		v->AlarmInfo.ErrorCounter = *(&DriveParams.PCUParams.Reserved300 + index);
+	}
+}
+
 void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStation,
 		PwmStation *pPwmStation,
 		PHASE_LOSS_TYPE *pPhaseLoss, MOTOR_CONTROL_TYPE *pMotorControl, SpeedInfo_t *pSpeedInfo, PWM_RC_TYPE *pPwmRc  )
@@ -177,6 +196,45 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 		v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	}
 #endif
+
+	// set threshold from external flash (P3-00~P3-99)
+	// This function sholud be executed after ParamMgr1.Init, P3-00 is index 0. Max P3-99 is index 0x63
+
+	//SetAlarmThreshold(&v->CAN1Timeout, ALARMID_CAN1_TIMEOUT);
+	//SetAlarmThreshold(&v->CAN1Timeout, 104);
+	//SetAlarmThreshold(&v->RC_ABNORMAL, ALARMID_RC_ABNORMAL);
+
+	//
+	SetAlarmThreshold(&v->UVP_Bus, ALARMID_UNDER_VOLTAGE_BUS);
+	SetAlarmThreshold(&v->OVP_Bus, ALARMID_OVER_VOLTAGE_BUS);
+	//SetAlarmThreshold(&v->OCP_Iu, ALARMID_IU_OCP);
+	//SetAlarmThreshold(&v->OCP_Iv, ALARMID_IV_OCP);
+	//SetAlarmThreshold(&v->OCP_Iw, ALARMID_IW_OCP);
+	SetAlarmThreshold(&v->OSP, ALARMID_MOTOR_OVER_SPEED);
+	SetAlarmThreshold(&v->OTP_PCU_0, ALARMID_OT_PCU_0);
+	SetAlarmThreshold(&v->OTP_PCU_1, ALARMID_OT_PCU_1);
+	SetAlarmThreshold(&v->OTP_PCU_2, ALARMID_OT_PCU_2);
+	SetAlarmThreshold(&v->OTP_Motor_0, ALARMID_OT_MOTOR_0);
+	SetAlarmThreshold(&v->BUF_IC_FB, ALARMID_BUFFER_IC_ERROR);
+	SetAlarmThreshold(&v->UVP_13V, ALARMID_UNDER_VOLTAGE_13V);
+	SetAlarmThreshold(&v->BREAK_NTC_PCU_0, ALARMID_BREAK_NTC_PCU_0);
+	SetAlarmThreshold(&v->BREAK_NTC_PCU_1, ALARMID_BREAK_NTC_PCU_1);
+	SetAlarmThreshold(&v->BREAK_NTC_PCU_2, ALARMID_BREAK_NTC_PCU_2);
+	SetAlarmThreshold(&v->BREAK_NTC_Motor_0, ALARMID_BREAK_NTC_MOTOR_0);
+	SetAlarmThreshold(&v->SHORT_NTC_PCU_0, ALARMID_SHORT_NTC_PCU_0);
+	SetAlarmThreshold(&v->SHORT_NTC_PCU_1, ALARMID_SHORT_NTC_PCU_1);
+	SetAlarmThreshold(&v->SHORT_NTC_PCU_2, ALARMID_SHORT_NTC_PCU_2);
+	SetAlarmThreshold(&v->SHORT_NTC_Motor_0, ALARMID_SHORT_NTC_MOTOR_0);
+	SetAlarmThreshold(&v->POWER_TRANSISTOR_OC, ALARMID_POWER_TRANSISTOR_OC);
+	//SetAlarmThreshold(&v->CAN0Timeout, ALARMID_CAN1_TIMEOUT);
+	SetAlarmThreshold(&v->CAN1Timeout, ALARMID_CAN1_TIMEOUT);
+	//SetAlarmThreshold(&v->THROT_ERROR_SHORT, ALARMID_CAN1_TIMEOUT);
+	//SetAlarmThreshold(&v->THROT_ERROR_BREAK, ALARMID_CAN1_TIMEOUT);
+	SetAlarmThreshold(&v->RC_ABNORMAL, ALARMID_RC_ABNORMAL);
+	SetAlarmThreshold(&v->FOIL_SENSOR_BREAK, ALARMID_FOIL_BREAK);
+	SetAlarmThreshold(&v->FOIL_SENSOR_SHORT, ALARMID_FOIL_SHORT);
+	//
+
 	v->Do100HzLoop = (functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop;
 }
 

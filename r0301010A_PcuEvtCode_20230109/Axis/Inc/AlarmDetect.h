@@ -55,6 +55,7 @@ typedef void (*functypeAlarmDetect_DoCurrentLoop)(void*);
 typedef void (*functypeAlarmDetect_DoPLCLoop)(void*);
 typedef void (*functypeAlarmDetect_Do100HzLoop)(void*);
 
+// add SetAlarmThreshold to change threshold from external flash
 typedef struct {
 	int AxisID;
 	AdcStation *pAdcStation;
