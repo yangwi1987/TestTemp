@@ -15,8 +15,6 @@
 static uint8_t CurrToPLCCnt = 0;
 extern uint16_t IsUseDigitalFoilSensor;
 
-AnalogFoilInfo_t AnalogFoil1 = ANALOG_FOIL_INFO_DEFAULT;
-
 void AxisSync_SyncFourQuadParams( Axis_t *v )
 {
 	v->FourQuadCtrl.Init( &v->FourQuadCtrl );
@@ -518,10 +516,10 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 	v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
 
 	// Init analog foil sensor boundary
-	AnalogFoil1.MaxSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
-	AnalogFoil1.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
-	AnalogFoil1.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
-	AnalogFoil1.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
+	v->AnalogFoilInfo.MaxSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
+	v->AnalogFoilInfo.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
+	v->AnalogFoilInfo.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
+	v->AnalogFoilInfo.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )
@@ -685,11 +683,11 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 	else // use digital foil sensor
 	{
 #if USE_ANALOG_FOIL_SENSOR_FUNC
-		if( ( v->pAdcStation->AdcTraOut.Foil >= AnalogFoil1.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= AnalogFoil1.MaxFoil  ) )  // Foil mode
+		if( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxFoil  ) )  // Foil mode
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
 		}
-		else if ( ( v->pAdcStation->AdcTraOut.Foil >= AnalogFoil1.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= AnalogFoil1.MaxSurf ) )	// Surf mode
+		else if ( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxSurf ) )	// Surf mode
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
 		}
