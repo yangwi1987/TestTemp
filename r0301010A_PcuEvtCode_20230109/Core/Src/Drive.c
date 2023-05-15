@@ -985,23 +985,27 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
         	break;
         }
+        case DID_0xC100_This_Driving_Cycle_Information  :
+        {
+        	break;
+        }
         case DID_0xC200_Last_Driving_Cycle_Information_1  :
         {
         	break;
         }
-        case DID_0xC200_Last_Driving_Cycle_Information_2  :
+        case DID_0xC201_Last_Driving_Cycle_Information_2  :
         {
         	break;
         }
-        case DID_0xC200_Last_Driving_Cycle_Information_3  :
+        case DID_0xC202_Last_Driving_Cycle_Information_3  :
         {
         	break;
         }
-        case DID_0xC200_Last_Driving_Cycle_Information_4  :
+        case DID_0xC203_Last_Driving_Cycle_Information_4  :
         {
         	break;
         }
-        case DID_0xC200_Last_Driving_Cycle_Information_5  :
+        case DID_0xC204_Last_Driving_Cycle_Information_5  :
         {
         	break;
         }
@@ -1733,6 +1737,7 @@ void drive_DoHouseKeeping(void)
         	}
         }
 	}
+
 }
 
 void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT )

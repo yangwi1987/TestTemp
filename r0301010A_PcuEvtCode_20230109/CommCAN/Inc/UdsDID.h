@@ -90,6 +90,8 @@ typedef enum
 	DID_0xC03A_Estimated_Time_Remaining                             = 0xC03A,
 	DID_0xC03B_Foil_Position_Voltage                                = 0xC03B,
 
+	DID_0xC100_This_Driving_Cycle_Information                       = 0xC100,
+
 	DID_0xC200_Last_Driving_Cycle_Information_1                     = 0xC200,
 	DID_0xC201_Last_Driving_Cycle_Information_2                     = 0xC201,
 	DID_0xC202_Last_Driving_Cycle_Information_3                     = 0xC202,
@@ -233,7 +235,7 @@ typedef struct
     float    Maximum_Torque;
     float    Average_Torque;
 }UdsDIDLastDrivingCycleInfo_t;
-
+_Static_assert( sizeof(UdsDIDLastDrivingCycleInfo_t) == 28, "error");
 
 
 typedef struct
