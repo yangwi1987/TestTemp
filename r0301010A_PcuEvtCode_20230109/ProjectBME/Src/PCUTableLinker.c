@@ -313,10 +313,10 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		THRE_MAX,		175,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
 				{		0,		THRE_MAX,		4075,		0x45,		&DriveParams.PCUParams.Reserved358},	//P3-58 ALARMID_BREAK_NTC_MOTOR_0
 				{		0,		THRE_MAX,		200,		0x45,		&DriveParams.PCUParams.Reserved359},	//P3-59 ALARMID_SHORT_NTC_MOTOR_0
-				{		0,		0,		0,		0,		0},	//P3-60
-				{		0,		0,		0,		0,		0},	//P3-61
-				{		0,		0,		0,		0,		0},	//P3-62
-				{		0,		0,		0,		0,		0},	//P3-63
+				{		0,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
+				{		0,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
+				{		0,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
+				{		0,		THRE_MAX,		170,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
 				{		0,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved364},	//P3-64 ALARMID_MOTORSTALL
 				{		0,		0,		0,		0,		0},	//P3-65
 				{		0,		0,		0,		0,		0},	//P3-66
