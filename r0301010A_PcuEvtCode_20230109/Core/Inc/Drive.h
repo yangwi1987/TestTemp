@@ -33,9 +33,6 @@
 #include "RcUartComm.h"
 #include "DiagnosticTroubleCode.h"
 
-#define MAX2(a,b)  ( ((a) >= (b)) ? (a) : (b) )
-#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
-
 typedef struct {
 	uint32_t PWMCounter;
 	uint32_t ADCCounter;

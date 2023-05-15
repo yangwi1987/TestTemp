@@ -9,6 +9,8 @@
 #include "UiApp.h"
 #include "Drive.h"
 #define ABS(x) 	( (x) > 0 ? (x) : -(x) )
+#define MAX2(a,b)  ( ((a) >= (b)) ? (a) : (b) )
+#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
 
 /*
  * Header Information
@@ -981,6 +983,30 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC03B_Foil_Position_Voltage                 :
         {
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+        	break;
+        }
+        case DID_0xC200_Last_Driving_Cycle_Information_1  :
+        {
+        	break;
+        }
+        case DID_0xC200_Last_Driving_Cycle_Information_2  :
+        {
+        	break;
+        }
+        case DID_0xC200_Last_Driving_Cycle_Information_3  :
+        {
+        	break;
+        }
+        case DID_0xC200_Last_Driving_Cycle_Information_4  :
+        {
+        	break;
+        }
+        case DID_0xC200_Last_Driving_Cycle_Information_5  :
+        {
+        	break;
+        }
+        case DID_0xC205_Time_Spent_Over_Speed_Derating_Occurred_during_Vehicle_Life  :
+        {
         	break;
         }
         default:
