@@ -32,7 +32,6 @@
 #include "PWM_RC.h"
 #include "RcUartComm.h"
 #include "DiagnosticTroubleCode.h"
-#include "UdsDID.h"
 
 #define MAX2(a,b)  ( ((a) >= (b)) ? (a) : (b) )
 #define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
