@@ -362,7 +362,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			0,			0,			0,		0},	//P1-28
 				{		0,			0,			0,			0,		0},	//P1-29
 				{	 2000,		 4095,SHORT_FOIL_ADC ,	 0x41,		&DriveParams.SystemParams.MaxAnalogFoilADC},	//P1-30
-				{		0,		 2000,BREAK_FOIL_ADC ,	 0x41,		&DriveParams.SystemParams.MinAnalogFoilADC},	//P1-31
+				{		1,		 2000,BREAK_FOIL_ADC ,	 0x41,		&DriveParams.SystemParams.MinAnalogFoilADC},	//P1-31
 				{	    3,	  	   51,		  13,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenSurf0p1V},	//P1-32
 				{	    3,	  	   51,		  5,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenSurf0p1V},	//P1-33
 				{	    3,	  	   51,		  36,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenFoil0p1V},	//P1-34
