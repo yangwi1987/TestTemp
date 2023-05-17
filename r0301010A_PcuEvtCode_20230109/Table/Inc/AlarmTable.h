@@ -60,7 +60,7 @@
 
 #define ALARMID_MOTORSTALL				0x40
 
-#define ALARMID_RC_ABNORMAL				0x62
+#define ALARMID_RC_INVALID				0x62
 
 
 enum E_ALARM_ENABLE {

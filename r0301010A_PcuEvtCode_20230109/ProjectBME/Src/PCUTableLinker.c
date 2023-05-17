@@ -253,6 +253,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P2-97
 				{		0,		0,		0,		0,		0},	//P2-98
 				{		0,		0,		0,		0,		0},	//P2-99
+				// Min "1" to avoid read 0, because SW ver 3.E.1.2 save external flash all 0 in P3-00~P3-99 while ctrl board manufacturing.
 				{		0,		0,		0,		0,		0},	//P3-00 alarm threshold parameter start, todo min set 1 to prevent old flash data is 0(before 3.1.1.D or3.E.1.2), and modify threshold to 0.
 				{		0,		0,		0,		0,		0},	//P3-01
 				{		0,		0,		0,		0,		0},	//P3-02
@@ -263,25 +264,25 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-07
 				{		0,		0,		0,		0,		0},	//P3-08
 				{		0,		0,		0,		0,		0},	//P3-09
-				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved310},	//P3-10 ALARMID_POWER_TRANSISTOR_OC
-				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved311},	//P3-11 ALARMID_BUFFER_IC_ERROR
-				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved312},	//P3-12 ALARMID_PHASE_LOSS
-				{		1,		THRE_MAX,		8000,		0x45,		&DriveParams.PCUParams.Reserved313},	//P3-13 ALARMID_MOTOR_OVER_SPEED
-				{		1,		THRE_MAX,		62,		0x45,		&DriveParams.PCUParams.Reserved314},	//P3-14 ALARMID_OVER_VOLTAGE_BUS
-				{		1,		THRE_MAX,		36,		0x45,		&DriveParams.PCUParams.Reserved315},	//P3-15 ALARMID_UNDER_VOLTAGE_BUS
-				{		1,		THRE_MAX,		10,		0x45,		&DriveParams.PCUParams.Reserved316},	//P3-16 ALARMID_UNDER_VOLTAGE_13V
-				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved317},	//P3-17 ALARMID_IU_OCP
-				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved318},	//P3-18 ALARMID_IV_OCP
-				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_IW_OCP
-				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved320},	//P3-20 ALARMID_FLASH_UNINITIALIZED
-				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_FLASH_READ_FAILED
-				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved322},	//P3-22 ALARMID_FLASH_DAMAGED
-				{		0,		0,		0,		0,		0},	//P3-23
-				{		0,		0,		0,		0,		0},	//P3-24
-				{		0,		0,		0,		0,		0},	//P3-25
-				{		0,		0,		0,		0,		0},	//P3-26
-				{		0,		0,		0,		0,		0},	//P3-27
-				{		0,		0,		0,		0,		0},	//P3-28
+				{		0,		0,		0,		0,		0},	//P3-10
+				{		0,		0,		0,		0,		0},	//P3-11
+				{		0,		0,		0,		0,		0},	//P3-12
+				{		0,		0,		0,		0,		0},	//P3-13
+				{		0,		0,		0,		0,		0},	//P3-14
+				{		0,		0,		0,		0,		0},	//P3-15
+				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved316},	//P3-16 ALARMID_POWER_TRANSISTOR_OC
+				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved317},	//P3-17 ALARMID_BUFFER_IC_ERROR
+				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved318},	//P3-18 ALARMID_PHASE_LOSS
+				{		1,		THRE_MAX,		8000,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
+				{		1,		THRE_MAX,		62,				0x45,		&DriveParams.PCUParams.Reserved320},	//P3-20 ALARMID_OVER_VOLTAGE_BUS
+				{		1,		THRE_MAX,		36,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
+				{		1,		THRE_MAX,		10,				0x45,		&DriveParams.PCUParams.Reserved322},	//P3-22 ALARMID_UNDER_VOLTAGE_13V
+				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved323},	//P3-23 ALARMID_IU_OCP
+				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved324},	//P3-24 ALARMID_IV_OCP
+				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved325},	//P3-25 ALARMID_IW_OCP
+				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved326},	//P3-26 ALARMID_FLASH_UNINITIALIZED
+				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved327},	//P3-27 ALARMID_FLASH_READ_FAILED
+				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved328},	//P3-28 ALARMID_FLASH_DAMAGED
 				{		0,		0,		0,		0,		0},	//P3-29
 				{		0,		0,		0,		0,		0},	//P3-30
 				{		0,		0,		0,		0,		0},	//P3-31
@@ -351,7 +352,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-95
 				{		0,		0,		0,		0,		0},	//P3-96
 				{		0,		0,		0,		0,		0},	//P3-97
-				{		1,		THRE_MAX,		9,		0x45,		&DriveParams.PCUParams.Reserved398},	//P3-98 ALARMID_RC_ABNORMAL
+				{		1,		THRE_MAX,		9,		0x45,		&DriveParams.PCUParams.Reserved398},	//P3-98 ALARMID_RC_INVALID
 				{		0,		0,		0,		0,		0}	//P3-99
 		},
 
