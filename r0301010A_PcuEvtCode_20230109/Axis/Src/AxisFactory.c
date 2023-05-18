@@ -64,12 +64,6 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 
 #if (BME & EVT)
 
-	if( v->TriggerLimpHome == 1)
-	{
-		v->pCANRxInterface->OutputModeCmd = 0;
-	}
-
-
 	if(v->pCANTxInterface->DebugU8[IDX_BMS_COMM_ENABLE] == 0){
 		v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS = ENABLE;
 	}
@@ -235,6 +229,7 @@ static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 	}
 }
 
+// This function execute in current loop.
 void AxisFactory_RunMotorStateMachine( Axis_t *v )
 {
 	// invalid condition
@@ -253,8 +248,21 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
 			v->BootstrapCounter = 0;
 			if( ServoOnEnable && v->pAdcStation->ZeroCalibInjDone )
 			{
-				v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-				AxisFactory_ConfigAlarmSystem( v );
+				if( v->RequestResetWarningCNT == 1 )
+				{
+					v->RequestResetWarningCNT = 2; // Start to reset warning.
+					// Do ResetWarnning in HouseKeeping.
+				}
+
+				if( v->RequestResetWarningCNT == 0 ) // No warning or warning have been reset
+				{
+					v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+					AxisFactory_ConfigAlarmSystem( v );
+
+					// Disable trigger after warning reset one time during servo on.
+					// However TN mode change in PLC loop.
+					v->TriggerLimpHome = 0;
+				}
 			}
 			else
 			{
@@ -263,7 +271,8 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
 			break;
 
 		case MOTOR_STATE_WAIT_BOOT:
-		if( ServoOnEnable ) {
+		if( ServoOnEnable )
+		{
 				if( v->BootstrapCounter >= v->BootstrapMaxCounter )
 				{
 					v->ServoOnOffState = MOTOR_STATE_ON;
@@ -284,14 +293,14 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
 					}
 					v->BootstrapCounter++;
 				}
-			}
-			else
-			{
-				v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
-				v->pPwmStation->AxisChannelLock( v->pPwmStation, v->AxisID - 1 );
-				AxisFactory_ConfigAlarmSystem( v );
-			}
-			break;
+		}
+		else
+		{
+			v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
+			v->pPwmStation->AxisChannelLock(v->pPwmStation, v->AxisID - 1);
+			AxisFactory_ConfigAlarmSystem(v);
+		}
+		break;
 
 		case MOTOR_STATE_ON:
 			if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
@@ -692,6 +701,12 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 #endif
 	}
 
+	// Rewrite TN to limp home mode (TN0), no matter which kind of foil sensor.
+	if( v->TriggerLimpHome == 1)
+	{
+		v->pCANRxInterface->OutputModeCmd = 0;
+	}
+
 
 
 	// Update scooter speed for report
@@ -824,13 +839,24 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
 			v->MotorStall.Calc( &v->MotorStall, MaxABSPhaseCurrent, ABS(v->SpeedInfo.MotorMechSpeedRPM) );
 			if( v->MotorStall.IsMotorStall ) //todo AlarmDetect.Do100Hzloop
 			{
-				v->AlarmDetect.RegisterAxisAlarm( &v->AlarmDetect, ALARMID_MOTORSTALL, ALARM_TYPE_ERROR );
+				v->AlarmDetect.RegisterAxisAlarm( &v->AlarmDetect, ALARMID_MOTORSTALL, SystemTable.AlarmTableInfo[ALARMID_MOTORSTALL].AlarmType );
 			}
 		}
 	}
 	else
 	{
 		v->MotorStall.Reset( &v->MotorStall );
+	}
+
+	// Trigger limp home mode in 100Hz loop.
+	// TN mode change in PLC loop.
+	if(v->HasWarning == 1 /* todo && SOC <20%*/)
+	{
+		v->TriggerLimpHome = 1;
+	}
+	else
+	{
+		v->TriggerLimpHome = 0;
 	}
 }
 
@@ -843,9 +869,5 @@ void AxisFactory_Do10HzLoop( Axis_t *v )
 #else
 		v->ThermoStrategy.ACCurrentLimitOut = MAX_AC_PHASE_CURRENT;
 #endif
-	}
-	if( v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_2] >= 110.0f )
-	{
-		v->TriggerLimpHome = 1;
 	}
 }

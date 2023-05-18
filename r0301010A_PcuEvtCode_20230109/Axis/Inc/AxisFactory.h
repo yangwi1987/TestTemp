@@ -116,6 +116,7 @@ typedef struct {
 	int16_t ServoOnOffState;
 	uint16_t HasWarning;
 	uint16_t HasAlarm;
+	uint16_t RequestResetWarningCNT;
 	int16_t BootstrapCounter;
 	int16_t BootstrapMaxCounter;
 	int16_t BoostrapTimeMs;
@@ -155,6 +156,7 @@ typedef struct {
 } Axis_t;
 
 #define AXIS_DEFAULT { \
+	0, \
 	0, \
 	0, \
 	0, \

@@ -13,6 +13,8 @@ extern AlarmMgr_t AlarmMgr1;
 		Array = AlarmID >> 4; \
 		Bit = AlarmID & 0x000F; \
 
+static uint16_t WarningBitArray = 0; // Indicate the warning index of alarmStack
+
 static void AlarmStack_FlagSet( AlarmStack_t *p, uint16_t AlarmID )
 {
 	uint16_t Array = 0;
@@ -21,13 +23,13 @@ static void AlarmStack_FlagSet( AlarmStack_t *p, uint16_t AlarmID )
 	p->AlarmFlag[Array] |= (((uint16_t)1)<<Bit);
 }
 
-//static void AlarmStack_FlagUnset( AlarmStack_t *p, uint16_t AlarmID )
-//{
-//	uint16_t Array = 0;
-//	uint16_t Bit = 0;
-//	ALARM_FLAG_POS_MACRO( AlarmID, Array, Bit )
-//	p->AlarmFlag[Array] &= ~(((uint16_t)1)<<Bit);
-//}
+static void AlarmStack_FlagUnset( AlarmStack_t *p, uint16_t AlarmID )
+{
+	uint16_t Array = 0;
+	uint16_t Bit = 0;
+	ALARM_FLAG_POS_MACRO( AlarmID, Array, Bit )
+	p->AlarmFlag[Array] &= ~((uint16_t)((0x0001)<<Bit));
+}
 
 uint16_t AlarmStack_FlagRead( AlarmStack_t *p, uint16_t AlarmID )
 {
@@ -60,6 +62,10 @@ void UpdateAlarmStack( uint16_t AxisIndex, uint16_t AlarmID )
 	else
 	{
 		pAlarmStack->NowAlarmID[pAlarmStack->TopIndicator] = AlarmID;
+		if(SystemTable.AlarmTableInfo[AlarmID].AlarmType == ALARM_TYPE_WARNING)
+		{
+			WarningBitArray |= 1 << pAlarmStack->TopIndicator;
+		}
 		pAlarmStack->TopIndicator++;
 		AlarmStack_FlagSet( pAlarmStack, AlarmID );
 	}
@@ -87,6 +93,10 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 			{
 				case ALARM_TYPE_WARNING:
 					*v->pHasWarning[i] = 1;
+					if(*AlarmMgr1.pRequestResetWarningCNT[i] == 0)
+					{
+						*AlarmMgr1.pRequestResetWarningCNT[i] = 1;
+					}
 					break;
 
 				case ALARM_TYPE_ERROR:
@@ -112,6 +122,7 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 		{
 			case ALARM_TYPE_WARNING:
 				*v->pHasWarning[TargetIndex] = 1;
+				*v->pRequestResetWarningCNT[TargetIndex] = 1;
 				break;
 
 			case ALARM_TYPE_ERROR:
@@ -148,6 +159,10 @@ static void RegisterAxisAlarmStatic( uint16_t AxisID, uint16_t AlarmID, uint16_t
 
 			case ALARM_TYPE_WARNING:
 				*AlarmMgr1.pHasWarning[AxisIndex] = 1;
+				if(*AlarmMgr1.pRequestResetWarningCNT[AxisIndex] == 0)
+				{
+					*AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = 1;
+				}
 				break;
 
 			case ALARM_TYPE_ERROR:
@@ -171,6 +186,29 @@ void RegisterAxisAlarm( AlarmDetect_t *v, uint16_t AlarmID, uint16_t AlarmType )
 	RegisterAxisAlarmStatic( v->AxisID, AlarmID, AlarmType );
 }
 
+uint16_t removeZeros(uint16_t arr[], int LengthOfArray)
+{
+	uint16_t TopIndex = 0;
+	uint16_t i;
+
+	// remove zeros and filled by the later numbers
+    for ( i = 0; i < LengthOfArray; i++ )
+    {
+        if (arr[i] != 0)
+        {
+        	arr[TopIndex] = arr[i];
+        	TopIndex++;
+        }
+    }
+
+    // clear the rest of numbers
+    for( i = TopIndex; i < LengthOfArray; i++ )
+    {
+    	arr[i] = 0;
+    }
+    return TopIndex;
+}
+
 void ResetAllAlarm( AlarmMgr_t *v )
 {
 	// Only if PCU stop register alarm, then PCU can reset alarm.
@@ -192,4 +230,35 @@ void ResetAllAlarm( AlarmMgr_t *v )
 		*v->pHasWarning[j] = 0;
 		*v->pHasAlarm[j] = 0;
 	}
+}
+
+void ResetAllWarning( AlarmMgr_t *v )
+{
+	AlarmStack_t *pAlarmStack;
+	int i, j;
+	//v->State = ALARM_MGR_STATE_DISABLE; // can not register alarm while reseting?
+
+	for( j = 0; j < 1/*MAX_AXIS_NUM*/; j++ )
+	{
+		pAlarmStack = &AlarmStack[j];
+		for( i = 0; i < MAX_NOW_ALARM_SIZE; i++ )
+		{
+			uint16_t TempBit = 0x01<<i;
+			if ( (WarningBitArray & TempBit) != 0)//pAlarmStack->NowAlarmID[i] is warning
+			{
+				AlarmStack_FlagUnset( pAlarmStack, pAlarmStack->NowAlarmID[i]);
+				pAlarmStack->NowAlarmID[i] = 0;
+			}
+			else //pAlarmStack->NowAlarmID[i] is alarm
+			{
+			}
+		}
+
+		// todo sorting alarm to bottom, fill the warning void.
+		pAlarmStack->TopIndicator = removeZeros(pAlarmStack->NowAlarmID, MAX_NOW_ALARM_SIZE);
+		WarningBitArray = (uint16_t)0x0000;
+		*v->pHasWarning[j] = 0;
+	}
+
+	//v->State = ALARM_MGR_STATE_ENABLE;
 }
