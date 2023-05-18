@@ -646,7 +646,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC002_Throttle_Position:
         {
-    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].ThrotMapping.PercentageOut );
+    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].ThrotMapping.PercentageOut * 100 );
         	break;
         }
         case DID_0xC003_Odometer                                 :
@@ -676,6 +676,13 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         	float tempIs = sqrtf(( tempId * tempId ) + ( tempIq * tempIq ));
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, tempIs );
         	break;
+        }
+        case DID_0xC007_Motor_Input_Power                           :
+        {
+            float tempInputPower = ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
+       	                             Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * 0.8165f;
+	        tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, tempInputPower );
+    	    break;
         }
         case DID_0xC008_Motor_Temperature                        :
         {
@@ -899,6 +906,13 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC030_Tether_Cord_State                        :
         {
+        	UdsDIDTetherCordState_e tempTetherCordState = HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempTetherCordState;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC031_Session_Time                             :
@@ -966,6 +980,13 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC037_RC_connetion_status                      :
         {
+        	UdsDIDRCConnectionStatus_e tempRCConnct = RCCommCtrl.RcEnable;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempRCConnct;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC038_Error_Code_from_RF                       :
@@ -1086,21 +1107,24 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 
 static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
 {
+
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Battery_Voltage =
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Dc_Bus_Voltage = AdcStation1.AdcTraOut.BatVdc;
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current =
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current = sqrtf(( Axis[0].MotorControl.CurrentControl.RotorCurrFb.D * Axis[0].MotorControl.CurrentControl.RotorCurrFb.D ) + \
+			                                                                              ( Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q * Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q ));
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
+                                                                                           Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * 0.8165f;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Direct_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.D;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Quadrature_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Id = Axis[0].MotorControl.CurrentControl.IdCmd;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Iq = Axis[0].MotorControl.CurrentControl.IqCmd;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vd = Axis[0].MotorControl.VoltCmd.VdCmd;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vq = Axis[0].MotorControl.VoltCmd.VqCmd;
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( 0.577350269f * AdcStation1.AdcTraOut.BatVdc );
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.DC_Current_Limit
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Electrical_Angle  = Axis[0].MotorControl.CurrentControl.EleAngle;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
@@ -1118,7 +1142,7 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 			                                                             ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 ) ? NTC_Short : NTC_Normal );
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Sensorless_State = Axis[0].MotorControl.Sensorless.SensorlessState;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State = Axis[0].ESCOperationState;
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status = RCCommCtrl.RcEnable;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time = TotalTime1.LocalThisTime * 3;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour = TotalTime1.LocalTotalTime * 3;
