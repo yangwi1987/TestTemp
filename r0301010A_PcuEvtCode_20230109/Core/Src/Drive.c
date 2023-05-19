@@ -1303,17 +1303,19 @@ void drive_Init(void)
 	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
 
 	// notice that: parameters in each axis have to be independent.
-	for ( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )
+	for( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )
 	{
 		// Init Axis object. Notice that: initialize axis after reading data from rxt.flash and PSB.
 		Axis[AxisIndex].Init ( &Axis[AxisIndex], AxisIndex );
+	}
 
 		// AlarmMgr1.init( &AlarmMgr1, &Axis[AxisIndex].HasAlarm, &Axis[AxisIndex].HasWarning, AxisIndex )
+	for( AxisIndex = 0; AxisIndex < MAX_AXIS_NUM; AxisIndex++ )
+	{
 		AlarmMgr1.pHasAlarm[AxisIndex] = &Axis[AxisIndex].HasAlarm;
 		AlarmMgr1.pHasWarning[AxisIndex] = &Axis[AxisIndex].HasWarning;
 		Axis[AxisIndex].RequestResetWarningCNT = 0;
 		AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = &Axis[AxisIndex].RequestResetWarningCNT;
-
 	}
 
 	// Init Axis1 Motor Stall Table
