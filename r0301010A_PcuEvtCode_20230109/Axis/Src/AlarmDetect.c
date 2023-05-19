@@ -298,8 +298,22 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	}
 
 #if USE_FOIL_ABNORMAL_DETECT
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_BREAK, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[FOIL_AD].AdcGroupIndex][v->pAdcStation->RegCh[FOIL_AD].AdcRankIndex] );
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_SHORT, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[FOIL_AD].AdcGroupIndex][v->pAdcStation->RegCh[FOIL_AD].AdcRankIndex] );
+	// analog foil sensor should in 5~0V, and the input signal is between 5000~0000 (0.001V)
+	int16_t TempAnalogFoil0p001V; // in 0.001V
+	if(v->pAdcStation->AdcTraOut.Foil < 0.00001f)
+	{
+		TempAnalogFoil0p001V = 0; // 0.00000 * 1000 = 0
+	}
+	else if(v->pAdcStation->AdcTraOut.Foil > 4.99999f)
+	{
+		TempAnalogFoil0p001V = 5000; // 5.00000 * 1000 = 5000
+	}
+	else
+	{
+		TempAnalogFoil0p001V = v->pAdcStation->AdcTraOut.Foil * 1000.0f;
+	}
+	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_BREAK, TempAnalogFoil0p001V );
+	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_SHORT, TempAnalogFoil0p001V );
 #endif
 
 }

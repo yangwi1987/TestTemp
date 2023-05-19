@@ -288,8 +288,8 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-31
 				{		0,		0,		0,		0,		0},	//P3-32
 				{		0,		0,		0,		0,		0},	//P3-33
-				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_FOIL_BREAK
-				{		1,		THRE_MAX,		4000,		0x45,		&DriveParams.PCUParams.Reserved335},	//P3-35 ALARMID_FOIL_SHORT
+				{		1,		THRE_MAX,		125,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_FOIL_BREAK in 0.001V
+				{		1,		THRE_MAX,		4752,		0x45,		&DriveParams.PCUParams.Reserved335},	//P3-35 ALARMID_FOIL_SHORT in 0.001V
 				{		0,		0,		0,		0,		0},	//P3-36
 				{		0,		0,		0,		0,		0},	//P3-37
 				{		0,		0,		0,		0,		0},	//P3-38
