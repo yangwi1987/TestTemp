@@ -9,6 +9,10 @@
 #include "string.h"
 
 
+static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
 
 void UdsServiceCtrl_SendDataPeriodically (NetWorkService_t *p, LinkLayerCtrlUnit_t *pTx, uint32_t ParamID)
 {
@@ -344,6 +348,8 @@ void UdsServiceCtrl_WriteDataByIDLsc( NetWorkService_t *p, LinkLayerCtrlUnit_t *
 	uint8_t * pPt;
 	uint8_t Result = PARAM_ACCESS_SUCCESS;
 	uint8_t ReplyResult;
+
+	p->pParamMgr->Authority = p->pSecurityCtrl->SecureLvNow;
 
 	ParamID.All = (pRx->Data[1]<<8)+pRx->Data[2];
 	lParamID = ParamID.Bits.ParamID;
@@ -714,7 +720,18 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 {
 	v->NetWork.RxDataHandle( &v->NetWork );
 
-	v->ServiceHandler( v, &v->NetWork );
+	if( (v->NetWork.Rx.CanId >=UDS_RX_ID_BRP_FUNCTIONAL_START ) && (v->NetWork.Rx.CanId <= UDS_RX_ID_BRP_FUNCTIONAL_END ))
+	{
+        v->ServiceCtrlBRP.ServiceHandler_Functional( v, &v->NetWork, &v->ServiceCtrlBRP );
+	}
+	else if( (v->NetWork.Rx.CanId >=UDS_RX_ID_BRP_PHYSICAL_START ) && (v->NetWork.Rx.CanId <= UDS_RX_ID_BRP_PHYSICAL_END ))
+	{
+        v->ServiceCtrlBRP.ServiceHandler_Physical( v, &v->NetWork, &v->ServiceCtrlBRP );
+	}
+	else
+	{
+	    v->ServiceHandler( v, &v->NetWork );
+	}
 	v->SendDataPeriodically( v, &v->NetWork.Tx, v->PeriodUpdateCtrl.ParamId);
 	if( v->NetWork.STCounter++ >= v->NetWork.STminCmd )
 	{
@@ -735,6 +752,399 @@ void UdsServiceCtrl_Init ( NetWorkService_t *v, FDCAN_HandleTypeDef *p, UdsSecur
 //	v->NetWork.pIdConfigTable = t;
 	v->NetWork.Init(&v->NetWork,p);
 	v->pSecurityCtrl = u;
+	v->ServiceCtrlBRP.pSecurityCtrl = u;
 	v->TransferCtrl.init(&v->TransferCtrl, v->NetWork.Rx.DataSize);
 	v->pSecurityCtrl->Init ( v->pSecurityCtrl );
+}
+/*
+ * Functions for BRP UDS ===========================================================================================================================================
+ */
+
+
+void UdsServiceCtrlBRP_ServiceHandler_Functional( NetWorkService_t *p, NetworkCtrl_t *v, ServiceCtrlBRP_t *m )
+{
+
+    if( v->Rx.Status == Rx_Complete)
+    {
+        EnumUdsServiceBRPIdentifier lSID = 0;
+	    m->BRPSessionCNT = 0;
+    	v->Rx.Status = Rx_Reading;
+        m->Response_Code = NRC_0x10_GR;
+        m->SuppressPosRspMsgIndicationBit = FALSE;
+    	lSID = v->Rx.Data[0];
+    	switch (lSID)
+    	{
+    	    case SID_0x3E_TP_with_SF:
+    	    {
+    	    	if ( m->DiagnosticSession == Session_0x01_DS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    		    break;
+    	    }
+    	    case SID_0x22_RDBI_without_SF:
+    	    {
+    	    	if ( m->DiagnosticSession == Session_0x01_DS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_RDBI( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    		    break;
+    	    }
+    	    case SID_0x14_CDTCI_without_SF:
+    	    {
+    	    	if ( m->DiagnosticSession == Session_0x01_DS )
+    	    	{
+    	    	    UdsServiceCtrlBRP_CDTCI( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    		    break;
+    	    }
+    	    case SID_0x19_RDTCI_with_SF:
+    	    {
+    	    	if ( m->DiagnosticSession == Session_0x01_DS )
+    	    	{
+    	    	    UdsServiceCtrlBRP_RDTCI( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    		    break;
+    	    }
+    	    default:
+    		{
+        		m->Response_Code = NRC_0x11_SNS;
+    	    	break;
+  		    }
+     	}
+      	v->Rx.Status = Rx_Idle;
+    	if ( m->Response_Code == NRC_0x00_PR )
+    	{
+    		if ( m->SuppressPosRspMsgIndicationBit == TRUE )
+    		{
+    		    v->Tx.Status = Tx_Idle;
+    		}
+    	    else
+    	    {
+    		    v->Tx.Status = Tx_Request;
+    	    }
+    	}
+    	else if (( m->Response_Code == NRC_0x11_SNS ) || ( m->Response_Code == NRC_0x12_SFNS ) || ( m->Response_Code == NRC_0x7F_SNSIAS )\
+    		    || ( m->Response_Code == NRC_0x7E_SFNSIAS ) || ( m->Response_Code == NRC_0x31_ROOR ))
+    	{
+    	    v->Tx.Status = Tx_Idle;
+    	}
+    	else
+    	{
+    		v->Tx.Data[0] = 0x7F;
+    		v->Tx.Data[1] = lSID;
+    		v->Tx.Data[2] = m->Response_Code;
+    		v->Tx.LengthTotal = 3;
+    		v->Tx.Status = Tx_Request;
+    	}
+    }
+
+}
+
+void UdsServiceCtrlBRP_ServiceHandler_Physical( NetWorkService_t *p, NetworkCtrl_t *v, ServiceCtrlBRP_t *m  )
+{
+
+    if( v->Rx.Status == Rx_Complete)
+    {
+        EnumUdsServiceBRPIdentifier lSID = 0;
+	    m->BRPSessionCNT = 0;
+    	v->Rx.Status = Rx_Reading;
+        m->Response_Code = NRC_0x10_GR;
+        m->SuppressPosRspMsgIndicationBit = FALSE;
+    	lSID = v->Rx.Data[0];
+    	switch (lSID)
+    	{
+//            case SID_0x10_DSC_with_SF:
+//            {
+//            	UdsServiceCtrlBRP_DSC( &v->Rx, &v->Tx, m );
+//    	        break;
+//            }
+//            case SID_0x11_ER_with_SF:
+//            {
+//            	UdsServiceCtrlBRP_ER( &v->Rx, &v->Tx, m );
+//    	        break;
+//            }
+//            case SID_0x27_SA_with_SF:
+//            {
+//    	    	if ( m->DiagnosticSession == Session_0x03_EXTDS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
+//    	    	{
+//    	    	    UdsServiceCtrlBRP_SA( &v->Rx, &v->Tx, m );
+//    	    	}
+//    	    	else
+//    	    	{
+//    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+//    	    	}
+//    	        break;
+//            }
+            case SID_0x3E_TP_with_SF:
+            {
+            	UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m );
+    	        break;
+            }
+            case SID_0x22_RDBI_without_SF:
+            {
+            	UdsServiceCtrlBRP_RDBI( &v->Rx, &v->Tx, m);
+    	        break;
+            }
+//            case SID_0x2E_WDBI_without_SF:
+//            {
+//            	UdsServiceCtrlBRP_WDBI( &v->Rx, &v->Tx, m);
+//    	        break;
+//            }
+            case SID_0x14_CDTCI_without_SF:
+            {
+    	    	if (( m->DiagnosticSession == Session_0x01_DS ) || ( m->DiagnosticSession == Session_0x03_EXTDS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_CDTCI( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    	        break;
+            }
+            case SID_0x19_RDTCI_with_SF:
+            {
+    	    	if (( m->DiagnosticSession == Session_0x01_DS ) || ( m->DiagnosticSession == Session_0x03_EXTDS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_RDTCI( &v->Rx, &v->Tx, m);
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    	        break;
+            }
+//            case SID_0x2F_IOCBI_without_SF:
+//            {
+//            	UdsServiceCtrlBRP_IOCBI( &v->Rx, &v->Tx, m);
+//	            break;
+//            }
+//            case SID_0x31_RC_with_SF:
+//            {
+//            	UdsServiceCtrlBRP_RC( &v->Rx, &v->Tx, m);
+//	            break;
+//            }
+//            case SID_0x34_RD_without_SF:
+//            {
+//            	m->Response_Code = NRC_0x7F_SNSIAS;
+//	            break;
+//            }
+//            case SID_0x36_TD_without_SF:
+//            {
+//            	m->Response_Code = NRC_0x7F_SNSIAS;
+//	            break;
+//            }
+//            case SID_0x37_RTE_without_SF:
+//            {
+//            	m->Response_Code = NRC_0x7F_SNSIAS;
+//	            break;
+//            }
+            default:
+    	    {
+    	    	m->Response_Code = NRC_0x11_SNS;
+            	break;
+    	    }
+
+	    }
+	    v->Rx.Status = Rx_Idle;
+
+	    if ( m->Response_Code == NRC_0x00_PR )
+	    {
+	    	if ( m->SuppressPosRspMsgIndicationBit == TRUE )
+	    	{
+	    	    v->Tx.Status = Tx_Idle;
+	    	}
+
+	        else
+	        {
+	    	    v->Tx.Status = Tx_Request;
+	        }
+	    }
+	    else
+	    {
+	    	v->Tx.Data[0] = 0x7F;
+	    	v->Tx.Data[1] = lSID;
+	    	v->Tx.Data[2] = m->Response_Code;
+	    	v->Tx.LengthTotal = 3;
+	    	v->Tx.Status = Tx_Request;
+	    }
+    }
+}
+static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+	if ( pRx->LengthTotal == 2)
+	{
+	    Union_UdsDataParameter DataParameter;
+	    DataParameter.All = pRx->Data[1];
+	    m->SuppressPosRspMsgIndicationBit = DataParameter.Bits.SuppressPosRspMsgIndicationBit;
+	    switch (DataParameter.Bits.SunFunctionType)
+	    {
+	        case NONE:
+	        {
+	        	m->Response_Code = NRC_0x00_PR;
+        	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+        	    pTx->Data[1] = pRx->Data[1];
+        	    pTx->LengthTotal = 2;
+	        	break;
+	        }
+	        default:
+	        {
+	        	m->Response_Code = NRC_0x12_SFNS;
+	        	break;
+	        }
+	    }
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
+
+}
+static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+	if ( pRx->LengthTotal == 3)
+	{
+		UdsDIDParameter_e DID = ( pRx->Data[1] << 8 ) + pRx->Data[2];
+        m->Response_Code = m->RDBI_Function ( DID, pRx, pTx );
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
+
+}
+static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+
+    if (pRx->LengthTotal == 4 )
+    {
+    	uint32_t temp_qroupOfDTC = 0;
+    	temp_qroupOfDTC = ( pRx->Data[1] << 16 ) + ( pRx->Data[2] << 8 ) + pRx->Data[2];
+	    if ( temp_qroupOfDTC == 0x00FFFFFF )
+	    {
+	    	if ( m->pDTCStation->State == DTC_Process_State_Idle )
+	    	{
+            m->pDTCStation->State = DTC_Process_State_Clear;
+	    	m->Response_Code = NRC_0x78_RCRRP;
+	    	}
+	    	else
+	    	{
+		    	m->Response_Code = NRC_0x22_CNC;
+	    	}
+	    }
+	    else
+	    {
+	    	m->Response_Code = NRC_0x31_ROOR;
+	    }
+    }
+    else
+    {
+    	m->Response_Code = NRC_0x13_IMLOIF;
+    }
+
+}
+static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+    if (pRx->LengthTotal == 3 )
+    {
+		Union_UdsDataParameter DataParameter;
+		DataParameter.All = pRx->Data[1];
+	    m->SuppressPosRspMsgIndicationBit = DataParameter.Bits.SuppressPosRspMsgIndicationBit;
+	    if ( m->SuppressPosRspMsgIndicationBit == 0 )
+	    {
+			switch ( DataParameter.Bits.SunFunctionType )
+			{
+			    case reportDTCByStatusMask:
+			    {
+			    	uint8_t respond_number_by_Status_Mask = 0;
+			    	for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
+			    	{
+			    		if ( *(uint8_t*)&(m->pDTCStation->StatusOfDTC_Realtime[i]) & *(uint8_t*)&(m->pDTCStation->StatusAvailabilityMask) & pRx->Data[2] )
+			    		{
+                            pTx->Data[ (4 * respond_number_by_Status_Mask) + 3] = m->pDTCStation->DTC_Code[i] >> 8;
+                            pTx->Data[ (4 * respond_number_by_Status_Mask) + 4] = m->pDTCStation->DTC_Code[i] & 0xFF;
+                            pTx->Data[ (4 * respond_number_by_Status_Mask) + 5] = 0;
+                            pTx->Data[ (4 * respond_number_by_Status_Mask) + 6] = *(uint8_t*)&(m->pDTCStation->StatusOfDTC_Realtime[i]);
+                            respond_number_by_Status_Mask ++;
+			    	    }
+			    	}
+			    	m->Response_Code = NRC_0x00_PR;
+	        	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	        	    pTx->Data[1] = pRx->Data[1];
+	        	    pTx->Data[2] = *(uint8_t*)&(m->pDTCStation->StatusAvailabilityMask);
+
+	        	    pTx->LengthTotal = 3 + ( respond_number_by_Status_Mask * 4 );
+
+			        break;
+			    }
+			    case reportDTCStoredDataByRecordNumber:
+			    {
+			    	if ( pRx->Data[2] == 0xFF )
+			    	{
+                        uint16_t final_Tx_buffer_addr = 2;
+    			    	for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
+    			    	{
+    			    		if ( m->pDTCStation->DTCRespondPackgeFirst[i].DTCId.DTCStoredDataRecordNumber != 0 )
+    			    		{
+    			    			m->pDTCStation->DTCRespondPackgeFirst[i].StatusOfDTC = m->pDTCStation->StatusOfDTC_Realtime[i];
+    			    			memcpy( &(pTx->Data[ final_Tx_buffer_addr ]), &(m->pDTCStation->DTCRespondPackgeFirst[i]), DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
+    			    			final_Tx_buffer_addr = final_Tx_buffer_addr +  DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset;
+    			    		}
+    			    		else
+    			    		{
+    			    			continue;
+    			    		}
+    			    		if ( m->pDTCStation->DTCRespondPackgeLast[i].DTCId.DTCStoredDataRecordNumber != 0 )
+    			    		{
+    			    			m->pDTCStation->DTCRespondPackgeLast[i].StatusOfDTC = m->pDTCStation->StatusOfDTC_Realtime[i];
+    			    			memcpy( &(pTx->Data[ final_Tx_buffer_addr ]), &(m->pDTCStation->DTCRespondPackgeLast[i]), DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
+    			    			final_Tx_buffer_addr = final_Tx_buffer_addr +  DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset;
+    			    		}
+    			    	}
+
+				    	m->Response_Code = NRC_0x00_PR;
+		        	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+		        	    pTx->Data[1] = pRx->Data[1];
+
+		        	    pTx->LengthTotal = final_Tx_buffer_addr;
+			    	}
+			    	else
+			    	{
+				    	m->Response_Code = NRC_0x31_ROOR;
+			    	}
+			    	break;
+			    }
+			    default:
+			    {
+			    	m->Response_Code = NRC_0x12_SFNS;
+			    }
+			}
+	    }
+	    else
+	    {
+	    	m->Response_Code = NRC_0x22_CNC;
+	    }
+
+    }
+    else
+    {
+    	m->Response_Code = NRC_0x13_IMLOIF;
+    }
 }

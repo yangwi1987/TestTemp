@@ -23,10 +23,10 @@ const CanModuleConfig_t CANModuleConfigIntra =
 
 
 const CanIdConfig_t LscCanIdTableIntra[CAN_ID_CONFIG_ARRAY_SIZE] ={
-//	Id1,						Id2,					{FilterType,IdType,ConfigUsage,Reserved}
-	{UDS_RX_ID_LSC_START,		UDS_RX_ID_LSC_END,		{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,	1,	0}}},
-	{UDS_RX_ID_CUS_START,		UDS_RX_ID_CUS_END,		{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,	1,	0}}},
-	{UDS_RX_ID_CUS_BOOT_START,	UDS_RX_ID_CUS_BOOT_END,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,	1,	0}}},
+//	Id1,						      Id2,				        	{FilterType,IdType,ConfigUsage,Reserved}
+	{UDS_RX_ID_LSC_START,		      UDS_RX_ID_LSC_END,	    	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,	1,	0}}},
+	{UDS_RX_ID_BRP_FUNCTIONAL_START,  UDS_RX_ID_BRP_FUNCTIONAL_END,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,	1,	0}}},
+	{UDS_RX_ID_BRP_PHYSICAL_START,	  UDS_RX_ID_BRP_PHYSICAL_END,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,	1,	0}}},
 	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,1,0}}},
 	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,1,0}}},
 	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,1,0}}},
@@ -73,9 +73,10 @@ void NetworkLayer_TxDataHandle (NetworkCtrl_t *v)	//in PLC Loop
 	{
 		v->TxHeader.Identifier = UDS_TX_ID_LSC;
 	}
-	else if( (v->Rx.CanId >=UDS_RX_ID_CUS_START ) && (v->Rx.CanId <= UDS_RX_ID_CUS_END ))
+	else if( ((v->Rx.CanId >=UDS_RX_ID_BRP_FUNCTIONAL_START ) && (v->Rx.CanId <= UDS_RX_ID_BRP_FUNCTIONAL_END )) || \
+			 ((v->Rx.CanId >=UDS_RX_ID_BRP_PHYSICAL_START ) && (v->Rx.CanId <= UDS_RX_ID_BRP_PHYSICAL_END )))
 	{
-		v->TxHeader.Identifier = UDS_TX_ID_CUS;
+		v->TxHeader.Identifier = UDS_TX_ID_BRP;
 	}
 
 	if( v->Tx.Status == Tx_Request)
@@ -92,6 +93,13 @@ void NetworkLayer_TxDataHandle (NetworkCtrl_t *v)	//in PLC Loop
 			for( i = 0; i < v->Tx.LengthTotal; i++ )
 			{
 				pContainer.SF.Datas[i] = v->Tx.Data[i];
+			}
+			if ( v->TxHeader.Identifier == UDS_TX_ID_BRP )
+			{
+			    for( ; i < 7; i++ )
+			    {
+			    	pContainer.SF.Datas[i] = UDS_TX_PADDING_CODE;
+			    }
 			}
 			HAL_FDCAN_AddMessageToTxFifoQ(v->pCanHandle, &v->TxHeader, (uint8_t*)&pContainer);
 			v->Tx.Result = N_OK;
@@ -128,6 +136,13 @@ void NetworkLayer_TxDataHandle (NetworkCtrl_t *v)	//in PLC Loop
 			for( i = 0; i < u16Temp; i++ )
 			{
 				pContainer.CF.Datas[i] = v->Tx.Data[i+v->Tx.LengthHandled];
+			}
+			if (v->TxHeader.Identifier == UDS_TX_ID_BRP)
+			{
+			    for( ; i < 7; i++ )
+			    {
+			    	pContainer.CF.Datas[i] = UDS_TX_PADDING_CODE;
+			    }
 			}
 			HAL_FDCAN_AddMessageToTxFifoQ(v->pCanHandle, &(v->TxHeader), (uint8_t*)&pContainer);
 			v->Tx.LengthHandled += u16Temp;
@@ -354,6 +369,15 @@ void NetworkLayer_FlowCtrlSendReq( NetworkCtrl_t *v,uint8_t status )
 	Txdata[0] = 0x30 + status;
 	Txdata[1] = v->BsReq;
 	Txdata[2] = v->STminReq;
+	if( (v->Rx.CanId >=UDS_RX_ID_LSC_START ) && (v->Rx.CanId <= UDS_RX_ID_LSC_END ))
+	{
+		v->TxHeader.Identifier = UDS_TX_ID_LSC;
+	}
+	else if( ((v->Rx.CanId >=UDS_RX_ID_BRP_FUNCTIONAL_START ) && (v->Rx.CanId <= UDS_RX_ID_BRP_FUNCTIONAL_END )) || \
+			 ((v->Rx.CanId >=UDS_RX_ID_BRP_PHYSICAL_START ) && (v->Rx.CanId <= UDS_RX_ID_BRP_PHYSICAL_END )))
+	{
+		v->TxHeader.Identifier = UDS_TX_ID_BRP;
+	}
 	HAL_FDCAN_AddMessageToTxFifoQ(v->pCanHandle, &v->TxHeader, Txdata);
 }
 

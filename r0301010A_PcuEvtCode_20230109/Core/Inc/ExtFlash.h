@@ -47,6 +47,44 @@
 
 #define TOTAL_TotalTime_QW 			1024 // 2 sector = 1024 QWord
 
+/* Macro for DTC store*/
+#define	SECTOR16_ADDR				0x00010000
+#define	SECTOR17_ADDR				0x00011000
+#define	SECTOR18_ADDR				0x00012000
+#define SECTOR19_ADDR				0x00013000
+#define SECTOR20_ADDR				0x00014000
+#define SECTOR21_ADDR				0x00015000
+#define SECTOR22_ADDR				0x00016000
+#define SECTOR23_ADDR				0x00017000
+#define SECTOR24_ADDR				0x00018000
+#define SECTOR25_ADDR				0x00019000
+#define SECTOR26_ADDR				0x0001A000
+#define SECTOR27_ADDR				0x0001B000
+#define SECTOR28_ADDR				0x0001C000
+#define SECTOR29_ADDR				0x0001D000
+#define SECTOR30_ADDR				0x0001E000
+#define SECTOR31_ADDR				0x0001F000
+#define SECTOR32_ADDR				0x00020000
+#define SECTOR33_ADDR				0x00021000
+#define SECTOR34_ADDR				0x00022000
+#define SECTOR35_ADDR				0x00023000
+#define SECTOR36_ADDR				0x00024000
+#define SECTOR37_ADDR				0x00025000
+#define SECTOR38_ADDR				0x00026000
+#define SECTOR39_ADDR				0x00027000
+#define SECTOR40_ADDR				0x00028000
+#define SECTOR41_ADDR				0x00029000
+#define SECTOR42_ADDR				0x0002A000
+#define SECTOR43_ADDR				0x0002B000
+#define SECTOR44_ADDR				0x0002C000
+#define SECTOR45_ADDR				0x0002D000
+#define SECTOR46_ADDR				0x0002E000
+#define SECTOR47_ADDR				0x0002F000
+
+#define DTCChecksumOffset 1
+
+#define DATA_LENGTH_EACH_DTC_STORE  (116 + DTCChecksumOffset)
+
 // Macro function
 #define GET_SECTOR_NUMBER(address) 	(address >> 12)
 #define GET_PACK_NUMBER(address) 	(address >> 11)
@@ -79,6 +117,7 @@
 #define RDSR		0x05	// Read status register
 #define WREN		0x06	// Write Enable
 #define SER			0xD7	// Sector Erase
+#define BER64       0xD8    // Block Erase 64Kbyte
 #define CER			0xC7	// Chip Erase
 #define JEDEC		0x9F
 
@@ -96,6 +135,7 @@
 #define SR_WEL		0x02	// Write Enable Latch
 
 #define FLASH_QW_SIZE				8		// bytes, QW: QWord = 64 bit
+#define FLASH_HALFPAGE_SIZE         128     // byte
 #define FLASH_PP_SIZE				256		// bytes
 #define FLASH_PACK_SIZE				2048	// bytes
 #define PP_COUNT_PER_PACK			(FLASH_PACK_SIZE / FLASH_PP_SIZE)
@@ -154,6 +194,7 @@ typedef enum
 	FLASH_TOTAL_TIME_FINISH = 2,
 } E_FLASH_TOTAL_TIME_LOG_STATE;
 
+
 /*
  * External flash data structure
  */
@@ -162,6 +203,26 @@ extern SPI_HandleTypeDef hspi1;
 typedef void (*functypeExtFlash_Init)( void* );
 typedef void (*functypeExtFlash_LoadParam)(void*);
 typedef void (*functypeExtFlash_ParamBackup)(void*, void*);
+
+/*define function for DTC*/
+
+typedef void (*functypeExtFlash_Write_DTC_Data)( void*, uint16_t, uint8_t* );
+typedef void (*functypeExtFlash_Read_DTC_Data)( void*, uint16_t, uint8_t*, uint8_t* );
+typedef void (*functypeExtFlash_Clear_DTC_Data)( void* );
+
+/*
+ *   DTC related data structure
+ */
+
+typedef struct
+{
+	uint32_t ADDR_by_DTC_Record_Number[32];
+	uint8_t DTC_Record_Row_Number[32];
+	functypeExtFlash_Write_DTC_Data Write_DTC_Data;
+	functypeExtFlash_Read_DTC_Data  Read_DTC_Data;
+	functypeExtFlash_Clear_DTC_Data Clear_DTC_Data;
+}ExtFlash_DTC_Store_t;
+
 
 typedef struct
 {
@@ -192,6 +253,7 @@ typedef struct
 	TotalTimeQW_t *pBufferTotalTimeQW;
 	uint32_t TotalTimeQWAddress; // address of last total time QWord
 	ParamPack_t ParamPack;
+	ExtFlash_DTC_Store_t DTC_Store;
 	functypeExtFlash_Init Init;
 	functypeExtFlash_LoadParam LoadParam;
 	functypeExtFlash_ParamBackup ParamBackup;
@@ -206,6 +268,7 @@ void ExtFlash_PP( ExtFlash_t *v, uint32_t Address, uint8_t *pData, uint16_t Tota
 void ExtFlash_WREN( void );
 void ExtFlash_RDSR( ExtFlash_t *v );
 void ExtFlash_SER( ExtFlash_t *v, uint32_t Address );
+void ExtFlash_BER64( ExtFlash_t *v, uint32_t Address );
 void ExtFlash_CER( ExtFlash_t *v );
 void ExtFlash_CheckExtFlashVersion( ExtFlash_t *v, uint32_t PACK_ADDR );
 void ExtFlash_ReadParamPack( ExtFlash_t *v, uint32_t PACK_ADDR );
@@ -218,6 +281,10 @@ void ExtFlash_ReadTotalTime( ExtFlash_t *v );
 void ExtFlash_ReadLastOPTotalTime( ExtFlash_t *v );
 void ExtFlash_LogTotalTime( ExtFlash_t *v);
 void ExtFlash_EraseTotalTime( ExtFlash_t *v);
+
+void ExtFlash_Write_DTC_Data( ExtFlash_t *v , uint16_t DTC_Record_Num, uint8_t *pDataIn );
+void ExtFlash_Read_DTC_Data( ExtFlash_t *v , uint16_t DTC_Record_Num, uint8_t *pDataOut0, uint8_t *pDataOut1 );
+void ExtFlash_Clear_DTC_Data( ExtFlash_t *v );
 
 #define PARAM_PACK_HEADER_DEFAULT { \
 	{0}, /* ExtFlashVersion */ \
@@ -243,9 +310,54 @@ void ExtFlash_EraseTotalTime( ExtFlash_t *v);
 	0, /* pBufferTotalTimeQW */\
 	0, /* TotalTimeQWAddress */\
 	PARAM_PACK_DEFAULT, \
+	DTC_STORE_DEFAULT, /*ExtFlash_DTC_Store_t*/\
 	(functypeExtFlash_Init)ExtFlash_Init, \
 	(functypeExtFlash_LoadParam)ExtFlash_LoadParam, \
 	(functypeExtFlash_ParamBackup)ExtFlash_ParamBackup, \
 }
+
+#define DTC_STORE_DEFAULT {  \
+		ADDR_BY_DTC_RECORD_NUM_DEFAULT,\
+		{0},\
+		(functypeExtFlash_Write_DTC_Data) ExtFlash_Write_DTC_Data,\
+		(functypeExtFlash_Read_DTC_Data)  ExtFlash_Read_DTC_Data,\
+		(functypeExtFlash_Clear_DTC_Data) ExtFlash_Clear_DTC_Data,\
+	}
+
+#define ADDR_BY_DTC_RECORD_NUM_DEFAULT {\
+		SECTOR16_ADDR,   /* Num0   */ \
+		SECTOR17_ADDR,   /* Num1   */ \
+		SECTOR18_ADDR,   /* Num2   */ \
+		SECTOR19_ADDR,   /* Num3   */ \
+		SECTOR20_ADDR,   /* Num4   */ \
+		SECTOR21_ADDR,   /* Num5   */ \
+		SECTOR22_ADDR,   /* Num6   */ \
+		SECTOR23_ADDR,   /* Num7   */ \
+		SECTOR24_ADDR,   /* Num8   */ \
+		SECTOR25_ADDR,   /* Num9   */ \
+		SECTOR26_ADDR,   /* Num10  */ \
+		SECTOR27_ADDR,   /* Num11  */ \
+		SECTOR28_ADDR,   /* Num12  */ \
+		SECTOR29_ADDR,   /* Num13  */ \
+		SECTOR30_ADDR,   /* Num14  */ \
+		SECTOR31_ADDR,   /* Num15  */ \
+		SECTOR32_ADDR,   /* Num16  */ \
+		SECTOR33_ADDR,   /* Num17  */ \
+		SECTOR34_ADDR,   /* Num18  */ \
+		SECTOR35_ADDR,   /* Num19  */ \
+		SECTOR36_ADDR,   /* Num20  */ \
+        SECTOR37_ADDR,   /* Num21  */ \
+        SECTOR38_ADDR,   /* Num22  */ \
+        SECTOR39_ADDR,   /* Num23  */ \
+        SECTOR40_ADDR,   /* Num24  */ \
+        SECTOR41_ADDR,   /* Num25  */ \
+        SECTOR42_ADDR,   /* Num26  */ \
+        SECTOR43_ADDR,   /* Num27  */ \
+        SECTOR44_ADDR,   /* Num28  */ \
+        SECTOR45_ADDR,   /* Num29  */ \
+        SECTOR46_ADDR,   /* Num30  */ \
+        SECTOR47_ADDR,   /* Num31  */ \
+        }
+
 
 #endif /* INC_EXTFLASH_H_ */
