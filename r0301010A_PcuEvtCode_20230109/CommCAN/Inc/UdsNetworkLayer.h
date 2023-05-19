@@ -40,6 +40,8 @@
 #define UDS_TX_ID_BRP				0x7E8
 #define UDS_RX_ID_BRP_PHYSICAL_START 	0x7E0
 #define UDS_RX_ID_BRP_PHYSICAL_END		0x7E0
+
+#define UDS_TX_PADDING_CODE          0xAA
 /*
  * Enum define ===========================================================================================================================================================================================
  */

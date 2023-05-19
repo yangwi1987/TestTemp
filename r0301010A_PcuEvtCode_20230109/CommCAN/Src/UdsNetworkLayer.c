@@ -98,7 +98,7 @@ void NetworkLayer_TxDataHandle (NetworkCtrl_t *v)	//in PLC Loop
 			{
 			    for( ; i < 7; i++ )
 			    {
-			    	pContainer.SF.Datas[i] = 0xAA;
+			    	pContainer.SF.Datas[i] = UDS_TX_PADDING_CODE;
 			    }
 			}
 			HAL_FDCAN_AddMessageToTxFifoQ(v->pCanHandle, &v->TxHeader, (uint8_t*)&pContainer);
@@ -141,7 +141,7 @@ void NetworkLayer_TxDataHandle (NetworkCtrl_t *v)	//in PLC Loop
 			{
 			    for( ; i < 7; i++ )
 			    {
-			    	pContainer.CF.Datas[i] = 0xAA;
+			    	pContainer.CF.Datas[i] = UDS_TX_PADDING_CODE;
 			    }
 			}
 			HAL_FDCAN_AddMessageToTxFifoQ(v->pCanHandle, &(v->TxHeader), (uint8_t*)&pContainer);
