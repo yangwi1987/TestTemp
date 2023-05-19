@@ -604,6 +604,7 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 		{
 #if USE_EEMF==USE_FUNCTION
 			v->MotorControl.Sensorless.EEMF.Start = FUNCTION_YES;
+			v->MotorControl.Sensorless.SensorlessState = SensorlessState_Using_EEMF_Algorithm;
 #else
 			v->MotorControl.Sensorless.EEMF.Start = FUNCTION_NO;
 #endif
@@ -614,6 +615,8 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 			v->MotorControl.Sensorless.EEMF.Start = FUNCTION_NO;
 #if USE_HFI_SIN==USE_FUNCTION
 			v->MotorControl.Sensorless.HFISin.Start = ( v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_YES ) ? FUNCTION_NO : FUNCTION_YES;
+			v->MotorControl.Sensorless.SensorlessState = ( v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_YES ) ? \
+					                                       v->MotorControl.Sensorless.SensorlessState : SensorlessState_Using_HFI_Algorithm;
 #else
 			v->MotorControl.Sensorless.HFISin.Start = FUNCTION_NO;
 #endif
@@ -621,6 +624,9 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 		else
 		{
 			//do nothing
+			v->MotorControl.Sensorless.SensorlessState = ( v->MotorControl.Sensorless.SensorlessState == SensorlessState_Using_HFI_Algorithm ) ? \
+			SensorlessState_Switching_from_HFI_to_EEMF : (( v->MotorControl.Sensorless.SensorlessState == SensorlessState_Using_EEMF_Algorithm ) ? \
+			SensorlessState_Switching_from_EEMF_to_HFI : v->MotorControl.Sensorless.SensorlessState );
 		}
 #endif
 

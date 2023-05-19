@@ -74,6 +74,8 @@ const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 		/* Row030 */	0xFF,	}
 };
 
+static inline void ExtFlash_Write_DTC_Data_by_ADDR( ExtFlash_t *v, uint32_t Address, uint8_t *pData );
+
 /*
  * External flash communication or basic function
  */
@@ -179,6 +181,44 @@ void ExtFlash_SER( ExtFlash_t *v, uint32_t Address )
 		ExtFlash_RDSR(v);
 		v->RetryCount++;
 		if( v->RetryCount == SER_TIMEOUT )
+		{
+			v->AlarmStatus |= FLASHERROR_DAMAGED;
+			break;
+		}
+	} while( (v->StatusRegister & SR_WIP) == SR_WIP );
+}
+
+void ExtFlash_BER64( ExtFlash_t *v, uint32_t Address )
+{
+	uint16_t i;
+
+	ExtFlash_WREN();
+
+	// Clear Buffer
+	for( i = 0; i < SPI_BUF_LEN; i++ )
+	{
+		v->TxBuff[i] = v->RxBuff[i] = 0;
+	}
+
+	// set cmd and Address
+	v->TxBuff[0] = BER64;
+	v->TxBuff[1] = (Address & 0x00FF0000) >> 16;
+	v->TxBuff[2] = (Address & 0x0000FF00) >> 8;
+	v->TxBuff[3] = (Address & 0x000000FF);
+
+	// send cmd
+	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_SPI_TransmitReceive(&hspi1, v->TxBuff, v->RxBuff, SER_LEN, TIMEOUT );
+	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+
+	// wait until Process done
+	v->RetryCount = 0;
+
+	do
+	{
+		ExtFlash_RDSR(v);
+		v->RetryCount++;
+		if( v->RetryCount == SER_TIMEOUT * 4 )
 		{
 			v->AlarmStatus |= FLASHERROR_DAMAGED;
 			break;
@@ -601,4 +641,129 @@ void ExtFlash_EraseTotalTime( ExtFlash_t *v )
 	{
 		ExtFlash_SER( v, TOTAL_TIME_FIRST_ADDR + GET_SECTOR_ADDR( i ) );
 	}
+}
+
+void ExtFlash_Write_DTC_Data( ExtFlash_t *v , uint16_t DTC_Record_Num, uint8_t *pDataIn )
+{
+    uint8_t row_number = 0;
+	//read the DTC record number to find empty row. 0xFF means empty row
+    for ( row_number = 0; row_number < 32; row_number++ )
+    {
+	    ExtFlash_NORD( v, v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num] + (row_number * FLASH_HALFPAGE_SIZE) + DTCChecksumOffset , NORD_LEN + 1 );
+
+	    if ( v->RxBuff[NORD_LEN] == 0xFF )
+	    {
+	    	break;
+	    }
+    }
+    if ( row_number < 32 )
+    {
+    	//If there is any empty row, program directly
+    	uint8_t tempData[DATA_LENGTH_EACH_DTC_STORE] = {0};
+    	for (uint32_t j = 0; j < ( DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset ); j++)
+    	{
+    		tempData[0] += pDataIn[j];
+    	}
+    	memcpy( &tempData[1], pDataIn, DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
+		ExtFlash_Write_DTC_Data_by_ADDR( v,  v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num] + ( row_number * FLASH_HALFPAGE_SIZE ), &tempData[0] );
+    }
+    else
+    {
+    	/*If there is no empty row, follow the steps below:
+    	 * 1. Read the first row data to backup the first Store DTC
+    	 * 2. Erase this sector
+    	 * 3. Write the first data into the first row of Flash
+    	 * 4. Then , write the new data into the second row of Flash
+    	 */
+    	uint8_t tempData[DATA_LENGTH_EACH_DTC_STORE] = {0};
+    	uint8_t tempData1[DATA_LENGTH_EACH_DTC_STORE] = {0};
+        ExtFlash_NORD( v, v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num], NORD_LEN + DATA_LENGTH_EACH_DTC_STORE );
+        memcpy( &tempData[0], &v->RxBuff[NORD_LEN], DATA_LENGTH_EACH_DTC_STORE );
+    	ExtFlash_SER( v, v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num]);
+		ExtFlash_Write_DTC_Data_by_ADDR( v,  v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num], &tempData[0] );
+
+    	for (uint32_t j = 0; j < ( DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset ); j++)
+    	{
+    		tempData1[0] += pDataIn[j];
+    	}
+    	memcpy( &tempData1[1], pDataIn, DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
+		ExtFlash_Write_DTC_Data_by_ADDR( v,  v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num] + FLASH_HALFPAGE_SIZE, &tempData1[0] );
+    }
+}
+void ExtFlash_Read_DTC_Data( ExtFlash_t *v , uint16_t DTC_Record_Num, uint8_t *pDataOut0, uint8_t *pDataOut1 )
+{
+	//read the DTC record number to check if the first row is empty. 0xFF means empty row
+    ExtFlash_NORD( v, v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num], NORD_LEN + DATA_LENGTH_EACH_DTC_STORE );
+    if ( v->RxBuff[NORD_LEN + 1] == 0xFF )
+    {
+    	return;
+    }
+    else
+    {
+    	//Check data valid or invalid by checksum
+    	uint8_t tempChecksum = 0;
+    	for (uint8_t j = DTCChecksumOffset; j < ( DATA_LENGTH_EACH_DTC_STORE ); j++)
+    	{
+    		tempChecksum += v->RxBuff[NORD_LEN + j];
+    	}
+    	if ( tempChecksum == v->RxBuff[NORD_LEN] )
+    	{
+    	    memcpy( pDataOut0, &(v->RxBuff[NORD_LEN + DTCChecksumOffset]), DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
+    	}
+    	else
+    	{
+    		// If the data from first row invalid, erase this sector.
+        	ExtFlash_SER( v, v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num]);
+        	return;
+    	}
+
+    }
+    /* Read the last stored DTC data.
+     * read the DTC record number to find empty row. 0xFF means empty row,
+     * the row just above the empty row is the last stored row
+     */
+	for (uint8_t row_number = 1; row_number < 32; row_number++ )
+	{
+	    ExtFlash_NORD( v, v->DTC_Store.ADDR_by_DTC_Record_Number[DTC_Record_Num] + (row_number * FLASH_HALFPAGE_SIZE) , NORD_LEN + DATA_LENGTH_EACH_DTC_STORE );
+	    if ( v->RxBuff[NORD_LEN + 1] == 0xFF )
+	    {
+	    	return;
+	    }
+	    else
+	    {
+	    	uint8_t tempChecksum = 0;
+	    	for (uint8_t j = DTCChecksumOffset; j < ( DATA_LENGTH_EACH_DTC_STORE ); j++)
+	    	{
+	    		tempChecksum += v->RxBuff[NORD_LEN + j];
+	    	}
+	    	if ( tempChecksum == v->RxBuff[NORD_LEN] )
+	    	{
+	    	    memcpy( pDataOut1, &v->RxBuff[NORD_LEN + DTCChecksumOffset], DATA_LENGTH_EACH_DTC_STORE - DTCChecksumOffset );
+	    	}
+	    }
+	}
+}
+void ExtFlash_Clear_DTC_Data( ExtFlash_t *v )
+{
+
+	ExtFlash_BER64( v, v->DTC_Store.ADDR_by_DTC_Record_Number[0] );
+	ExtFlash_BER64( v, v->DTC_Store.ADDR_by_DTC_Record_Number[16] );
+
+}
+
+static inline void ExtFlash_Write_DTC_Data_by_ADDR( ExtFlash_t *v, uint32_t Address, uint8_t *pData )
+{
+	// Write Enable
+	ExtFlash_WREN();
+
+	// Page 4 + data bytes
+	ExtFlash_PP( v,  Address, pData, PP_LEN + DATA_LENGTH_EACH_DTC_STORE );
+
+	// Check done
+	ExtFlash_RDSR(v);
+	do
+	{
+		ExtFlash_RDSR(v);
+	}
+	while( (v->StatusRegister & SR_WIP) == SR_WIP );
 }

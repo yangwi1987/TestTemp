@@ -18,6 +18,16 @@
 
 #define HFI_SIN_TIMES 10
 
+enum SensorlessState_e
+{
+	SensorlessState_None,
+	SensorlessState_Initial_Angle_Align,
+	SensorlessState_Using_HFI_Algorithm,
+	SensorlessState_Using_EEMF_Algorithm,
+	SensorlessState_Switching_from_HFI_to_EEMF,
+	SensorlessState_Switching_from_EEMF_to_HFI
+};
+
 enum SENSORLESS_INIT_STATUS_ENUM
 {
 	SENSORLESS_INIT_OK = 0,
@@ -226,7 +236,7 @@ typedef struct
 {
 	uint16_t Error : 8;
 	uint16_t LowerLevelError : 8;
-	uint16_t SensorlessStage;
+	uint16_t SensorlessState;
 	IPMSensorlessEEMFOnStator_t EEMF;
 	IPMSensorlessHFISin_t HFISin;
 	IPMSensorlessAngleInit_t AngleInit;

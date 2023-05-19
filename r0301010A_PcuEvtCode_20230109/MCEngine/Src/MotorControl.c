@@ -228,6 +228,7 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 			else
 			{
 				//Angle Init
+				p->Sensorless.SensorlessState = SensorlessState_Initial_Angle_Align;
 					SENSORLESS_ANGLE_INIT_BY_FIXED_CMD((&(p->Sensorless.AngleInit.FixedCmd)),(&(p->Sensorless.AngleInit)))
 
 				p->CurrentControl.EleAngle = p->Sensorless.AngleInit.EleAngle;
