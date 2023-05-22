@@ -64,7 +64,7 @@ void RcComm_MsgHandler(StructUartCtrl*p, uint8_t *pData ){
 				p->TxBuff[11] = lTempI16 & 0xFF;
 				p->TxBuff[12] = lTempI16 >>8;
 				//TBat
-				lTempI16 = p->pRxInterface->BatTempNow0P1C;
+				lTempI16 = p->pRxInterface->BmsReportInfo.MaxCellTemp;
 				p->TxBuff[13] = lTempI16 & 0xFF;
 				p->TxBuff[14] = lTempI16 >>8;
 				//SOC
@@ -97,6 +97,11 @@ void RcComm_MsgHandler(StructUartCtrl*p, uint8_t *pData ){
 					p->pRxInterface->PowerLevel = (uint16_t)(*(pData+7));
 					p->TimeoutCnt=0;
 					p->RcEnable = 1;
+					p->pRxInterface->RcConnStatus = 1;
+				}
+				else
+				{
+          p->pRxInterface->RcConnStatus = 0;
 				}
 				break;
 			}

@@ -75,6 +75,7 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 
 DTCStation_t DTCStation1 = DTC_STATION_DEFFAULT;
 void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
+extern const CANProtocol ExtranetInformInSystemTableExample;
 
 uint32_t VersionAddressArray[5] =
 {
