@@ -284,8 +284,8 @@ typedef struct
 	int32_t	BatCurrentDrainLimit0P1A;
 	int32_t	MEPowerOutputLimit0P1W;
 	uint32_t RTCData;
-	uint16_t ThrottleCmd;
-	uint16_t PowerLevel;
+	uint8_t ThrottleCmd;
+	uint8_t PowerLevel;
 	uint8_t RcConnStatus;
 	uint8_t ShiftCmd;
 	uint8_t OutputModeCmd;
@@ -304,7 +304,7 @@ typedef struct
 typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
-  TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG = 1,
+  TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG = 1,
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,

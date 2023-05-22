@@ -92,7 +92,8 @@ void RcComm_MsgHandler(StructUartCtrl*p, uint8_t *pData ){
 			}
 			case  RC_CMD_ID_RC_COMMAND:{
 
-				if(*(pData+6)==0x01){
+				if(*(pData+6)==0x01)
+				{
 					p->pRxInterface->ThrottleCmd = ((uint16_t)(*(pData+4))>100)? 100 : (uint16_t)(*(pData+4));
 					p->pRxInterface->PowerLevel = (uint16_t)(*(pData+7));
 					p->TimeoutCnt=0;
