@@ -398,30 +398,4 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
   return lStatus;
 }
 
-#if ESC_WILL_TEST_ENABLE_001
-/* Check structure size when compiling to avoid memory overlapping or message transfer error*/
-void ProtocolStaticAssert (void)
-{
-  _Static_assert(sizeof(CanRxMsg_BmsCurrent_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsSm_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsStatus_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsTemp01_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsTemp02to04_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsVolt01to04_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsVolt05_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanRxMsg_BmsVolt06_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_BmsCtrl01_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo0_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo1_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo2_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo3_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo4_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo5_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo6_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(CanTxMsg_EscLogInfo7_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(EscCanRxInfo_t) == 8, "IncorrectSize");
-  _Static_assert(sizeof(EscCanTxCmd_t) == 8, "IncorrectSize");
-}
-#endif
-
 #endif

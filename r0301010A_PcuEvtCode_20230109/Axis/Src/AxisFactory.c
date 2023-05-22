@@ -59,51 +59,6 @@ void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
 	}
 }
 
-#if ESC_WILL_TEST_ENABLE_001
-void EscCanTxMsgTestFunction(STRUCT_CANTxInterface *p, STRUCT_CANRxInterface *r)
-{
-  p->NTCTemp[0] = -33;
-  p->NTCTemp[1] = 20;
-  p->NTCTemp[2] = 180;
-  p->NTCTemp[3] = 215;
-  p->PcuStateReport = PcuState_Shutdown_Start;
-  p->Id_cmd = -55.66;
-  p->Iq_cmd = 77.88;
-  p->Id_fbk = -77.88;
-  p->Iq_fbk = 11.22;
-  p->FoilPos = FOIL_POS_SURF;
-  p->Debugf[IDX_AC_LIMIT_CMD] = 111.11;
-  p->Debugf[IDX_AC_LIMIT_TQ] = 22.22;
-  p->Debugf[IDX_DC_LIMIT_CMD] = -333.33;
-  p->Debugf[IDX_DC_LIMIT_TQ] = -44.4;
-  p->Debugf[IDX_PERFROMANCE_TQ] = 555.5;
-  p->Debugf[IDX_VD_CMD] = 77.7;
-  p->Debugf[IDX_VQ_CMD] = 88.8;
-  p->Debugf[IDX_MOTOR_RPM] = 13579;
-  p->Debugf[IDX_DC_VOLT] = 48;
-  p->DebugU8[TX_INTERFACE_DBG_IDX_FOIL_POSITION] = FOIL_POS_SURF ;  //operation mode(paddle/surf/foil)
-//  p->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
-  p->Debugf[IDX_THROTTLE_FINAL]= 0.878;
-  p->Debugf[IDX_FOIL_SENSOR_VOLT] = 3.3;
-  p->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = 99.99;
-  p->Debugf[IDX_RESERVERD] = 0.0f;
-  p->Debugf[IDX_AVERAGE_POWER] = 222.22;
-  p->Debugf[IDX_INSTANT_POWER] = -777.77;
-  p->Debugf[IDX_REMAIN_TIME] = 20235;
-  r->RcConnStatus = 1;
-  r->PowerLevel = 8;
-  r->BmsReportInfo.Soc = 87;
-  r->BmsReportInfo.PrchSM = BMS_PRCH_SM_FINISH;
-  r->BmsReportInfo.MainSm = BMS_MAIN_SM_SHUTDOWN;
-
-  for(uint8_t i=0; i < 10; i++)
-  {
-    p->DebugError[i] = i;
-  }
-}
-#endif
-
-
 void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 {
 
@@ -209,9 +164,6 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 		v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
 		v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
 		v->pCANTxInterface->DebugU8[1] = v->FourQuadCtrl.FourQuadState;
-#if ESC_WILL_TEST_ENABLE_001
-		EscCanTxMsgTestFunction(v->pCANTxInterface, v->pCANRxInterface);
-#endif
 	}
 
 }
