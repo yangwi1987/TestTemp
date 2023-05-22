@@ -1064,12 +1064,8 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0563_System_voltage_high                      ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OVER_VOLTAGE_BUS );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_RC_INVALID );
-    //Disable OCP and 13VUP when low DC voltage to avoid mulfunction
-    if ( AdcStation1.AdcTraOut.BatVdc > 25.0f )
-    {
-        v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
-        v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
-    }
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F02_ESC_Mosfet_High_temperature              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0 ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1 );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F03_ESC_Capacitor_High_temperature           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2 )  ;
