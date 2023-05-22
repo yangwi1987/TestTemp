@@ -93,9 +93,9 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 			{
 				case ALARM_TYPE_WARNING:
 					*v->pHasWarning[i] = 1;
-					if(*AlarmMgr1.pRequestResetWarningCNT[i] == 0)
+					if(*AlarmMgr1.pRequestResetWarningCNT[i] == RESET_WARNING_IDLE)
 					{
-						*AlarmMgr1.pRequestResetWarningCNT[i] = 1;
+						*AlarmMgr1.pRequestResetWarningCNT[i] = RESET_WARNING_REQUEST;
 					}
 					break;
 
@@ -122,7 +122,10 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 		{
 			case ALARM_TYPE_WARNING:
 				*v->pHasWarning[TargetIndex] = 1;
-				*v->pRequestResetWarningCNT[TargetIndex] = 1;
+				if(*AlarmMgr1.pRequestResetWarningCNT[TargetIndex] == RESET_WARNING_IDLE)
+				{
+					*v->pRequestResetWarningCNT[TargetIndex] = RESET_WARNING_REQUEST;
+				}
 				break;
 
 			case ALARM_TYPE_ERROR:
@@ -159,9 +162,9 @@ static void RegisterAxisAlarmStatic( uint16_t AxisID, uint16_t AlarmID, uint16_t
 
 			case ALARM_TYPE_WARNING:
 				*AlarmMgr1.pHasWarning[AxisIndex] = 1;
-				if(*AlarmMgr1.pRequestResetWarningCNT[AxisIndex] == 0)
+				if(*AlarmMgr1.pRequestResetWarningCNT[AxisIndex] == RESET_WARNING_IDLE)
 				{
-					*AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = 1;
+					*AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = RESET_WARNING_REQUEST;
 				}
 				break;
 

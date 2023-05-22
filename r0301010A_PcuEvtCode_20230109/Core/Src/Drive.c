@@ -1314,7 +1314,7 @@ void drive_Init(void)
 	{
 		AlarmMgr1.pHasAlarm[AxisIndex] = &Axis[AxisIndex].HasAlarm;
 		AlarmMgr1.pHasWarning[AxisIndex] = &Axis[AxisIndex].HasWarning;
-		Axis[AxisIndex].RequestResetWarningCNT = 0;
+		Axis[AxisIndex].RequestResetWarningCNT = RESET_WARNING_IDLE;
 		AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = &Axis[AxisIndex].RequestResetWarningCNT;
 	}
 
@@ -1660,6 +1660,12 @@ void drive_Do10HzLoop(void)
 
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
+
+	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_REQUEST &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
+	{
+		Axis[0].RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
+		// Do ResetWarnning in HouseKeeping.
+	}
 }
 
 void drive_DoTotalTime(void)
@@ -1695,6 +1701,7 @@ void drive_Do1HzLoop(void)
 
 void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 {
+	v->RequestResetWarningCNT = RESET_WARNING_RESETING;
 	// Reset All warning counter before reset alarm stack and clear hasWarning.
 	// Reset WarningCNT  todo create a new function in alarmDetect
 	v->AlarmDetect.CAN1Timeout.Counter = 0;
@@ -1717,7 +1724,7 @@ void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 
 	// Only if PCU is servo off, then PCU can reset warning.
 	pAlarmMgr->ResetAllWarning( pAlarmMgr );
-	v->RequestResetWarningCNT = 0;
+	v->RequestResetWarningCNT = RESET_WARNING_IDLE;
 }
 
 void drive_DoHouseKeeping(void)
@@ -1772,7 +1779,7 @@ void drive_DoHouseKeeping(void)
 	RCCommCtrl.MsgDecoder(&RCCommCtrl);
 
 	// If status is servo off, warning exist, and user commands servo on again.
-	if( Axis[0].RequestResetWarningCNT == 2 &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
+	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_ALLOW_RESET &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
 	{
 		// Reset All warning counter before reset alarm stack and clear hasWarning.
 		// Reset WarningCNT  todo Create a new function in alarmDetect.

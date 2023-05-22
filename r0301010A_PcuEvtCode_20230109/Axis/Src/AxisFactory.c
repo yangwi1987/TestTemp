@@ -248,13 +248,13 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
 			v->BootstrapCounter = 0;
 			if( ServoOnEnable && v->pAdcStation->ZeroCalibInjDone )
 			{
-				if( v->RequestResetWarningCNT == 1 )
+				if( v->RequestResetWarningCNT == RESET_WARNING_REQUEST )
 				{
-					v->RequestResetWarningCNT = 2; // Start to reset warning.
+					v->RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
 					// Do ResetWarnning in HouseKeeping.
 				}
 
-				if( v->RequestResetWarningCNT == 0 ) // No warning or warning have been reset
+				if( v->RequestResetWarningCNT == RESET_WARNING_IDLE ) // No warning or warning have been reset
 				{
 					v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
 					AxisFactory_ConfigAlarmSystem( v );

@@ -23,6 +23,14 @@ typedef enum
 	ALARM_MGR_STATE_ENABLE = 1,
 } E_ALARM_MGR_STATE;
 
+typedef enum
+{
+	RESET_WARNING_IDLE,
+	RESET_WARNING_REQUEST,
+	RESET_WARNING_ALLOW_RESET,
+	RESET_WARNING_RESETING
+}ResetWarning_e;
+
 typedef void (*functypeAlarmMgr_RegisterAlarm)(void*, uint16_t, uint16_t, uint16_t);
 typedef void (*functypeAlarmMgr_ResetAllAlarm)(void*);
 typedef void (*functypeAlarmMgr_ResetAllWarning)(void*);
