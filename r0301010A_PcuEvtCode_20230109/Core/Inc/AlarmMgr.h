@@ -23,17 +23,28 @@ typedef enum
 	ALARM_MGR_STATE_ENABLE = 1,
 } E_ALARM_MGR_STATE;
 
+typedef enum
+{
+	RESET_WARNING_IDLE,
+	RESET_WARNING_REQUEST,
+	RESET_WARNING_ALLOW_RESET,
+	RESET_WARNING_RESETING
+}ResetWarning_e;
+
 typedef void (*functypeAlarmMgr_RegisterAlarm)(void*, uint16_t, uint16_t, uint16_t);
 typedef void (*functypeAlarmMgr_ResetAllAlarm)(void*);
+typedef void (*functypeAlarmMgr_ResetAllWarning)(void*);
 typedef uint16_t (*pAlarmStack_FlagRead)( void*, uint16_t );
 
 typedef struct {
 	uint8_t State;
 	uint16_t *pHasAlarm[MAX_AXIS_NUM];
 	uint16_t *pHasWarning[MAX_AXIS_NUM];
+	uint16_t *pRequestResetWarningCNT[MAX_AXIS_NUM];
 	//uint16_t CriticalAlarmFlag[MAX_AXIS_NUM];
 	functypeAlarmMgr_RegisterAlarm RegisterAlarm;
 	functypeAlarmMgr_ResetAllAlarm ResetAllAlarm;
+	functypeAlarmMgr_ResetAllWarning ResetAllWarning;
 } AlarmMgr_t;
 
 typedef struct {
@@ -46,6 +57,7 @@ typedef struct {
 
 void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t AlarmType );
 void ResetAllAlarm( AlarmMgr_t *v );
+void ResetAllWarning( AlarmMgr_t *v );
 void RegisterAxisAlarm( AlarmDetect_t *v, uint16_t AlarmID, uint16_t AlarmType );
 uint16_t AlarmStack_FlagRead( AlarmStack_t *p, uint16_t AlarmID );
 
@@ -61,9 +73,11 @@ uint16_t AlarmStack_FlagRead( AlarmStack_t *p, uint16_t AlarmID );
 	ALARM_MGR_STATE_ENABLE, /* State */\
 	{0, 0}, /* pHasAlarm */ \
 	{0, 0}, /* pHasWarning */ \
+	{0, 0}, /* pRequestResetWarningCNT */ \
 	/*{0, 0},*/ /* CriticalAlarmFlag */ \
 	(functypeAlarmMgr_RegisterAlarm)RegisterAlarm, \
-	(functypeAlarmMgr_ResetAllAlarm)ResetAllAlarm }
+	(functypeAlarmMgr_ResetAllAlarm)ResetAllAlarm, \
+	(functypeAlarmMgr_ResetAllWarning)ResetAllWarning }
 
 extern AlarmStack_t AlarmStack[MAX_AXIS_NUM];
 

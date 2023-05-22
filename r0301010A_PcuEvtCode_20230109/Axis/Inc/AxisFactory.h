@@ -117,6 +117,7 @@ typedef struct {
 	int16_t ServoOnOffState;
 	uint16_t HasWarning;
 	uint16_t HasAlarm;
+	uint16_t RequestResetWarningCNT;
 	int16_t BootstrapCounter;
 	int16_t BootstrapMaxCounter;
 	int16_t BoostrapTimeMs;
@@ -164,6 +165,7 @@ typedef struct {
 	0,      /*ServoOnOffState;    */ \
 	0,      /* HasWarning;        */ \
 	0,      /* HasAlarm;          */ \
+	0,      /* RequestResetWarningCNT; */ \
 	0,      /*BootstrapCounter;   */ \
 	100,	/*BootstrapMaxCounter;*/ \
 	10,     /*BoostrapTimeMs;     */ \

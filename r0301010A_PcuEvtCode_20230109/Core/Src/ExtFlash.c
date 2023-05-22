@@ -19,7 +19,7 @@
 const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 {
 	// ParaReadEnableTable2p4 is created for External Flash 3.0.1.1.
-	/* page1 SysParamTable */
+	/* page1 SysParamTable P0-00 ~ P1-99*/
 	{	/* Row000 */	0x06,
 		/* Row001 */	0x00,
 		/* Row002 */	0x00,
@@ -36,7 +36,7 @@ const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 		/* Row015 */	0xFF,
 		/* Row016 */	0xFF,
 		/* Row017 */	0x3F,
-		/* Row020 */	0xFC,
+		/* Row020 */	0xF0,
 		/* Row021 */	0x00,
 		/* Row022 */	0x00,
 		/* Row023 */	0x00,
@@ -46,7 +46,7 @@ const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 		/* Row027 */	0x00,
 		/* Row030 */	0x00	},
 
-	/* page2 PcuParamTable */
+	/* page2 PcuParamTable P2-00 ~ P3-99 , P3-00 ~ P3-99 are alarm threshold*/
 	{	/* Row000 */	0x00,
 		/* Row001 */	0x04,
 		/* Row002 */	0x00,
@@ -59,19 +59,19 @@ const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 		/* Row011 */	0x3F,
 		/* Row012 */	0xFF,
 		/* Row013 */	0x0F,
-		/* Row014 */	0x00,
-		/* Row015 */	0x00,
-		/* Row016 */	0x00,
-		/* Row017 */	0x00,
-		/* Row020 */	0x00,
-		/* Row021 */	0x00,
-		/* Row022 */	0x00,
-		/* Row023 */	0x00,
-		/* Row024 */	0x00,
-		/* Row025 */	0x00,
-		/* Row026 */	0x00,
-		/* Row027 */	0x00,
-		/* Row030 */	0x00	}
+		/* Row014 */	0xF0,
+		/* Row015 */	0xFF,
+		/* Row016 */	0xFF,
+		/* Row017 */	0xFF,
+		/* Row020 */	0xFF,
+		/* Row021 */	0xFF,
+		/* Row022 */	0xFF,
+		/* Row023 */	0xFF,
+		/* Row024 */	0xFF,
+		/* Row025 */	0xFF,
+		/* Row026 */	0xFF,
+		/* Row027 */	0xFF,
+		/* Row030 */	0xFF,	}
 };
 
 static inline void ExtFlash_Write_DTC_Data_by_ADDR( ExtFlash_t *v, uint32_t Address, uint8_t *pData );

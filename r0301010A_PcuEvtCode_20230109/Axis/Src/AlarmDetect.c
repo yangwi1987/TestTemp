@@ -32,11 +32,14 @@ static uint16_t AlarmDetect_Accumulation( AlarmDetect_t *v, PROTECT_POLLING_TYPE
 			{
 				p->Counter++;
 			}
+			// error debounce
 			if( p->Counter > p->AlarmInfo.ErrorCounter )
 			{
 				v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, ALARM_TYPE_ERROR );
 				Abnormal = ALARM_TYPE_ERROR;
 			}
+
+			// alarm debounce
 			else if( p->Counter > p->AlarmInfo.WarningCounter )
 			{
 				v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, ALARM_TYPE_WARNING );
@@ -102,6 +105,16 @@ static void AlarmDetect_PowerICOverCurrent( AlarmDetect_t *v, PROTECT_POLLING_TY
 	}
 }
 
+static void SetAlarmThreshold(PROTECT_POLLING_TYPE *v, uint16_t index)
+	{
+	// set threshold from external flash (P3-00~P3-xx)
+	// This function sholud be executed after ParamMgr1.Init
+	if (v->AlarmInfo.AlarmEnable == ALARM_ENABLE)
+	{
+		v->AlarmInfo.AlarmThreshold = *(&DriveParams.PCUParams.Reserved300 + index);
+	}
+}
+
 void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStation,
 		PwmStation *pPwmStation,
 		PHASE_LOSS_TYPE *pPhaseLoss, MOTOR_CONTROL_TYPE *pMotorControl, SpeedInfo_t *pSpeedInfo, PWM_RC_TYPE *pPwmRc  )
@@ -135,6 +148,14 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->OTP_PCU_2.Counter = 0;
 	v->OTP_Motor_0.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_OT_MOTOR_0];
 	v->OTP_Motor_0.Counter = 0;
+	v->OTP_PCU_0_WARNING.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_OT_PCU_0_WARNING];
+	v->OTP_PCU_0_WARNING.Counter = 0;
+	v->OTP_PCU_1_WARNING.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_OT_PCU_1_WARNING];
+	v->OTP_PCU_1_WARNING.Counter = 0;
+	v->OTP_PCU_2_WARNING.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_OT_PCU_2_WARNING];
+	v->OTP_PCU_2_WARNING.Counter = 0;
+	v->OTP_Motor_0_WARNING.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_OT_MOTOR_0_WARNING];
+	v->OTP_Motor_0_WARNING.Counter = 0;
 	v->BREAK_NTC_PCU_0.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_BREAK_NTC_PCU_0];
 	v->BREAK_NTC_PCU_0.Counter = 0;
 	v->BREAK_NTC_PCU_1.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_BREAK_NTC_PCU_1];
@@ -162,14 +183,12 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->POWER_TRANSISTOR_OC.Counter = 0;
 	v->CAN1Timeout.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_CAN1_TIMEOUT];
 	v->CAN1Timeout.Counter = 0;
-	v->RC_ABNORMAL.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_RC_ABNORMAL];
-	v->RC_ABNORMAL.Counter = 0;
+	v->RC_INVALID.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_RC_INVALID];
+	v->RC_INVALID.Counter = 0;
 #if USE_FOIL_ABNORMAL_DETECT
 	v->FOIL_SENSOR_BREAK.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_FOIL_BREAK];
-	v->FOIL_SENSOR_BREAK.AlarmInfo.AlarmThreshold = DriveParams.SystemParams.MinAnalogFoilADC;
 	v->FOIL_SENSOR_BREAK.Counter = 0;
 	v->FOIL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_FOIL_SHORT];
-	v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmThreshold = DriveParams.SystemParams.MaxAnalogFoilADC;
 	v->FOIL_SENSOR_SHORT.Counter = 0;
 	if(IsUseDigitalFoilSensor==1)
 	{
@@ -177,6 +196,43 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 		v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	}
 #endif
+
+	// set threshold from external flash (P3-00~P3-99) for alarm detected by AlarmDetect_Accumulation
+	// This function sholud be executed after ParamMgr1.Init, P3-00 is index 0. Max P3-99 is index 0x63
+	//SetAlarmThreshold(&v->CAN0Timeout, ALARMID_CAN1_TIMEOUT);
+	SetAlarmThreshold(&v->CAN1Timeout, ALARMID_CAN1_TIMEOUT);
+	SetAlarmThreshold(&v->POWER_TRANSISTOR_OC, ALARMID_POWER_TRANSISTOR_OC);
+	SetAlarmThreshold(&v->BUF_IC_FB, ALARMID_BUFFER_IC_ERROR);
+	SetAlarmThreshold(&v->OSP, ALARMID_MOTOR_OVER_SPEED);
+	SetAlarmThreshold(&v->OVP_Bus, ALARMID_OVER_VOLTAGE_BUS);
+	SetAlarmThreshold(&v->UVP_Bus, ALARMID_UNDER_VOLTAGE_BUS);
+	SetAlarmThreshold(&v->UVP_13V, ALARMID_UNDER_VOLTAGE_13V);
+	//SetAlarmThreshold(&v->OCP_Iu, ALARMID_IU_OCP);
+	//SetAlarmThreshold(&v->OCP_Iv, ALARMID_IV_OCP);
+	//SetAlarmThreshold(&v->OCP_Iw, ALARMID_IW_OCP);
+	SetAlarmThreshold(&v->FOIL_SENSOR_BREAK, ALARMID_FOIL_BREAK);
+	SetAlarmThreshold(&v->FOIL_SENSOR_SHORT, ALARMID_FOIL_SHORT);
+	SetAlarmThreshold(&v->OTP_PCU_0, ALARMID_OT_PCU_0);
+	SetAlarmThreshold(&v->OTP_PCU_1, ALARMID_OT_PCU_1);
+	SetAlarmThreshold(&v->OTP_PCU_2, ALARMID_OT_PCU_2);
+	SetAlarmThreshold(&v->OTP_Motor_0, ALARMID_OT_MOTOR_0);
+	SetAlarmThreshold(&v->OTP_PCU_0_WARNING, ALARMID_OT_PCU_0_WARNING);
+	SetAlarmThreshold(&v->OTP_PCU_1_WARNING, ALARMID_OT_PCU_1_WARNING);
+	SetAlarmThreshold(&v->OTP_PCU_2_WARNING, ALARMID_OT_PCU_2_WARNING);
+	SetAlarmThreshold(&v->OTP_Motor_0_WARNING, ALARMID_OT_MOTOR_0_WARNING);
+	SetAlarmThreshold(&v->BREAK_NTC_PCU_0, ALARMID_BREAK_NTC_PCU_0);
+	SetAlarmThreshold(&v->BREAK_NTC_PCU_1, ALARMID_BREAK_NTC_PCU_1);
+	SetAlarmThreshold(&v->BREAK_NTC_PCU_2, ALARMID_BREAK_NTC_PCU_2);
+	SetAlarmThreshold(&v->BREAK_NTC_Motor_0, ALARMID_BREAK_NTC_MOTOR_0);
+	SetAlarmThreshold(&v->SHORT_NTC_PCU_0, ALARMID_SHORT_NTC_PCU_0);
+	SetAlarmThreshold(&v->SHORT_NTC_PCU_1, ALARMID_SHORT_NTC_PCU_1);
+	SetAlarmThreshold(&v->SHORT_NTC_PCU_2, ALARMID_SHORT_NTC_PCU_2);
+	SetAlarmThreshold(&v->SHORT_NTC_Motor_0, ALARMID_SHORT_NTC_MOTOR_0);
+	//SetAlarmThreshold(&v->THROT_ERROR_SHORT, ALARMID_CAN1_TIMEOUT);
+	//SetAlarmThreshold(&v->THROT_ERROR_BREAK, ALARMID_CAN1_TIMEOUT);
+	SetAlarmThreshold(&v->RC_INVALID, ALARMID_RC_INVALID);
+	//
+
 	v->Do100HzLoop = (functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop;
 }
 
@@ -193,7 +249,7 @@ void AlarmDetect_DoCurrentLoop( AlarmDetect_t *v )
 	{
 		if( v->pPhaseLoss->Error == PHASE_LOSS_ERROR_HAPPEN )
 		{
-			v->RegisterAxisAlarm( v, ALARMID_PHASE_LOSS, ALARM_TYPE_ERROR );
+			v->RegisterAxisAlarm( v, ALARMID_PHASE_LOSS, SystemTable.AlarmTableInfo[ALARMID_PHASE_LOSS].AlarmType );
 		}
 	}
 }
@@ -242,8 +298,22 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	}
 
 #if USE_FOIL_ABNORMAL_DETECT
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_BREAK, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[FOIL_AD].AdcGroupIndex][v->pAdcStation->RegCh[FOIL_AD].AdcRankIndex] );
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_SHORT, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[FOIL_AD].AdcGroupIndex][v->pAdcStation->RegCh[FOIL_AD].AdcRankIndex] );
+	// analog foil sensor should in 5~0V, and the input signal is between 5000~0000 (0.001V)
+	int16_t TempAnalogFoil0p001V; // in 0.001V
+	if(v->pAdcStation->AdcTraOut.Foil < 0.00001f)
+	{
+		TempAnalogFoil0p001V = 0; // 0.00000 * 1000 = 0
+	}
+	else if(v->pAdcStation->AdcTraOut.Foil > 4.99999f)
+	{
+		TempAnalogFoil0p001V = 5000; // 5.00000 * 1000 = 5000
+	}
+	else
+	{
+		TempAnalogFoil0p001V = v->pAdcStation->AdcTraOut.Foil * 1000.0f;
+	}
+	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_BREAK, TempAnalogFoil0p001V );
+	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_SHORT, TempAnalogFoil0p001V );
 #endif
 
 }
@@ -256,18 +326,22 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<PCU_NTC_0) ) == 0 )
 		{
 			AlarmDetect_Accumulation( v, &v->OTP_PCU_0, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_0] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_0] );
 		}
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<PCU_NTC_1) ) == 0 )
 		{
 			AlarmDetect_Accumulation( v, &v->OTP_PCU_1, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_1] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_1_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_1] );
 		}
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<PCU_NTC_2) ) == 0 )
 		{
 			AlarmDetect_Accumulation( v, &v->OTP_PCU_2, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_2] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_2_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[PCU_NTC_2] );
 		}
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOTOR_NTC_0_A0) ) == 0 )
 		{
 			AlarmDetect_Accumulation( v, &v->OTP_Motor_0, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC );
+			AlarmDetect_Accumulation( v, &v->OTP_Motor_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC );
 		}
 		AlarmDetect_Accumulation( v, &v->CAN1Timeout, 1 );
 	}
@@ -276,7 +350,7 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 
 	// PWM RC SIGNAL ABNORMAL
 	if( RCCommCtrl.RcEnable == 1){
-		AlarmDetect_Accumulation( v, &v->RC_ABNORMAL, RCCommCtrl.TimeoutCnt );
+		AlarmDetect_Accumulation( v, &v->RC_INVALID, RCCommCtrl.TimeoutCnt );
 	}
 }
 
