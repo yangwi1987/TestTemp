@@ -4,7 +4,7 @@
  *  Created on: 2020年5月27日
  *      Author: Mike.Wen.SFW
  */
-#if 1
+#if BME
 #include "Protocol.h"
 #include "ICANInterface.h"\
 //uint8_t VcuEnableFlag=0;
@@ -349,32 +349,44 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
     }
     case CANTXID_ESC_LOG_INFO_6 :
     {
-      
-      p->EscLogInfo6.PwrLv = (uint8_t)(r->PowerLevel & 0x00FF);
-      p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        p->EscLogInfo6.PwrLv = (uint8_t)(r->PowerLevel & 0x00FF);
+        p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
 
-      /*todo: assign true value for signals*/
-      i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_POWER]);
-      ByteOrderReverse((void*)&p->EscLogInfo6.AvgPwr , (void*)&i16Temp, 2);
-      /*todo: assign true value for signals*/
-      i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_POWER]);
-      ByteOrderReverse((void*)&p->EscLogInfo6.InstPwr , (void*)&i16Temp, 2);
-      /*todo: assign true value for signals*/
-      i16Temp = (int16_t)(v->Debugf[IDX_REMAIN_TIME]);
-      ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&i16Temp, 2);
-
+        /*todo: assign true value for signals*/
+        i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_POWER]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.AvgPwr , (void*)&i16Temp, 2);
+        /*todo: assign true value for signals*/
+        i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_POWER]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.InstPwr , (void*)&i16Temp, 2);
+        /*todo: assign true value for signals*/
+        i16Temp = (int16_t)(v->Debugf[IDX_REMAIN_TIME]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&i16Temp, 2);
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
       break;
     }
     case CANTXID_ESC_LOG_INFO_7 :
     {
-      p->EscLogInfo7.BmsMainSm = r->BmsReportInfo.MainSm;
-      p->EscLogInfo7.BmsPrchSm = r->BmsReportInfo.PrchSM;
-      p->EscLogInfo7.BatSoc = r->BmsReportInfo.Soc;
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        p->EscLogInfo7.BmsMainSm = r->BmsReportInfo.MainSm;
+        p->EscLogInfo7.BmsPrchSm = r->BmsReportInfo.PrchSM;
+        p->EscLogInfo7.BatSoc = r->BmsReportInfo.Soc;
 
-      /*todo: assign BAT LED control code value*/
-      p->EscLogInfo7.BatPackLedCtrl.All = 0;
+        /*todo: assign BAT LED control code value*/
+        p->EscLogInfo7.BatPackLedCtrl.All = 0;
 
-      v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
+        v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
       break;
     }
     default :

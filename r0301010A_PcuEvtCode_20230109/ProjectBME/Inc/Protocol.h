@@ -5,7 +5,7 @@
  *      Author: Mike.Wen.SFW
  */
 
-#if 1
+#if BME
 #ifndef INC_PROTOCOL_H_
 #define INC_PROTOCOL_H_
 
@@ -14,7 +14,7 @@
 #include "CANDrive.h"
 #include "math.h"
 
-#define ESC_WILL_TEST_ENABLE_001  1
+#define ESC_WILL_TEST_ENABLE_001  0
 
 /* ==== macro for CANTX IDs for transmit ==== */
 #define CANTXID_BMS_CONTROL_01  0x500   /* command to control BMS actions*/

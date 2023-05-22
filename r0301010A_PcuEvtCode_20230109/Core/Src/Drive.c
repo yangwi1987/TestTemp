@@ -1758,8 +1758,8 @@ void drive_DoHouseKeeping(void)
 		DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
 	}
 
-	Axis[0].pCANTxInterface->DebugU8[IDX_LOG_ENABLE_FLAG] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam10 );
-	Axis[0].pCANTxInterface->DebugU8[IDX_BMS_COMM_ENABLE] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam9 );
+	Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam10 );
+	Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam9 );
 
 	/*
 	 * Ext-Flash Table Reset switch the data into initial value
