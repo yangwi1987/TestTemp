@@ -179,8 +179,6 @@ static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
 	if( v->ServoOnOffState == MOTOR_STATE_WAIT_BOOT )
 	{
 		v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-		v->AlarmDetect.UVP_13V.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-		v->AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	}
 
 	// Disable alarm check mechanism when "entering" MOTOR_STATE_SHUTDOWN_START (servo off)
@@ -189,12 +187,6 @@ static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
 		v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	}
 
-	//Disable OCP and 13VUP when low DC voltage to avoid mulfunction
-	if( v->pAdcStation->AdcTraOut.BatVdc < 25.0f ) //The threshold TBD
-	{
-		v->AlarmDetect.UVP_13V.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-		v->AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-	}
 }
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
