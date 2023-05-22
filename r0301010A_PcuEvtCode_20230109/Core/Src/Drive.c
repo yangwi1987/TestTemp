@@ -232,7 +232,8 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 					Axis[AxisIndex].FourQuadCtrl.ServoCmdIn			<< 3 |
 					Axis[AxisIndex].HasAlarm						<< 4 |
 					Axis[AxisIndex].pAdcStation->ZeroCalibInjDone	<< 5 |
-					Axis[AxisIndex].PhaseLoss.Enable				<< 6 ;
+					Axis[AxisIndex].PhaseLoss.Enable				<< 6 |
+					Axis[AxisIndex].HasWarning						<< 7 ;
 		break;
 
 	case DN_ID_VER_READ:
@@ -1302,15 +1303,19 @@ void drive_Init(void)
 	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
 
 	// notice that: parameters in each axis have to be independent.
-	for ( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )
+	for( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )
 	{
 		// Init Axis object. Notice that: initialize axis after reading data from rxt.flash and PSB.
 		Axis[AxisIndex].Init ( &Axis[AxisIndex], AxisIndex );
+	}
 
 		// AlarmMgr1.init( &AlarmMgr1, &Axis[AxisIndex].HasAlarm, &Axis[AxisIndex].HasWarning, AxisIndex )
+	for( AxisIndex = 0; AxisIndex < MAX_AXIS_NUM; AxisIndex++ )
+	{
 		AlarmMgr1.pHasAlarm[AxisIndex] = &Axis[AxisIndex].HasAlarm;
 		AlarmMgr1.pHasWarning[AxisIndex] = &Axis[AxisIndex].HasWarning;
-
+		Axis[AxisIndex].RequestResetWarningCNT = RESET_WARNING_IDLE;
+		AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = &Axis[AxisIndex].RequestResetWarningCNT;
 	}
 
 	// Init Axis1 Motor Stall Table
@@ -1649,13 +1654,18 @@ void drive_Do100HzLoop(void)
 void drive_Do10HzLoop(void)
 {
 	int i;
-
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
 		Axis[i].Do10HzLoop(&Axis[i]);
 
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
+
+	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_REQUEST &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
+	{
+		Axis[0].RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
+		// Do ResetWarnning in HouseKeeping.
+	}
 }
 
 void drive_DoTotalTime(void)
@@ -1687,6 +1697,34 @@ void drive_DoTotalTime(void)
 void drive_Do1HzLoop(void)
 {
 	// do nothing
+}
+
+void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
+{
+	v->RequestResetWarningCNT = RESET_WARNING_RESETING;
+	// Reset All warning counter before reset alarm stack and clear hasWarning.
+	// Reset WarningCNT  todo create a new function in alarmDetect
+	v->AlarmDetect.CAN1Timeout.Counter = 0;
+	v->AlarmDetect.FOIL_SENSOR_BREAK.Counter = 0;
+	v->AlarmDetect.FOIL_SENSOR_SHORT.Counter = 0;
+	v->AlarmDetect.BREAK_NTC_PCU_0.Counter = 0;
+	v->AlarmDetect.BREAK_NTC_PCU_1.Counter = 0;
+	v->AlarmDetect.BREAK_NTC_PCU_2.Counter = 0;
+	v->AlarmDetect.BREAK_NTC_Motor_0.Counter = 0;
+	v->AlarmDetect.SHORT_NTC_PCU_0.Counter = 0;
+	v->AlarmDetect.SHORT_NTC_PCU_1.Counter = 0;
+	v->AlarmDetect.SHORT_NTC_PCU_2.Counter = 0;
+	v->AlarmDetect.SHORT_NTC_Motor_0.Counter = 0;
+	v->AlarmDetect.OTP_PCU_0_WARNING.Counter = 0;
+	v->AlarmDetect.OTP_PCU_1_WARNING.Counter = 0;
+	v->AlarmDetect.OTP_PCU_2_WARNING.Counter = 0;
+	v->AlarmDetect.OTP_Motor_0_WARNING.Counter = 0;
+	v->AlarmDetect.RC_INVALID.Counter = 0;
+
+
+	// Only if PCU is servo off, then PCU can reset warning.
+	pAlarmMgr->ResetAllWarning( pAlarmMgr );
+	v->RequestResetWarningCNT = RESET_WARNING_IDLE;
 }
 
 void drive_DoHouseKeeping(void)
@@ -1740,6 +1778,15 @@ void drive_DoHouseKeeping(void)
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 	RCCommCtrl.MsgDecoder(&RCCommCtrl);
 
+	// If status is servo off, warning exist, and user commands servo on again.
+	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_ALLOW_RESET &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
+	{
+		// Reset All warning counter before reset alarm stack and clear hasWarning.
+		// Reset WarningCNT  todo Create a new function in alarmDetect.
+		// Now Drive simulate Axis to reset local CNT.
+		Drive_ResetWarningCNTandStatus( &Axis[0], &AlarmMgr1 );
+	}
+	
 	//DTC process to ExtFlash
 	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)
 	{
@@ -1764,7 +1811,6 @@ void drive_DoHouseKeeping(void)
         	}
         }
 	}
-
 }
 
 void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT )
