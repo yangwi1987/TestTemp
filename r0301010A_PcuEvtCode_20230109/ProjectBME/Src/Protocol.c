@@ -70,22 +70,22 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 
 		switch (pIdIn)
 		{
-			case CANTXID_BMS_VOLT_01:
-			case CANTXID_BMS_VOLT_02:
-			case CANTXID_BMS_VOLT_03:
-			case CANTXID_BMS_VOLT_04:
-			case CANTXID_BMS_VOLT_06:
+			case CANRXID_BMS_VOLT_01:
+			case CANRXID_BMS_VOLT_02:
+			case CANRXID_BMS_VOLT_03:
+			case CANRXID_BMS_VOLT_04:
+			case CANRXID_BMS_VOLT_06:
 			{
 				break;
 			}
 
-			case CANTXID_BMS_VOLT_05:
+			case CANRXID_BMS_VOLT_05:
 			{
 				v->BmsReportInfo.DcVolt = p->BmsVolt05.PackVolt_Calculated;
 				break;
 			}
 
-			case CANTXID_BMS_STATE_MACHINE_01 :
+			case CANRXID_BMS_STATE_MACHINE_01 :
 			{
 				v->BmsReportInfo.MainSm = p->BmsSm.BmsMainSM;
 				v->BmsReportInfo.PrchSM = p->BmsSm.BmsPrchSM;
@@ -118,12 +118,12 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 				break;
 			}
 
-			case CANTXID_BMS_STATUS_01 :
+			case CANRXID_BMS_STATUS_01 :
 			{
 				break;
 			}
 
-			case CANTXID_BMS_CURRENT_01 :
+			case CANRXID_BMS_CURRENT_01 :
 			{
 				i32Temp = 0;
 				for(uint8_t i = 0; i < 3; i++)
@@ -142,7 +142,7 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 				break;
 			}
 
-			case CANTXID_BMS_TEMP_01 :
+			case CANRXID_BMS_TEMP_01 :
 			{
 				v->BmsReportInfo.TempDie = p->BmsTemp01.DIE_Temp;
 				v->BmsReportInfo.TempPrch = (float)p->BmsTemp01.TempPrch * 0.01 - 40;
@@ -150,7 +150,7 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 				break;
 			}
 
-			case CANTXID_BMS_TEMP_02 :
+			case CANRXID_BMS_TEMP_02 :
 			{
 				for(uint8_t i = 0; i < 4; i++)
 				{
@@ -160,7 +160,7 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 				break;
 			}
 
-			case CANTXID_BMS_TEMP_03 :
+			case CANRXID_BMS_TEMP_03 :
 			{
 				for(uint8_t i = 0; i < 4; i++)
 				{
@@ -170,7 +170,7 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 				break;
 			}
 
-			case CANTXID_BMS_TEMP_04 :
+			case CANRXID_BMS_TEMP_04 :
 			{
 				for(uint8_t i = 0; i < 2; i++)
 				{
@@ -254,8 +254,8 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         ByteOrderReverse((void*)&p->EscLogInfo1.MotorRpmI16, (void*)&i16Temp, 2);
 
         p->EscLogInfo1.EscState = v->PcuStateReport;
-        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG]&CAN_TX_ALART_MASK)==0) ? 0 : 1;
-        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_ALARM_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
         p->EscLogInfo1.LimpHomeSrc = v->LimpHomeSrc;
         p->EscLogInfo1.OutputMode = r->OutputModeCmd;
 

@@ -28,21 +28,21 @@
 #define CANTXID_ESC_LOG_INFO_7  0x727   /*Debug information for ESC develop 07*/
 
 /* ==== macro for CANRX IDs for receive ==== */
-#define CANTXID_BMS_VOLT_01           0x300   /* info shows BMS Volt value group1 */
-#define CANTXID_BMS_VOLT_02           0x301   /* info shows BMS Volt value group2 */
-#define CANTXID_BMS_VOLT_03           0x302   /* info shows BMS Volt value group3 */
-#define CANTXID_BMS_VOLT_04           0x303   /* info shows BMS Volt value group4 */
-#define CANTXID_BMS_VOLT_05           0x304   /* info shows BMS Volt value group5 */
-#define CANTXID_BMS_VOLT_06           0x305   /* info shows BMS Volt value group6 */
-#define CANTXID_BMS_STATE_MACHINE_01  0x401   /* info shows BMS state value */
-#define CANTXID_BMS_STATUS_01         0x402   /* info shows BMS status */
-#define CANTXID_BMS_CURRENT_01        0x404   /* info shows BMS current value */
-#define CANTXID_BMS_TEMP_01           0x600   /* info shows BMS temperature value group1 */
-#define CANTXID_BMS_TEMP_02           0x601   /* info shows BMS temperature value group2 */
-#define CANTXID_BMS_TEMP_03           0x602   /* info shows BMS temperature value group3 */
-#define CANTXID_BMS_TEMP_04           0x603   /* info shows BMS temperature value group4 */
+#define CANRXID_BMS_VOLT_01           0x300   /* info shows BMS Volt value group1 */
+#define CANRXID_BMS_VOLT_02           0x301   /* info shows BMS Volt value group2 */
+#define CANRXID_BMS_VOLT_03           0x302   /* info shows BMS Volt value group3 */
+#define CANRXID_BMS_VOLT_04           0x303   /* info shows BMS Volt value group4 */
+#define CANRXID_BMS_VOLT_05           0x304   /* info shows BMS Volt value group5 */
+#define CANRXID_BMS_VOLT_06           0x305   /* info shows BMS Volt value group6 */
+#define CANRXID_BMS_STATE_MACHINE_01  0x401   /* info shows BMS state value */
+#define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
+#define CANRXID_BMS_CURRENT_01        0x404   /* info shows BMS current value */
+#define CANRXID_BMS_TEMP_01           0x600   /* info shows BMS temperature value group1 */
+#define CANRXID_BMS_TEMP_02           0x601   /* info shows BMS temperature value group2 */
+#define CANRXID_BMS_TEMP_03           0x602   /* info shows BMS temperature value group3 */
+#define CANRXID_BMS_TEMP_04           0x603   /* info shows BMS temperature value group4 */
 
-#define CAN_TX_ALART_MASK 0x01
+#define CAN_TX_ALARM_MASK 0x01
 #define CAN_TX_WARNING_MASK 0x02
 
 /*======================================

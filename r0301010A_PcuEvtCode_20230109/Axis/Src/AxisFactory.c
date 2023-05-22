@@ -154,7 +154,6 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 		v->pCANTxInterface->Debugf[IDX_VQ_CMD] = v->MotorControl.VoltCmd.VqCmd;
 		v->pCANTxInterface->Debugf[IDX_MOTOR_RPM] = v->SpeedInfo.MotorMechSpeedRPM;
 		v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
-		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_FOIL_POSITION]=v->pCANRxInterface->OutputModeCmd ;	//operation mode(paddle/surf/foil)
 		v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
 		v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
 #if USE_ANALOG_FOIL_SENSOR_FUNC
@@ -670,14 +669,18 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 		if( v->FoilState.All== MAST_PADDLE )
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
+      v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
 		}
 		else if( v->FoilState.All== MAST_SURF )
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
+      v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
 		}
 		else if( v->FoilState.All== MAST_FOIL )
 		{
 			v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
+      v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
+
 		}
 		else
 		{
@@ -714,20 +717,21 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 	v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
 
 
-	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] = 0;
+	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] = 0;
 
 	if(v->HasAlarm!=0)
 	{
-	  v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] |= CAN_TX_ALART_MASK;
+	  v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_ALARM_MASK;
 	}
 
 	if(v->HasWarning!=0)
 	{
-    	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] |= CAN_TX_WARNING_MASK;
-  	}
-
-
-	
+    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
+  }
+  else
+  {
+    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
+  }
 
 	// Update scooter speed for report
 	v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
