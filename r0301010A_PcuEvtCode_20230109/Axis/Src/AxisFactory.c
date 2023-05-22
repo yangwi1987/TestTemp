@@ -109,26 +109,6 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 
 #if (BME & EVT)
 
-	if( v->TriggerLimpHome == 1)
-	{
-		v->pCANRxInterface->OutputModeCmd = 0;
-	}
-
-	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] = 0;
-
-	if(v->HasAlarm!=0)
-	{
-	  v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] |= CAN_TX_ALART_MASK;
-	}
-
-	if(v->HasWarning!=0)
-  {
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] |= CAN_TX_WARNING_MASK;
-  }
-
-
-	v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
-
 	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0){
 		v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS = ENABLE;
 	}
@@ -778,8 +758,24 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 	{
 		v->pCANRxInterface->OutputModeCmd = 0;
 	}
+	
+	v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
 
 
+	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] = 0;
+
+	if(v->HasAlarm!=0)
+	{
+	  v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] |= CAN_TX_ALART_MASK;
+	}
+
+	if(v->HasWarning!=0)
+	{
+    	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALART_FLAG] |= CAN_TX_WARNING_MASK;
+  	}
+
+
+	
 
 	// Update scooter speed for report
 	v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
