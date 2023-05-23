@@ -4,24 +4,29 @@
  *  Created on: 2020年5月27日
  *      Author: Mike.Wen.SFW
  */
-
 #if BME
 #include "Protocol.h"
+#include "ICANInterface.h"\
 //uint8_t VcuEnableFlag=0;
 /*
  * "ExtranetInformInSystemTableExample" will be stored in system table bin
  * and the pointer will be loaded in drive_ini when memory control module is ready
  */
-const CANProtocol ExtranetInformInSystemTableExample=
+
+
+uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t );
+uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r );
+
+const CANProtocol ExtranetInformInSystemTableExample =
 {
-		50,
-		7,
-		{
-			0x500, 0x700, 0x701, 0x702, 0x703,
-			0x704 ,0x705, 0x00,  0x00,  0x00,
-		},
-		(pRxTranslate)BME060CAN_RxDataTranslateV0617,
-		(pTxTranslate)BME060CAN_TxDataTranslateV0617,
+  50,
+  9,
+  {
+    CANTXID_BMS_CONTROL_01, CANTXID_ESC_LOG_INFO_0, CANTXID_ESC_LOG_INFO_1, CANTXID_ESC_LOG_INFO_2, CANTXID_ESC_LOG_INFO_3,
+    CANTXID_ESC_LOG_INFO_4 ,CANTXID_ESC_LOG_INFO_5, CANTXID_ESC_LOG_INFO_6, CANTXID_ESC_LOG_INFO_7, 0x000,
+  },
+  (pRxTranslate)BME060CAN_RxDataTranslate,
+  (pTxTranslate)BME060CAN_TxDataTranslate,
 };
 
 
@@ -30,331 +35,367 @@ const CANProtocol ExtranetInformInSystemTableExample=
  */
 const CanIdConfig_t LscCanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
 {
-//	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
-//	{0x151,	0x152,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
-//	{0x360,	0x362,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
-	{0x401,	0x402,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
-	{0x600,	0x603,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
-	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-	{0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
+  //	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
+  {0x300,	0x305,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
+  {0x401,	0x404,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
+  {0x600,	0x603,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
+  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
+  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
+  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
 };
 
-StructBMSInformV0617 TestV0617;
 
+BmsReportInfo_t BmsReportInfo;
+BmsCtrlCmd_t BmsCtrlCmd;
 
-int16_t CellTemp[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
-
-
-uint8_t BME060CAN_RxDataTranslateV0617( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
+void ByteOrderReverse(void *Dest, void *Src, uint8_t Size)
 {
-		uint8_t	lStatus=ID_MATCH;
-		uint16_t ulTemp;
-		int16_t lTemp=0;
-		UnionRxDataV0617 *plContainer;
-		plContainer = (UnionRxDataV0617*)pDataIn;
+  uint8_t EndIdx = Size - 1;
 
-		memset( (void*)&TestV0617, 0, sizeof(TestV0617) );
-
-		switch (pIdIn)
-		{
-			case 0x401 :
-			{
-				ulTemp = plContainer->ID0x401.ErrorCode_H;
-				ulTemp <<= 8 ;
-				ulTemp += plContainer->ID0x401.ErrorCode_L;
-//				TestV0617._401hBmsErrorCode = ulTemp;
-//				TestV0617._401hBmsMainStateMachine = plContainer->ID0x401.BmsMainSM;
-//				TestV0617._401hBmsPrchStateMachine = plContainer->ID0x401.BmsPrchSM;
-//				TestV0617._401hWakeupReason = plContainer->ID0x401.WakeUpReason;
-
-				v->BMSState.BMS = plContainer->ID0x401.BmsMainSM;
-				v->BMSState.FET = plContainer->ID0x401.BmsPrchSM;
-
-
-				if(t->DebugU8[IDX_BMS_COMM_ENABLE] == 1){
-					//BMS communication is available, check BMS prch state
-					if( ( v->BMSState.BMS == BMS_MAIN_SM_ACTIVE )&&( v->BMSState.FET == BMS_PRCH_SM_DONE ) ){
-						v->PrchCtrlFB.bit.BypassMOS = ENABLE;
-					} else {
-						v->PrchCtrlFB.bit.BypassMOS = DISABLE;
-					}
-				}else{
-					// BMS communication is not available, bypass the BMS prch state check mechanism
-					v->PrchCtrlFB.bit.BypassMOS = ENABLE;
-				}
-				v->ReceivedCANID |= RECEIVED_BAT_ID_1;
-				break;
-
-			}
-			case 0x601 :{
-				CellTemp[0] = plContainer->DataI16[0];
-				CellTemp[1] = plContainer->DataI16[1];
-				CellTemp[2] = plContainer->DataI16[2];
-				CellTemp[3] = plContainer->DataI16[3];
-				break;
-			}
-			case 0x602 :{
-				CellTemp[4] = plContainer->DataI16[0];
-				CellTemp[5] = plContainer->DataI16[1];
-				CellTemp[6] = plContainer->DataI16[2];
-				CellTemp[7] = plContainer->DataI16[3];
-				break;
-			}
-			case 0x603 :{
-				CellTemp[8] = plContainer->DataI16[0];
-				CellTemp[9] = plContainer->DataI16[1];
-				lTemp = 0;
-				for( uint8_t i=0; i<16; i++ ){
-					lTemp = ( CellTemp[i] > lTemp )? CellTemp[i] : lTemp;
-					CellTemp[i] = 0;
-				}
-				lTemp = lTemp/10;
-				v->BatTempNow0P1C = lTemp;
-				break;
-			}
-			default :
-			{
-				lStatus = ID_NO_MATCH;
-				break;
-			}
-		}
-		return lStatus;
-}
-
-uint8_t BME060CAN_TxDataTranslateV0617( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
-{
-	uint8_t	lStatus=ID_MATCH;
-	UnionTxDataV0617 *plContainer;
-	uint8_t lIdx=0;
-
-	for( lIdx=0; lIdx<8; lIdx++ )
-	{
-		*(pDataIn+lIdx)=0;	//clear input buffer
-	}
-
-	plContainer = (UnionTxDataV0617*)pDataIn;
-	switch (pIdIn)
-	{
-		case 0x500:
-		{
-			plContainer->ID0x500.ShutdownReq = 0x00;
-			plContainer->ID0x500.ConnReq = 0x01;
-			break;
-		}
-		case 0x700:
-		{
-			if(v->DebugU8[IDX_LOG_ENABLE_FLAG] == 0){
-				lStatus = ID_NO_MATCH;
-				break;
-			}
-
-			v->DebugU8[IDX_LOG_SAMPLE_FLAG] = 0;
-			plContainer->ID0x700.MotorTemp = (uint8_t)(v->NTCTemp[0]+40);
-			plContainer->ID0x700.EscMos1Temp = (uint8_t)(v->NTCTemp[1]+40);
-			plContainer->ID0x700.EscMos2Temp = (uint8_t)(v->NTCTemp[2]+40);
-			plContainer->ID0x700.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
-			plContainer->ID0x700.OpCmdAndFinal = r->OutputModeCmd +(v->DebugU8[0] <<4);
-//			plContainer->ID0x700.ThrottleRaw = (uint16_t)( 1000.0f * v->Debugf[IDX_THROTTLE_RAW]);
-			plContainer->ID0x700.ThrottleRaw = r->ThrottleCmd;
-			plContainer->ID0x700.ThrottleFinal = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_FINAL]);
-			break;
-		}
-		case 0x701 :
-		{
-			if(v->DebugU8[IDX_LOG_ENABLE_FLAG] == 1){
-				plContainer->ID0x701.DcVoltU16 = (uint16_t)v->Debugf[IDX_DC_VOLT];
-				plContainer->ID0x701.MotorRpmI16 = (int16_t)v->Debugf[IDX_MOTOR_RPM];
-				plContainer->ID0x701.SafetySensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
-				plContainer->ID0x701.EscState = v->PcuStateReport;
-				plContainer->ID0x701.BmsMainState = r->BMSState.BMS;
-				plContainer->ID0x701.BmsPrchState = r->BMSState.FET;
-
-			}else{
-				lStatus = ID_NO_MATCH;
-			}
-
-			break;
-		}
-		case 0x702 :
-		{
-			if(v->DebugU8[IDX_LOG_ENABLE_FLAG] == 1){
-				plContainer->ID0x702.IdCmdI16 = (int16_t)(v->Id_cmd*10.0f);
-				plContainer->ID0x702.IqCmdI16 = (int16_t)(v->Iq_cmd*10.0f);
-				plContainer->ID0x702.IdFbkI16 = (int16_t)(v->Id_fbk*10.0f);
-				plContainer->ID0x702.IqFbkI16 = (int16_t)(v->Iq_fbk*10.0f);
-			}else{
-				lStatus = ID_NO_MATCH;
-			}
-			break;
-		}
-		case 0x703 :
-		{
-			if(v->DebugU8[IDX_LOG_ENABLE_FLAG] == 1){
-				plContainer->ID0x703.AcLimitCmd = (int16_t)(v->Debugf[IDX_AC_LIMIT_CMD]*10.0f);
-				plContainer->ID0x703.AcLimitTq = (int16_t)(v->Debugf[IDX_AC_LIMIT_TQ]*10.0f);
-				plContainer->ID0x703.DcLimitCmd = (int16_t)(v->Debugf[IDX_DC_LIMIT_CMD]*10.0f);
-				plContainer->ID0x703.DcLimitTq = (int16_t)(v->Debugf[IDX_DC_LIMIT_TQ]*10.0f);
-			}else{
-				lStatus = ID_NO_MATCH;
-			}
-
-			break;
-		}
-		case 0x704 :
-		{
-			if(v->DebugU8[IDX_LOG_ENABLE_FLAG] == 1){
-				plContainer->ID0x704.VdCmdI16 = (int16_t)(v->Debugf[IDX_VD_CMD]*10.0f);
-				plContainer->ID0x704.VqCmdI16 = (int16_t)(v->Debugf[IDX_VQ_CMD]*10.0f);
-				plContainer->ID0x704.PerformanceTqI16 = (int16_t)(v->Debugf[IDX_PERFROMANCE_TQ]*10.0f);
-//				plContainer->ID0x704.Error01[0] =  v->DebugError[0];
-//				plContainer->ID0x704.Error01[1] =  v->DebugError[1];
-				plContainer->DataI16[3] = (int16_t)(v->Debugf[IDX_FOIL_SENSOR_VOLT]*10.0f);
-			}else{
-				lStatus = ID_NO_MATCH;
-			}
-			break;
-		}
-		case 0x705 :
-		{
-			if(v->DebugU8[IDX_LOG_ENABLE_FLAG] == 1){
-				plContainer->ID0x705.Error29[0] =  v->DebugError[0];
-				plContainer->ID0x705.Error29[1] =  v->DebugError[1];
-				plContainer->ID0x705.Error29[2] =  v->DebugError[2];
-				plContainer->ID0x705.Error29[3] =  v->DebugError[3];
-				plContainer->ID0x705.Error29[4] =  v->DebugError[4];
-				plContainer->ID0x705.Error29[5] =  v->DebugError[5];
-				plContainer->ID0x705.Error29[6] =  v->DebugError[6];
-				plContainer->ID0x705.Error29[7] =  v->DebugError[7];
-//				plContainer->DataI16[0] = (int16_t)(v->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR]);
-//				plContainer->DataI16[1] = (int16_t)(v->Debugf[IDX_DC_LIMIT_CANRX_DC_REGEN]);
-//				plContainer->DataI16[2] = v->IU0P1A;
-//				plContainer->DataU8[6] = v->DebugU8[1];
-				v->DebugU8[IDX_LOG_SAMPLE_FLAG] = 1;
-			}else{
-				lStatus = ID_NO_MATCH;
-			}
-			break;
-		}
-		default :
-		{
-			lStatus = ID_NO_MATCH;
-			break;
-		}
-	}
-	return lStatus;
+  for(uint8_t i = 0; i < Size; i++)
+  {
+    *(uint8_t*)(Dest + i) = *(uint8_t*)(Src + EndIdx - i);
+  }
 }
 
 
-StructBMSInform Test;
 uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
 {
-	uint8_t	lStatus=ID_MATCH;
+  uint8_t	lStatus=ID_MATCH;
+  int32_t i32Temp = 0;
+  float fTemp = 0;
+  EscCanRxInfo_t *p;
 
-	UnionRxData *plContainer;
-	plContainer = (UnionRxData*)pDataIn;
+  p = (EscCanRxInfo_t*)pDataIn;
 
-	int16_t wTemp=0;
-	uint16_t uwTemp=0;
+  switch (pIdIn)
+  {
+    case CANRXID_BMS_VOLT_01:
+    case CANRXID_BMS_VOLT_02:
+    case CANRXID_BMS_VOLT_03:
+    case CANRXID_BMS_VOLT_04:
+    case CANRXID_BMS_VOLT_06:
+    {
+      break;
+    }
 
-	memset( (void*)&Test, 0, sizeof(Test) );
+    case CANRXID_BMS_VOLT_05:
+    {
+      v->BmsReportInfo.DcVolt = p->BmsVolt05.PackVolt_Calculated;
+      break;
+    }
 
-	switch (pIdIn)
-	{
-		case 0x151:
-		{
-			Test._151hWarning = plContainer->ID0x151.BMSWarning;
-			Test._151hSafetyFailure = plContainer->ID0x151.BMSSafetyFailure;
-			Test._151hFailure= plContainer->ID0x151.BMSFailure;
-			Test._151hChargeFinished = plContainer->ID0x151.BMSCHGFinished;
-			Test._151hRecuperationAllowed = plContainer->ID0x151.BMSRecuperationAllow;
+    case CANRXID_BMS_STATE_MACHINE_01 :
+    {
+      v->BmsReportInfo.MainSm = p->BmsSm.BmsMainSM;
+      v->BmsReportInfo.PrchSM = p->BmsSm.BmsPrchSM;
+      v->BmsReportInfo.WakeUpReason = p->BmsSm.WakeUpReason;
 
-			wTemp =0;
-			wTemp |= (plContainer->ID0x151.BMSCurrentNow_H8<<8);
-			wTemp |= plContainer->ID0x151.BMSCurrentNow_L;
-			Test._151hBatCurrentNow = ((float)wTemp)*0.2;
+      if(t->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 1)
+      {
+        //BMS communication is available, check BMS precharge state
+        if((v->BmsReportInfo.MainSm == BMS_MAIN_SM_ACTIVE) &&
+            (v->BmsReportInfo.PrchSM == BMS_PRCH_SM_DONE))
+        {
+          v->PrchCtrlFB.bit.BypassMOS = ENABLE;
+        } else {
+          v->PrchCtrlFB.bit.BypassMOS = DISABLE;
+        }
+      }
+      else
+      {
+        // BMS communication is not available, bypass the BMS prch state check mechanism
+        v->PrchCtrlFB.bit.BypassMOS = ENABLE;
+      }
 
-			uwTemp =0;
-			uwTemp |= (plContainer->ID0x151.BMSVoltNow_H5 <<5);
-			uwTemp |= plContainer->ID0x151.BMSVoltNow_L;
-			Test._151hBatVoltNow = ((float)uwTemp)*0.01;
-			break;
+      /*Error Code*/
+      v->BmsReportInfo.ErrorCode = p->BmsSm.ErrorCode_H;
+      v->BmsReportInfo.ErrorCode <<= 8;
+      v->BmsReportInfo.ErrorCode |= p->BmsSm.ErrorCode_L;
 
-		}
-		case 0x152:
-		{
-			Test._152hBMSState = plContainer->ID0x152.BMSstate_L+ (plContainer->ID0x152.BMSstate_H1<<1);
-			Test._152hFETStatus = plContainer->ID0x152.BMSFETstate;
-			Test._152hInterConnReady = plContainer->ID0x152.BMSMultiInterconReady;
-			Test._152hPackQuantity = plContainer->ID0x152.BMSPackQuantity + 1 ;
-			Test._152hPwrFactorCHG = plContainer->ID0x152.PwrFactorCHG;
-			Test._152hPwrFactorDCHG = ( plContainer->ID0x152.PwrFactorDCHG_H6 <<6 ) + plContainer->ID0x152.PwrFactorDCHG_L;
-			Test._152hWakeupMethod = plContainer->ID0x152.WakeupMethod;
-			break;
-		}
-		case 0x361:
-		{
-			Test._361hCurrentCHGLimit = plContainer->ID0x361.BMSCurrentCHG;
+      v->ReceivedCANID |= RECEIVED_BAT_ID_1;  /* For BMS CAN timeout usage */
 
-			wTemp = 0;
-			wTemp |= plContainer->ID0x361.BMSCurrentDCHG_H1 << 1;
-			wTemp |= plContainer->ID0x361.BMSCurrentDCHG_L;
-			Test._361hCurrentDCHGLimit = wTemp - 511;
+      break;
+    }
 
-			Test._361hSOC = plContainer->ID0x361.BMSSoc_L + ( plContainer->ID0x361.BMSSoc_H2 << 2 ) ;
+    case CANRXID_BMS_STATUS_01 :
+    {
+      break;
+    }
 
-			uwTemp = 0;
-			uwTemp |= plContainer->ID0x361.BMSVoltCHG_H6 << 6;
-			uwTemp |= plContainer->ID0x361.BMSVoltCHG_L;
+    case CANRXID_BMS_CURRENT_01 :
+    {
+      i32Temp = 0;
+      for(uint8_t i = 0; i < 3; i++)
+      {
+        i32Temp |= p->BmsCurrent.Current1[i] << (i * 8);
+      }
+      v->BmsReportInfo.Current01 = (float)(i32Temp & 0x07FFFF) * 0.01f;
 
-			Test._361hVoltCHG = ((float)uwTemp)*0.01;
+      i32Temp = 0;
+      for(uint8_t i = 0; i < 3; i++)
+      {
+        i32Temp |= (p->BmsCurrent.Current2[i] << (i * 8));
+      }
+      v->BmsReportInfo.Current02 = (float)(i32Temp & 0x07FFFF) * 0.01f;
 
-			uwTemp = 0;
-			uwTemp |= plContainer->ID0x361.BMSVoltDCHG_H11;
-			uwTemp<<=11;
-			uwTemp |= plContainer->ID0x361.BMSVoltDCHG_H3<<3;
-			uwTemp |= plContainer->ID0x361.BMSVoltDCHG_L;
+      break;
+    }
 
-			Test._361hVoltDCHG = ((float)uwTemp)*0.01;
-			break;
-		}
-		default :
-		{
-			lStatus = ID_NO_MATCH;
-			 break;
-		}
-	}
+    case CANRXID_BMS_TEMP_01 :
+    {
+      v->BmsReportInfo.TempDie = p->BmsTemp01.DIE_Temp;
+      v->BmsReportInfo.TempPrch = (float)p->BmsTemp01.TempPrch * 0.01 - 40;
+      v->BmsReportInfo.TempBalance = (float)p->BmsTemp01.TempBalance * 0.01  - 40 ;
+      break;
+    }
 
-	return lStatus;
+    case CANRXID_BMS_TEMP_02 :
+    {
+      for(uint8_t i = 0; i < 4; i++)
+      {
+        v->BmsReportInfo.CellTemp[i] = (float)p->BmsTemp02to04.CellTemp[i] * 0.01 - 40;
+      }
+
+      break;
+    }
+
+    case CANRXID_BMS_TEMP_03 :
+    {
+      for(uint8_t i = 0; i < 4; i++)
+      {
+        v->BmsReportInfo.CellTemp[i + 4] = (float)p->BmsTemp02to04.CellTemp[i] * 0.01 - 40;
+      }
+
+      break;
+    }
+
+    case CANRXID_BMS_TEMP_04 :
+    {
+      for(uint8_t i = 0; i < 2; i++)
+      {
+        v->BmsReportInfo.CellTemp[i + 8] = (float)p->BmsTemp02to04.CellTemp[i] * 0.01 - 40;
+      }
+
+      v->BmsReportInfo.TempShunt =  (float)p->BmsTemp02to04.CellTemp[2] * 0.01 - 40;
+
+      fTemp = -50;
+
+      for (uint8_t i = 0; i < 10; i++)
+      {
+        fTemp = (v->BmsReportInfo.CellTemp[i] > fTemp) ? v->BmsReportInfo.CellTemp[i] : fTemp;
+      }
+
+      v->BmsReportInfo.MaxCellTemp = fTemp;
+
+      break;
+    }
+
+    default :
+    {
+      lStatus = ID_NO_MATCH;
+      break;
+    }
+  }
+  return lStatus;
 }
-
 
 uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
 {
-	uint8_t	lStatus=ID_MATCH;
-	UnionTxData *plContainer;
-	uint8_t lIdx=0;
+  uint8_t	lStatus = ID_MATCH;
+  EscCanTxCmd_t *p;
+  uint8_t lIdx = 0;
+  uint16_t u16Temp=0;
+  int16_t i16Temp=0;
 
-	for( lIdx=0; lIdx<8; lIdx++ )
-	{
-		*(pDataIn+lIdx)=0;	//clear input buffer
-	}
+  for(lIdx=0; lIdx < 8; lIdx++)
+  {
+    *(pDataIn+lIdx) = 0;	//clear input buffer
+  }
 
-	plContainer = (UnionTxData*)pDataIn;
-	switch (pIdIn)
-	{
-		case 0x150:
-		{
-			plContainer->ID0x150.VcuShutdownReq = v->ShutDownReq;
-			break;
-		}
-		default :
-		{
-			lStatus = ID_NO_MATCH;
-			break;
-		}
-	}
-	return lStatus;
+  p = (EscCanTxCmd_t*)pDataIn;
+
+  switch (pIdIn)
+  {
+    case CANTXID_BMS_CONTROL_01:
+    {
+      p->BmsCtrl01.ShutdownReq = BMS_CTRL_NO_REQ;
+      p->BmsCtrl01.ConnReq = BMS_CTRL_REQ;
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_0:
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 0)
+      {
+        lStatus = ID_NO_MATCH;
+        break;
+      }
+
+      v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 0;
+      p->EscLogInfo0.MotorTemp = (uint8_t)(v->NTCTemp[0]+40);
+      p->EscLogInfo0.EscMos1Temp = (uint8_t)(v->NTCTemp[1]+40);
+      p->EscLogInfo0.EscMos2Temp = (uint8_t)(v->NTCTemp[2]+40);
+      p->EscLogInfo0.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
+      p->EscLogInfo0.FoilPosition = v->FoilPos;
+      p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
+      p->EscLogInfo0.FoilSensorVolt = (int8_t)(v->Debugf[IDX_FOIL_SENSOR_VOLT]*10.0f);
+      p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;
+      p->EscLogInfo0.ThrottleFinal = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_FINAL]);
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_1 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        u16Temp = (uint16_t)(v->Debugf[IDX_DC_VOLT] * 10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo1.DcVoltU16, (void*)&u16Temp, 2);
+
+        i16Temp = (int16_t)v->Debugf[IDX_MOTOR_RPM];
+        ByteOrderReverse((void*)&p->EscLogInfo1.MotorRpmI16, (void*)&i16Temp, 2);
+
+        p->EscLogInfo1.EscState = v->PcuStateReport;
+        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_ALARM_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.LimpHomeSrc = v->LimpHomeSrc;
+        p->EscLogInfo1.OutputMode = r->OutputModeCmd;
+
+        /*todo:DeratingSrc is not applied yet */
+        p->EscLogInfo1.DeratingSrc = v->DeratingSrc;
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_2 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+
+        i16Temp = (int16_t)(v->Id_cmd*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo2.IdCmdI16, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Iq_cmd*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo2.IqCmdI16, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Id_fbk*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo2.IdFbkI16, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Iq_fbk*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo2.IqFbkI16, (void*)&i16Temp, 2);
+
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_3 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        i16Temp = (int16_t)(v->Debugf[IDX_AC_LIMIT_CMD]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo3.AcLimitCmd, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_AC_LIMIT_TQ]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo3.AcLimitTq, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_DC_LIMIT_CMD]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo3.DcLimitCmd, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_DC_LIMIT_TQ]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo3.DcLimitTq, (void*)&i16Temp, 2);
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_4 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        i16Temp = (int16_t)(v->Debugf[IDX_VD_CMD]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo4.VdCmdI16 , (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_VQ_CMD]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo4.VqCmdI16 , (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_PERFROMANCE_TQ]*10.0f);
+        ByteOrderReverse((void*)&p->EscLogInfo4.PerformanceTqI16 , (void*)&i16Temp, 2);
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_5 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        memcpy(p->EscLogInfo5.AlarmCode, v->DebugError, 8);
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_6 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        p->EscLogInfo6.PwrLv = r->PowerLevel;
+        p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
+
+        /*todo: assign true value for signals*/
+        i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_POWER]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.AvgPwr , (void*)&i16Temp, 2);
+        /*todo: assign true value for signals*/
+        i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_POWER]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.InstPwr , (void*)&i16Temp, 2);
+        /*todo: assign true value for signals*/
+        u16Temp = (uint16_t)(v->Debugf[IDX_REMAIN_TIME]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&u16Temp, 2);
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+      break;
+    }
+    case CANTXID_ESC_LOG_INFO_7 :
+    {
+      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
+      {
+        p->EscLogInfo7.BmsMainSm = r->BmsReportInfo.MainSm;
+        p->EscLogInfo7.BmsPrchSm = r->BmsReportInfo.PrchSM;
+        p->EscLogInfo7.BatSoc = r->BmsReportInfo.Soc;
+
+        /*todo: assign BAT LED control code value*/
+        p->EscLogInfo7.BatPackLedCtrl.All = 0;
+
+        v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
+      }
+      else
+      {
+        lStatus = ID_NO_MATCH;
+      }
+      break;
+    }
+    default :
+    {
+      lStatus = ID_NO_MATCH;
+      break;
+    }
+  }
+  return lStatus;
 }
+
 #endif
