@@ -180,7 +180,6 @@ static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
     {
         v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
     }
-
 }
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
