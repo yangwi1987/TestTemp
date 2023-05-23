@@ -102,7 +102,7 @@ void RcComm_MsgHandler(StructUartCtrl*p, uint8_t *pData ){
 				}
 				else
 				{
-          p->pRxInterface->RcConnStatus = 0;
+					p->pRxInterface->RcConnStatus = 0;
 				}
 				break;
 			}
