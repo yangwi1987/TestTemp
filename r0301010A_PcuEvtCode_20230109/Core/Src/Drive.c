@@ -1064,7 +1064,7 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 {
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0563_System_voltage_high                      ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OVER_VOLTAGE_BUS );
- //   v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_RC_INVALID );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F02_ESC_Mosfet_High_temperature              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0 ) \
@@ -1094,9 +1094,10 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_UNINITIALIZED ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_READ_FAILED )   \
 																										  || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_DAMAGED );
-    //    v->StatusOfDTC_Realtime[DTC_Code_P1F12_ESC_Mosfet_High_temperature_warning               ].Test_Failed =  ;
-    //    v->StatusOfDTC_Realtime[DTC_Code_P1F13_ESC_Capacitor_High_temperature_warning            ].Test_Failed =  ;
-    //    v->StatusOfDTC_Realtime[DTC_Code_P1F14_Motor_High_temperature_warning           ].Test_Failed =  ;
+    v->StatusOfDTC_Realtime[DTC_Code_P1F12_ESC_Mosfet_High_temperature_warning              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0_WARNING ) \
+                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1_WARNING );
+    v->StatusOfDTC_Realtime[DTC_Code_P1F13_ESC_Capacitor_High_temperature_warning           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2_WARNING );
+    v->StatusOfDTC_Realtime[DTC_Code_P1F14_Motor_High_temperature_warning                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0_WARNING );
     for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
     {
     	v->StatusOfDTC_Realtime[i].Confirmed_DTC = v->StatusOfDTC_Realtime[i].Confirmed_DTC | v->StatusOfDTC_Realtime[i].Test_Failed;
@@ -1629,30 +1630,34 @@ void drive_Do100HzLoop(void)
 //	if ( IsPcuInitReady == PcuInitState_Ready )
 	if ( IsNotFirstLoop == 1 )
 	{
-	IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max = \
-			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[2]);
-	IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min = \
+	    IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max = \
+            MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[2]);
+	    IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min = \
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[2]);
 
-	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
+	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
 			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[0]);
-	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
+	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[0]);
 
-	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
-	MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[1]);
-	IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
+	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[1]);
+	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[1]);
 
-	IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
-	MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
-	IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min = \
+	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
+	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min = \
 			MIN2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.MOTOR_NTC);
 
-	IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec = MAX2( IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec, Axis[0].MotorControl.Sensorless.EEMF.Res );
+	    IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec = MAX2( IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec, Axis[0].MotorControl.Sensorless.EEMF.Res );
 
 	}
-	IsNotFirstLoop = 1;
+	else
+	{
+	    IsNotFirstLoop = 1;
+	}
+
 }
 
 void drive_Do10HzLoop(void)
