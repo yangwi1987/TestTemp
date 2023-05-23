@@ -351,7 +351,7 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
-        p->EscLogInfo6.PwrLv = (uint8_t)(r->PowerLevel & 0x00FF);
+        p->EscLogInfo6.PwrLv = r->PowerLevel;
         p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
 
         /*todo: assign true value for signals*/
@@ -361,8 +361,8 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_POWER]);
         ByteOrderReverse((void*)&p->EscLogInfo6.InstPwr , (void*)&i16Temp, 2);
         /*todo: assign true value for signals*/
-        i16Temp = (int16_t)(v->Debugf[IDX_REMAIN_TIME]);
-        ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&i16Temp, 2);
+        u16Temp = (uint16_t)(v->Debugf[IDX_REMAIN_TIME]);
+        ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&u16Temp, 2);
       }
       else
       {

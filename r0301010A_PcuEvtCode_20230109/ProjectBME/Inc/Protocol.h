@@ -244,9 +244,10 @@ typedef struct
 {
   int16_t InstPwr;          /* unit: W, instant output power */
   int16_t AvgPwr;           /* unit: W, average output power */
-  int16_t TimeRemain;       /* unit: sec, opertion time remained */
-  int16_t RcConnStatus:4;   /* 0: RC is not connected, 1: RC is connected */
-  int16_t PwrLv:4;          /* power level applied now */
+  uint16_t TimeRemain;      /* unit: sec, operation time remained */
+  uint8_t RcConnStatus:4;   /* 0: RC is not connected, 1: RC is connected */
+  uint8_t PwrLv:4;          /* power level applied now */
+  uint8_t Byte07;           /* unused byte 07 */
 } CanTxMsg_EscLogInfo6_t;
 
 typedef enum LedCtrlCode_e

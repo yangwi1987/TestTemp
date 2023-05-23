@@ -94,8 +94,8 @@ void RcComm_MsgHandler(StructUartCtrl*p, uint8_t *pData ){
 
 				if(*(pData+6)==0x01)
 				{
-					p->pRxInterface->ThrottleCmd = ((uint16_t)(*(pData+4))>100)? 100 : (uint16_t)(*(pData+4));
-					p->pRxInterface->PowerLevel = (uint16_t)(*(pData+7));
+					p->pRxInterface->ThrottleCmd = (*(pData + 4 ) > 100 ) ? 100 : *(pData+4);
+					p->pRxInterface->PowerLevel = *(pData+7);
 					p->TimeoutCnt=0;
 					p->RcEnable = 1;
 					p->pRxInterface->RcConnStatus = 1;

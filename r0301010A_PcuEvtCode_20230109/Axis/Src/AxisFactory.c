@@ -1,27 +1,27 @@
-    /*
-    * AxisFactory.c
-    *
-    *  Created on: 2019年12月11日
-    *      Author: MikeSFWen
-    */
+/*
+* AxisFactory.c
+*
+*  Created on: 2019年12月11日
+*      Author: MikeSFWen
+*/
 
-    #include "ParamMgr.h"
-    #include "UiApp.h"
-    #include "AxisFactory.h"
+#include "ParamMgr.h"
+#include "UiApp.h"
+#include "AxisFactory.h"
 
-    #define ABS(x) 	( (x) > 0 ? (x) : -(x) )
-    #define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
+#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
+#define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
 
-    static uint8_t CurrToPLCCnt = 0;
-    extern uint16_t IsUseDigitalFoilSensor;
+static uint8_t CurrToPLCCnt = 0;
+extern uint16_t IsUseDigitalFoilSensor;
 
-    void AxisSync_SyncFourQuadParams( Axis_t *v )
-    {
+void AxisSync_SyncFourQuadParams( Axis_t *v )
+{
     v->FourQuadCtrl.Init( &v->FourQuadCtrl );
-    }
+}
 
-    void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
-    {
+void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
+{
     switch( ParamNumber )
     {
     case PN_SC_GEAR_NUM:
@@ -57,12 +57,12 @@
     case PN_CURRENT_FREQ:
         break;
     }
-    }
+}
 
-    void AxisFactory_UpdateCANRxInterface( Axis_t *v )
-    {
+void AxisFactory_UpdateCANRxInterface( Axis_t *v )
+{
 
-    #if (BME & EVT)
+#if (BME & EVT)
 
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0){
         v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS = ENABLE;
@@ -81,7 +81,7 @@
         v->FourQuadCtrl.GearPositionCmd = DISABLE;
     }
 
-    #endif
+#endif
 
     v->ThrotMapping.TnSelect = v->pCANRxInterface->OutputModeCmd;
     if( ( v->pCANRxInterface->ReceivedCANID & RECEIVED_BAT_ID_1 ) == RECEIVED_BAT_ID_1)
@@ -90,10 +90,10 @@
     }
     v->pCANRxInterface->ReceivedCANID = 0;
     v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
-    }
+}
 
-    void AxisFactory_UpdateCANTxInterface( Axis_t *v )
-    {
+void AxisFactory_UpdateCANTxInterface( Axis_t *v )
+{
     uint16_t i;
 
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
@@ -180,10 +180,10 @@ static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
     {
         v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
     }
-    }
+}
 
-    static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
-    {
+static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
+{
     switch(v->pCANTxInterface->PcuStateReport)
     {
         case PcuState_Inital:
@@ -265,8 +265,8 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             break;
 
         case MOTOR_STATE_WAIT_BOOT:
-        if( ServoOnEnable )
-        {
+            if( ServoOnEnable )
+            {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
                     v->ServoOnOffState = MOTOR_STATE_ON;
@@ -287,14 +287,14 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
                     }
                     v->BootstrapCounter++;
                 }
-        }
-        else
-        {
-            v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
-            v->pPwmStation->AxisChannelLock(v->pPwmStation, v->AxisID - 1);
-            AxisFactory_ConfigAlarmSystem(v);
-        }
-        break;
+            }
+            else
+            {
+                v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
+                v->pPwmStation->AxisChannelLock(v->pPwmStation, v->AxisID - 1);
+                AxisFactory_ConfigAlarmSystem(v);
+            }
+            break;
 
         case MOTOR_STATE_ON:
             if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
@@ -406,15 +406,15 @@ void AxisFactory_GetSetting( Axis_t *v )
             AxisFactory_CleanParameter();
             break;
         }
+    }   
 }
-    }
 
 void AxisFactory_GetScooterThrottle( Axis_t *v )
 {
     //Throttle detect code
-    #if BME
+#if BME
     v->ThrotMapping.ThrottleDI = ENABLE;
-    #if EVT
+#if EVT
     //	v->PwmRc.DutyCalc = (v->PwmRc.DutyRaw - 0.10f)*10.0f;
     //	if( v->PwmRc.DutyCalc > 1.0f )
     //	{
@@ -425,18 +425,18 @@ void AxisFactory_GetScooterThrottle( Axis_t *v )
     //		v->PwmRc.DutyCalc = 0.0f;
     //	}
     //	else;
-    #endif
+#endif
     v->ThrotMapping.ThrottleRawIn = (float)(v->pCANRxInterface->ThrottleCmd)*0.01f;
-    #endif
+#endif
 
     v->ThrotMapping.ChangeTime = v->FourQuadCtrl.DriveChangeTime;
     v->ThrotMapping.Calc( &v->ThrotMapping );
     v->ThrotMapping.Ramp( &v->ThrotMapping );
     v->ThrotMapping.TnSelectDelay = v->ThrotMapping.TnSelect;
-    }
+}
 
-    void AxisFactory_GetUiStatus( Axis_t *v )
-    {
+void AxisFactory_GetUiStatus( Axis_t *v )
+{
     switch (CtrlUi.MfFunMode)
     {
         case FN_MF_FUNC_SEL_VF:
@@ -593,27 +593,27 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 
         v->pPwmStation->AxisDutyToPwmCount( v->pPwmStation, AxisIndex, v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode);
 
-    #if USE_EEMF==USE_FUNCTION
+#if USE_EEMF==USE_FUNCTION
         if( v->SpeedInfo.ElecSpeedAbs > EEMF_START_SPEED )
         {
-    #if USE_EEMF==USE_FUNCTION
+#if USE_EEMF==USE_FUNCTION
             v->MotorControl.Sensorless.EEMF.Start = FUNCTION_YES;
             v->MotorControl.Sensorless.SensorlessState = SensorlessState_Using_EEMF_Algorithm;
-    #else
+#else
             v->MotorControl.Sensorless.EEMF.Start = FUNCTION_NO;
-    #endif
+#endif
             v->MotorControl.Sensorless.HFISin.Start = FUNCTION_NO;
         }
         else if( v->SpeedInfo.ElecSpeedAbs < EEMF_CALC_SPEED )
         {
             v->MotorControl.Sensorless.EEMF.Start = FUNCTION_NO;
-    #if USE_HFI_SIN==USE_FUNCTION
+#if USE_HFI_SIN==USE_FUNCTION
             v->MotorControl.Sensorless.HFISin.Start = ( v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_YES ) ? FUNCTION_NO : FUNCTION_YES;
             v->MotorControl.Sensorless.SensorlessState = ( v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_YES ) ? \
                                                             v->MotorControl.Sensorless.SensorlessState : SensorlessState_Using_HFI_Algorithm;
-    #else
+#else
             v->MotorControl.Sensorless.HFISin.Start = FUNCTION_NO;
-    #endif
+#endif
         }
         else
         {
@@ -639,7 +639,7 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 void AxisFactory_DoPLCLoop( Axis_t *v )
 {
     // Update Speed
-    #if USE_HFI_SIN==USE_FUNCTION
+#if USE_HFI_SIN==USE_FUNCTION
     if( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_YES )
     {
         v->SpeedInfo.MotorMechSpeedRad = v->MotorControl.Sensorless.EEMF.AngleObserver.SpeedTmp * v->SpeedInfo.DividePolepair;
@@ -648,7 +648,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     {
         v->SpeedInfo.MotorMechSpeedRad = v->MotorControl.Sensorless.HFISin.AngleObserver.SpeedTmp * v->SpeedInfo.DividePolepair;
     }
-    #endif
+#endif
     v->SpeedInfo.MotorMechSpeedRPM = v->SpeedInfo.MotorMechSpeedRad * RAD_2_RPM;
     v->SpeedInfo.ElecSpeed = v->SpeedInfo.MotorMechSpeedRad * (float)v->SpeedInfo.Polepair;
     v->SpeedInfo.MotorMechSpeedRPMAbs = ABS(v->SpeedInfo.MotorMechSpeedRPM);
@@ -688,7 +688,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     }
     else // use Analog foil sensor
     {
-    #if USE_ANALOG_FOIL_SENSOR_FUNC
+#if USE_ANALOG_FOIL_SENSOR_FUNC
         if( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxFoil  ) )  // Foil mode
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
@@ -704,7 +704,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
             v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
         v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
         }
-    #endif
+#endif
     }
 
     // Rewrite TN to limp home mode (TN0), no matter which kind of foil sensor.
@@ -725,11 +725,11 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     if(v->HasWarning!=0)
     {
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
+        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
     }
     else
     {
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
+        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
     }
 
     // Update scooter speed for report
@@ -751,7 +751,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
     {
-    //Throttle detect code
+        //Throttle detect code
         AxisFactory_GetScooterThrottle( v );
         v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
         v->FourQuadCtrl.Switch( &v->FourQuadCtrl );
@@ -887,10 +887,10 @@ void AxisFactory_Do10HzLoop( Axis_t *v )
 {
     if( v->ServoOn )
     {
-    #if USE_THERMAL_DERATING==USE_FUNCTION
+#if USE_THERMAL_DERATING==USE_FUNCTION
         v->ThermoStrategy.Calc( &v->ThermoStrategy );
-    #else
+#else
         v->ThermoStrategy.ACCurrentLimitOut = MAX_AC_PHASE_CURRENT;
-    #endif
+#endif
     }
 }
