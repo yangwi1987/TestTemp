@@ -10,6 +10,7 @@
 
 #include "stdio.h"
 #include "AlarmMgr.h"
+#include "Protocol.h"
 
 #define ID_MATCH	0
 #define ID_NO_MATCH	1
@@ -261,10 +262,10 @@ typedef union{
 }UnionBATErrorFlag;
 
 typedef struct{
-	uint8_t BMS;
-	uint8_t FET;
+	uint8_t MainSm;		/* main State machine */
+	uint8_t PrchSm;		/* precharge state machine */
 	uint8_t Resvd;
-}StructBMSStatus;
+} StructBMSStatus;
 
 
 /*=========================================
@@ -281,13 +282,11 @@ typedef struct{
 typedef struct
 {
 	int32_t	BatCurrentDrainLimit0P1A;
-	int32_t	BatPowerDrainLimit0P1W;
 	int32_t	MEPowerOutputLimit0P1W;
-	int32_t	BatVoltNow0P1V;
-	int32_t	BatCurrentNow0P1A;
 	uint32_t RTCData;
-	uint16_t ThrottleCmd;
-	uint16_t PowerLevel;
+	uint8_t ThrottleCmd;
+	uint8_t PowerLevel;
+	uint8_t RcConnStatus;
 	uint8_t ShiftCmd;
 	uint8_t OutputModeCmd;
 	uint8_t PcuStateCmd;
@@ -295,24 +294,47 @@ typedef struct
 	uint8_t UrgentShutdown;
 	uint8_t ExtPumpStatus;
 	uint8_t ReceivedCANID;
-	UNION_BAT_CONDOTION	BatCondition;
 	UNION_CtrlIO ExtSignalCmd;
 	UNION_PRCH_CTRL PrchCtrlFB;
 	STRUCT_Authendata RxAuthData[2];
 	uint8_t Buffer[4];
-	uint8_t BATSoC;
-	StructBMSStatus BMSState;
-	UnionBATErrorFlag BatErrorFlags;
-	int16_t BatCurrentNow1A;
-	int16_t BatVoltNow0P01V;
-	int16_t BatTempNow0P1C;
+	BmsReportInfo_t BmsReportInfo;
 } STRUCT_CANRxInterface;
 
-#define IDX_BMS_COMM_ENABLE	5
-#define IDX_LOG_ENABLE_FLAG 6
-#define IDX_LOG_SAMPLE_FLAG 7
+typedef enum TxInterfaceDbgIdx_e
+{
+  TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
+  TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG = 1,
+  TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
+  TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
+  TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
+  TX_INTERFACE_DBG_IDX_MAX = 8,
+} TxInterfaceDbgIdx_t;
 
+typedef enum DebugFloatIdx_e
+{
+  IDX_AC_LIMIT_TQ =0,
+  IDX_AC_LIMIT_CMD,
+  IDX_DC_LIMIT_TQ,
+  IDX_DC_LIMIT_CMD,
+  IDX_PERFROMANCE_TQ,
+  IDX_VD_CMD,
+  IDX_VQ_CMD,
+  IDX_MOTOR_RPM,
+  IDX_DC_VOLT,
+  IDX_THROTTLE_RAW,
+  IDX_THROTTLE_FINAL,
+  IDX_FOIL_SENSOR_VOLT,
+  IDX_DC_LIMIT_CANRX_DC_CURR,
+  IDX_RESERVERD,
+  IDX_DC_LIMIT_DCBUS_REAL,
+  IDX_DC_LIMIT_DCBUS_USE,
+  IDX_AVERAGE_POWER,
+  IDX_INSTANT_POWER,
+  IDX_REMAIN_TIME,
 
+  IDC_DEBUG_FLOAT_MAX = 24, /* no more than this value*/
+} DebugFloatIdx_t;
 
 typedef struct
 {
@@ -326,8 +348,8 @@ typedef struct
 	float Iq_cmd;
 	float Id_fbk;
 	float Iq_fbk;
-	float Debugf[16];
-	uint8_t DebugU8[8];
+	float Debugf[IDC_DEBUG_FLOAT_MAX];
+	uint8_t DebugU8[TX_INTERFACE_DBG_IDX_MAX];
 	uint8_t DebugError[10];
 	// debug done
 	uint16_t NowAlarmID;
@@ -338,7 +360,9 @@ typedef struct
 	int16_t	IW0P1A;
 	int16_t IDcBus0P1A;
 	int16_t VoltDcBu0P1V;
-
+	FoilPos_t FoilPos;
+	uint8_t LimpHomeSrc;
+	uint8_t DeratingSrc;
 	uint8_t ShiftReport;
 	uint8_t _4Quad;
 	uint8_t PcuStateReport;
@@ -378,33 +402,25 @@ typedef struct {
 } CANProtocol;
 
 #define CANRXINFO_DEFAULT { \
-	10000,\
-	10000,\
-	10000,\
-	0,\
-	60,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	{0},\
-	{0},\
-	{0},\
-	{{NULL,0},{NULL,0}},\
-	{0,0,0,0},\
-	0, \
-	{0,0,0},\
-	{0},\
-	0,\
-	0,\
-	0,\
-}
+	10000,  /* BatCurrentDrainLimit0P1A */\
+	10000,  /* MEPowerOutputLimit0P1W */\
+	0,      /* RTCData */\
+	0,      /* ThrottleCmd */\
+	0,      /* PowerLevel */\
+	0,      /* RcConnStatus */\
+	0,      /* ShiftCmd */\
+	0,      /* OutputModeCmd */\
+	0,      /* PcuStateCmd */\
+	0,      /* ServoOnCmd */\
+	0,      /* UrgentShutdown */\
+	0,      /* ExtPumpStatus */\
+	0,      /* ReceivedCANID */\
+	{0},    /* ExtSignalCmd */\
+	{0},    /* PrchCtrlFB */\
+	{{NULL,0},{NULL,0}},      /* RxAuthData[2] */\
+	{0,0,0,0},                /* Buffer[4] */\
+	BMS_REPORT_INFO_DEFAULT,  /* BmsReportInfo */\
+}\
 
 #define CANTXINFO_DEFAULT { \
 		0, /* Th_Raw_Percent */ \
@@ -427,6 +443,9 @@ typedef struct {
 		0, /* IW0P1A */ \
 		0, /* IDcBus0P1A */ \
 		0, /* VoltDcBu0P1V */ \
+		FOIL_POS_PADDLE, /*FoilPos*/ \
+		0,	/* LimpHomeSrc*/\
+		0,	/* DeratingSrc*/\
 		0, /* ShiftReport */ \
 		0, /* _4Quad */ \
 		0, /* PcuStateReport */ \
