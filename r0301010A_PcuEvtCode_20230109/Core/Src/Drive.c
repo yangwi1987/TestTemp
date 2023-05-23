@@ -1627,7 +1627,7 @@ void drive_Do100HzLoop(void)
 	MFStation1.GpioMfinfo( &MFStation1 );
 
 	/*update max and min value*/
-//	if ( IsPcuInitReady == PcuInitState_Ready )
+	/*To do: currently, MCU enter 100Hz earlier than PLC loop, temporary solution is to bypass fist enterning*/
 	if ( IsNotFirstLoop == 1 )
 	{
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max = \
