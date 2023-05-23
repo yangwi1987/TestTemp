@@ -284,8 +284,8 @@ typedef struct
 	int32_t	BatCurrentDrainLimit0P1A;
 	int32_t	MEPowerOutputLimit0P1W;
 	uint32_t RTCData;
-	uint16_t ThrottleCmd;
-	uint16_t PowerLevel;
+	uint8_t ThrottleCmd;
+	uint8_t PowerLevel;
 	uint8_t RcConnStatus;
 	uint8_t ShiftCmd;
 	uint8_t OutputModeCmd;

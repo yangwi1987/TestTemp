@@ -1166,7 +1166,10 @@ void Drive_PcuPowerStateMachine( void )
 			// normal transition
 			if( IsPcuInitReady == PcuInitState_Ready )
 			{
-				Axis[0].PcuPowerState = PowerOnOff_Ready;
+				if(Axis[0].pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE)
+				{
+					Axis[0].PcuPowerState = PowerOnOff_Ready;
+				}
 			}
 
 			// error situation
