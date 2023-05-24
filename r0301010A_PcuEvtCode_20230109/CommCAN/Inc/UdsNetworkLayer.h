@@ -30,7 +30,7 @@
 #define TX_REQUEST_SET 				1
 
 #define UDS_RX_ID_LSC_START			0x300
-#define UDS_RX_ID_LSC_END			0x307
+#define UDS_RX_ID_LSC_END			0x300
 #define UDS_RX_ID_LSC_MASK			0x300
 #define UDS_TX_ID_LSC				0x308
 
