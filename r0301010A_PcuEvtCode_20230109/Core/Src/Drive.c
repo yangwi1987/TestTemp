@@ -1378,6 +1378,8 @@ void drive_Init(void)
 
 	ExtranetCANStation.Enable = ENABLE;
 	ExtranetCANStation.ForceDisable = DISABLE;
+
+	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
 	RCCommCtrl.Init(&RCCommCtrl,&huart5,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 
 	// DTC Init
