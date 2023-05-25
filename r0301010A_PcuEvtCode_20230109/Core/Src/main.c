@@ -107,7 +107,12 @@ static void MX_CRC_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
-
+#if Measure_CPU_Load || Judge_function_delay
+static void USER_DWT_Init(void);
+uint32_t Housekeeping_cnt_start = 0;
+uint32_t Housekeeping_cnt_end = 0;
+float Housekeeping_cnt_acc_ms = 0;
+#endif
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -171,8 +176,6 @@ int main(void)
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 
-
-
   drive_Init();
   __disable_irq();
   HAL_TIM_Base_Start(&htim6);
@@ -188,7 +191,9 @@ int main(void)
 //  }
 //  uwCRCValue = HAL_CRC_Calculate(&hcrc,(uint32_t*)TestArr1,7);
   CRCTestResult = RCCommCtrl.CalCrc(&RCCommCtrl,TestArr1,7);
-
+#if Measure_CPU_Load || Judge_function_delay
+  USER_DWT_Init();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -199,8 +204,16 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+#if Measure_CPU_Load
+	  Housekeeping_cnt_start =  DWT->CYCCNT;
+#endif
 	  drive_DoHouseKeeping();
 	  JumpCtrlFunction();
+
+#if Measure_CPU_Load
+	  Housekeeping_cnt_end =  DWT->CYCCNT;
+	  Housekeeping_cnt_acc_ms = Housekeeping_cnt_acc_ms + (( Housekeeping_cnt_end - Housekeeping_cnt_start ) / 170000.0f );
+#endif
   }
   /* USER CODE END 3 */
 }
@@ -1278,6 +1291,16 @@ static void MX_GPIO_Init(void)
   * @param  None
   * @retval None
   */
+#if Measure_CPU_Load || Judge_function_delay
+
+static void USER_DWT_Init(void)
+{
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Enable access to DWT
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;            // Enable CYCCNT register
+    DWT->CYCCNT = 0;                                // Reset the CYCCNT counter
+    return;
+}
+#endif
 /* USER CODE END 4 */
 
 /**
