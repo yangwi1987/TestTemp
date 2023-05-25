@@ -48,7 +48,7 @@ typedef struct{
 	uint16_t RxDlc;
 	uint16_t TxDlc;
 	uint16_t TimeoutCnt;
-	uint16_t Reserved;
+	uint16_t VerConfig;
 	functypeRcComm_Init Init;
 	functypeRcComm_CalCrc CalCrc;
 	functypeRcComm_StartScan StartScan;
@@ -66,6 +66,7 @@ typedef enum{
 	IDX_RC_COMM_DLC_L,
 	IDX_RC_COMM_DLC_H,
 	IDX_RC_COMM_CMD_ID,
+	IDX_RC_COMM_DATA_START,
 }EnumRCCommIdx;
 
 typedef enum{
@@ -82,7 +83,12 @@ typedef enum{
 	RC_COMM_TX_STATE_COMPLETE,
 }EnumRCCommTxState;
 
-
+#define RC_CMD_DATA_IDX_THROTTLE_CMD 	0 + IDX_RC_COMM_DATA_START
+#define RC_CMD_DATA_IDX_TURN_OFF_REQ 	1 + IDX_RC_COMM_DATA_START
+#define RC_CMD_DATA_IDX_RC_CONN_STATUS 	2 + IDX_RC_COMM_DATA_START
+#define RC_CMD_DATA_IDX_ERROR_CODE 		3 + IDX_RC_COMM_DATA_START
+#define RC_CMD_DATA_IDX_GATE_MODE 		7 + IDX_RC_COMM_DATA_START
+#define RC_CMD_DATA_IDX_PWR_LEVEL 		8 + IDX_RC_COMM_DATA_START
 
 typedef enum{
 	RC_CMD_ID_ROUTINE_INFO_REQ = 40,
@@ -98,6 +104,7 @@ uint32_t RcComm_CalCrc(StructUartCtrl *p,uint8_t *pDataStart, uint8_t size);
 void RcComm_StartScan(StructUartCtrl*p);
 void RcComm_GetUartMsgFromIsr( StructUartCtrl *p);
 void RcComm_MsgHandler(StructUartCtrl*p,uint8_t *pData);
+void RcComm_MsgHandlerVP3(StructUartCtrl*p,uint8_t *pData);
 void RcComm_LoadRxDataFromIsr(StructUartCtrl*p);
 void RcComm_MsgDecoder(StructUartCtrl*p);
 void RcComm_Reset(StructUartCtrl*p);
@@ -128,7 +135,7 @@ void HAL_UART_txCpltCallback(UART_HandleTypeDef *huart);
 	(functypeRcComm_CalCrc)&RcComm_CalCrc,\
 	(functypeRcComm_StartScan)&RcComm_StartScan,\
 	(functypeRcComm_GetUartMsgFromIsr)&RcComm_LoadRxDataFromIsr,\
-	(functypeRcComm_MsgHandler)&RcComm_MsgHandler,\
+	(functypeRcComm_MsgHandler)&RcComm_MsgHandlerVP3,\
 	(functypeRcComm_MsgDecoder)&RcComm_MsgDecoder,\
 	(functypeRcComm_10HzLoop)&RcComm_10HzLoop,\
 	(functypeRcComm_Reset)&RcComm_Reset,\
