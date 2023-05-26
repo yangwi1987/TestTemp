@@ -419,7 +419,7 @@ else
 }
 #endif
 #if Measure_CPU_Load
-if ( CPU_Load_Cnt == ( CPU_Load_cal_interval - 1 ))
+if ( CPU_Load_Cnt >= ( CPU_Load_cal_interval - 1 ))
 	{
 	    CPU_Load_Total_pct = ( 1 -  Housekeeping_cnt_acc_ms / ( 10.0f * CPU_Load_cal_interval )) * 100.0f;
 	    CPU_Load_Cnt = 0;
@@ -443,6 +443,7 @@ Max_CPU_Load_Total_pct = Max_CPU_Load_Total_pct >= CPU_Load_Total_pct ? Max_CPU_
 /**
   * @brief This function handles TIM20 update interrupt.
   */
+
 void TIM20_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM20_UP_IRQn 0 */
