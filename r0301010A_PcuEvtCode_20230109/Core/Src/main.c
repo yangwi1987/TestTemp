@@ -109,9 +109,6 @@ static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 #if Measure_CPU_Load || Judge_function_delay
 static void USER_DWT_Init(void);
-uint32_t Housekeeping_cnt_start = 0;
-uint32_t Housekeeping_cnt_end = 0;
-float Housekeeping_cnt_acc_ms = 0;
 #endif
 /* USER CODE END PFP */
 
@@ -204,16 +201,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-#if Measure_CPU_Load
-	  Housekeeping_cnt_start =  DWT->CYCCNT;
-#endif
 	  drive_DoHouseKeeping();
 	  JumpCtrlFunction();
-
-#if Measure_CPU_Load
-	  Housekeeping_cnt_end =  DWT->CYCCNT;
-	  Housekeeping_cnt_acc_ms = Housekeeping_cnt_acc_ms + (( Housekeeping_cnt_end - Housekeeping_cnt_start ) / 170000.0f );
-#endif
   }
   /* USER CODE END 3 */
 }

@@ -34,8 +34,10 @@ typedef struct
 	uint32_t previousTimestamp;
 	uint32_t deltaCnt;
 	uint32_t maxDelta;
+	float AveDelta;
 	float Intervals_us;
 	float Max_Intervals_us;
+	float Ave_Intervals_us;
 }Judge_Delay;
 #endif
 /* USER CODE END TD */
@@ -56,12 +58,11 @@ typedef struct
 Judge_Delay CurrentLoop_Judge_Delay = { 0 };
 Judge_Delay PLCLoop_Judge_Delay = { 0 };
 Judge_Delay _100HzLoop_Judge_Delay = { 0 };
+float aveDelta_filter_coef = 0.001;
 #endif
 #if Measure_CPU_Load
-float CPU_Load_Total_pct = 0.0f;
-float Max_CPU_Load_Total_pct = 0.0f;
-float CPU_Load_cal_interval = 100.0f;
-extern float Housekeeping_cnt_acc_ms;
+uint32_t Max_100Hz_Cnt = 0.0f;
+float Max_100Hz_Load_pct = 100.0f;
 #endif
 /* USER CODE END PV */
 
@@ -400,39 +401,31 @@ void TIM7_DAC_IRQHandler(void)
   /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
 #if Measure_CPU_Load || Judge_function_delay
 	uint32_t currentTimestamp = DWT->CYCCNT;
-	static uint16_t CPU_Load_Cnt = 0;
+	uint32_t EndTimestame = 0;
 #endif
 #if Judge_function_delay
-uint32_t delta = currentTimestamp - _100HzLoop_Judge_Delay.previousTimestamp;
-static uint8_t initial_ignore = 0;
-_100HzLoop_Judge_Delay.deltaCnt = delta;
-_100HzLoop_Judge_Delay.previousTimestamp = currentTimestamp;
-_100HzLoop_Judge_Delay.Intervals_us = (float)delta / 170.0f;
-if ( initial_ignore > 10 )
-{
-	_100HzLoop_Judge_Delay.maxDelta = delta > _100HzLoop_Judge_Delay.maxDelta ? delta : _100HzLoop_Judge_Delay.maxDelta;
-    _100HzLoop_Judge_Delay.Max_Intervals_us = (float)_100HzLoop_Judge_Delay.maxDelta / 170.0f;
-	CurrentLoop_Judge_Delay.Max_Intervals_us = (float)CurrentLoop_Judge_Delay.maxDelta / 170.0f;
-	PLCLoop_Judge_Delay.Max_Intervals_us = (float)PLCLoop_Judge_Delay.maxDelta / 170.0f;
-}
-else
-{
-	initial_ignore++;
-}
-#endif
-#if Measure_CPU_Load
-if ( CPU_Load_Cnt >= ( CPU_Load_cal_interval - 1 ))
-	{
-	    CPU_Load_Total_pct = ( 1 -  Housekeeping_cnt_acc_ms / ( 10.0f * CPU_Load_cal_interval )) * 100.0f;
-	    CPU_Load_Cnt = 0;
-	    Housekeeping_cnt_acc_ms = 0;
-	}
-else
+    uint32_t delta = currentTimestamp - _100HzLoop_Judge_Delay.previousTimestamp;
+    static uint8_t initial_ignore = 0;
+    _100HzLoop_Judge_Delay.deltaCnt = delta;
+    _100HzLoop_Judge_Delay.previousTimestamp = currentTimestamp;
+    _100HzLoop_Judge_Delay.Intervals_us = (float)delta / 170.0f;
+    if ( initial_ignore > 10 )
     {
-	    CPU_Load_Cnt++;
+    	_100HzLoop_Judge_Delay.maxDelta = delta > _100HzLoop_Judge_Delay.maxDelta ? delta : _100HzLoop_Judge_Delay.maxDelta;
+    	_100HzLoop_Judge_Delay.AveDelta = _100HzLoop_Judge_Delay.AveDelta - aveDelta_filter_coef * 100.0f* ( _100HzLoop_Judge_Delay.AveDelta - (float)delta );
+        _100HzLoop_Judge_Delay.Max_Intervals_us = (float)_100HzLoop_Judge_Delay.maxDelta / 170.0f;
+    	CurrentLoop_Judge_Delay.Max_Intervals_us = (float)CurrentLoop_Judge_Delay.maxDelta / 170.0f;
+    	PLCLoop_Judge_Delay.Max_Intervals_us = (float)PLCLoop_Judge_Delay.maxDelta / 170.0f;
+        _100HzLoop_Judge_Delay.Ave_Intervals_us = (float)_100HzLoop_Judge_Delay.AveDelta / 170.0f;
+    	CurrentLoop_Judge_Delay.Ave_Intervals_us = (float)CurrentLoop_Judge_Delay.AveDelta / 170.0f;
+    	PLCLoop_Judge_Delay.Ave_Intervals_us = (float)PLCLoop_Judge_Delay.AveDelta / 170.0f;
     }
-Max_CPU_Load_Total_pct = Max_CPU_Load_Total_pct >= CPU_Load_Total_pct ? Max_CPU_Load_Total_pct : CPU_Load_Total_pct;
+    else
+    {
+    	initial_ignore++;
+    }
 #endif
+
 #if 0
   /* USER CODE END TIM7_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim7);
@@ -440,6 +433,11 @@ Max_CPU_Load_Total_pct = Max_CPU_Load_Total_pct >= CPU_Load_Total_pct ? Max_CPU_
 #endif
   USER_HAL_TIM_7_IRQHandler(&htim7);
 
+#if Measure_CPU_Load
+    EndTimestame =  DWT->CYCCNT;
+    Max_100Hz_Cnt = Max_100Hz_Cnt > ( EndTimestame - currentTimestamp ) ? Max_100Hz_Cnt : ( EndTimestame - currentTimestamp );
+    Max_100Hz_Load_pct = ((float)Max_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
+#endif
   /* USER CODE END TIM7_DAC_IRQn 1 */
 }
 /**
@@ -459,7 +457,7 @@ CurrentLoop_Judge_Delay.Intervals_us = (float)delta / 170.0f;
 if ( initial_ignore > 10 )
 {
 	CurrentLoop_Judge_Delay.maxDelta = delta > CurrentLoop_Judge_Delay.maxDelta ? delta : CurrentLoop_Judge_Delay.maxDelta;
-
+	CurrentLoop_Judge_Delay.AveDelta = CurrentLoop_Judge_Delay.AveDelta - aveDelta_filter_coef * ( CurrentLoop_Judge_Delay.AveDelta - (float)delta );
 }
 else
 {
@@ -526,20 +524,22 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 	if( AdcStation1.AdcRegGroup == AdcStation1.AdcRegGroupFlag )
 	{
 #if Judge_function_delay
-uint32_t currentTimestamp = DWT->CYCCNT;
-uint32_t delta = currentTimestamp - PLCLoop_Judge_Delay.previousTimestamp;
-static uint8_t initial_ignore = 0;
-PLCLoop_Judge_Delay.deltaCnt = delta;
-PLCLoop_Judge_Delay.previousTimestamp = currentTimestamp;
-PLCLoop_Judge_Delay.Intervals_us = (float)delta / 170.0f;
-if ( initial_ignore > 10 )
-{
-	PLCLoop_Judge_Delay.maxDelta = delta > PLCLoop_Judge_Delay.maxDelta ? delta : PLCLoop_Judge_Delay.maxDelta;
-}
-else
-{
-	initial_ignore++;
-}
+    uint32_t currentTimestamp = DWT->CYCCNT;
+    uint32_t delta = currentTimestamp - PLCLoop_Judge_Delay.previousTimestamp;
+    static uint8_t initial_ignore = 0;
+    PLCLoop_Judge_Delay.deltaCnt = delta;
+    PLCLoop_Judge_Delay.previousTimestamp = currentTimestamp;
+    PLCLoop_Judge_Delay.Intervals_us = (float)delta / 170.0f;
+    if ( initial_ignore > 10 )
+    {
+	    PLCLoop_Judge_Delay.maxDelta = delta > PLCLoop_Judge_Delay.maxDelta ? delta : PLCLoop_Judge_Delay.maxDelta;
+	    PLCLoop_Judge_Delay.AveDelta = PLCLoop_Judge_Delay.AveDelta - aveDelta_filter_coef * 10.0f * ( PLCLoop_Judge_Delay.AveDelta - (float)delta );
+
+    }
+    else
+    {
+	    initial_ignore++;
+    }
 #endif
 		CPUCounter.PLCLoopCounter++;
 		drive_DoPLCLoop();
