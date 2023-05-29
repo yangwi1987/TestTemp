@@ -731,7 +731,7 @@ static void MX_FDCAN2_Init(void)
   hfdcan2.Init.DataSyncJumpWidth = 6;
   hfdcan2.Init.DataTimeSeg1 = 25;
   hfdcan2.Init.DataTimeSeg2 = 8;
-  hfdcan2.Init.StdFiltersNbr = 5;
+  hfdcan2.Init.StdFiltersNbr = 6;
   hfdcan2.Init.ExtFiltersNbr = 0;
   hfdcan2.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan2) != HAL_OK)

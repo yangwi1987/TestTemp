@@ -28,12 +28,14 @@
 #define CANTXID_ESC_LOG_INFO_7  0x727   /*Debug information for ESC develop 07*/
 
 /* ==== macro for CANRX IDs for receive ==== */
-#define CANRXID_BMS_VOLT_01           0x300   /* info shows BMS Volt value group1 */
+
 #define CANRXID_BMS_VOLT_02           0x301   /* info shows BMS Volt value group2 */
 #define CANRXID_BMS_VOLT_03           0x302   /* info shows BMS Volt value group3 */
 #define CANRXID_BMS_VOLT_04           0x303   /* info shows BMS Volt value group4 */
 #define CANRXID_BMS_VOLT_05           0x304   /* info shows BMS Volt value group5 */
 #define CANRXID_BMS_VOLT_06           0x305   /* info shows BMS Volt value group6 */
+#define CANRXID_BMS_VOLT_01           0x306   /* info shows BMS Volt value group1 */
+
 #define CANRXID_BMS_STATE_MACHINE_01  0x401   /* info shows BMS state value */
 #define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
 #define CANRXID_BMS_CURRENT_01        0x404   /* info shows BMS current value */
