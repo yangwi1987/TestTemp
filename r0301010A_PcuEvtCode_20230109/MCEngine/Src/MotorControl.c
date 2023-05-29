@@ -377,11 +377,11 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
 void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
 {
-	p->CurrentControl.IdCmd = 0.0f;
-	p->CurrentControl.IqCmd = 0.0f;
+//	p->CurrentControl.IdCmd = 0.0f;
+//	p->CurrentControl.IqCmd = 0.0f;
 
 	p->CurrentControl.StatorCurrFb.Clean( &(p->CurrentControl.StatorCurrFb) );
-	p->CurrentControl.RotorCurrFb.Clean( &(p->CurrentControl.RotorCurrFb) );
+//	p->CurrentControl.RotorCurrFb.Clean( &(p->CurrentControl.RotorCurrFb) );
 	p->VoltCmd.StatorVoltCmd.Clean( &(p->VoltCmd.StatorVoltCmd) );
 
 	p->CurrentControl.IdRegulator.Clean( &(p->CurrentControl.IdRegulator) );
@@ -420,7 +420,7 @@ void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
 	//Sensorless
 	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
 
-	p->CurrentControl.EleAngle = 0.0f;
+//	p->CurrentControl.EleAngle = 0.0f;
 }
 
 
