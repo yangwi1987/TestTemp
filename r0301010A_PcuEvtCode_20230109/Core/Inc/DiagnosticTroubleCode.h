@@ -16,7 +16,7 @@
 	1, /*bit0 Test Failed*/\
     0, /*bit1 Test Failed This Operation Cycle*/\
 	0, /*bit2 Pending DTC*/\
-	1, /*bit3 Confirmed DTC*/\
+	0, /*bit3 Confirmed DTC*/\
     0, /*bit4 Test Not Completed Since Last Clear*/\
     0, /*bit5 Test Failed Since Last Clear*/\
     0, /*bit6 Test Not Completed This Operation Cycle*/\
