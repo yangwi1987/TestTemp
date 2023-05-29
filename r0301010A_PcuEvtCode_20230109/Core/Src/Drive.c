@@ -1664,6 +1664,7 @@ void drive_Do100HzLoop(void)
 
 void drive_Do10HzLoop(void)
 {
+	static uint16_t Local10HzCNT = 0;
 	int i;
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
@@ -1672,10 +1673,21 @@ void drive_Do10HzLoop(void)
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
 
-	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_REQUEST &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
+	if( DriveParams.PCUParams.DebugParam7 == 1 )
 	{
-		Axis[0].RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-		// Do ResetWarnning in HouseKeeping.
+		if(Local10HzCNT >= 9)
+		{
+			Local10HzCNT = 0;
+			if( Axis[0].RequestResetWarningCNT == RESET_WARNING_REQUEST &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
+			{
+				Axis[0].RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
+				// Do ResetWarnning in HouseKeeping.
+			}
+		}
+		else
+		{
+			Local10HzCNT++;
+		}
 	}
 }
 
