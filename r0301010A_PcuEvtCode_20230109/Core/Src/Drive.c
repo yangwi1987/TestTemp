@@ -1662,8 +1662,6 @@ void drive_Do10HzLoop(void)
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
 
-
-
 	if( DriveParams.PCUParams.DebugParam7 == 1 )
 	{
 		if(Local10HzCNT >= 9)
