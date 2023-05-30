@@ -208,12 +208,12 @@ static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
         }
         case PcuState_Shutdown_Start :
         {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
             break;
         }
         case PcuState_Shutdown_Finish :
         {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
             break;
         }
         default :
