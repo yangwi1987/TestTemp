@@ -341,7 +341,7 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 	p->pTxInterface = t;
 	p->pRxInterface = r;
 
-	if(p->VerConfig != 0)
+	if(p->VerConfig == 0) // default to VP1.3 UART protocol
 	{
 		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
 	}
