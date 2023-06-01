@@ -1062,53 +1062,203 @@ static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, Li
 }
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0563_System_voltage_high                      ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OVER_VOLTAGE_BUS );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_RC_INVALID );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F02_ESC_Mosfet_High_temperature              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0 ) \
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0563_System_voltage_high                      ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OVER_VOLTAGE_BUS );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_RC_INVALID );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F02_ESC_Mosfet_High_temperature              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0 ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1 );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F03_ESC_Capacitor_High_temperature           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2 )  ;
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F04_Motor_High_temperature                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0 );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F05_ESC_current_sensor_abnormal              ].Test_Failed =  ;
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F06_System_voltage_sensor_abnormal           ].Test_Failed =  ;
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F0A_ESC_Internal_circuit_logical_failure     ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BUFFER_IC_ERROR );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0C05_Motor_Phase_lost                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_PHASE_LOSS );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0219_Motor_Overspeed                          ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTOR_OVER_SPEED );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK ) \
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F03_ESC_Capacitor_High_temperature           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2 )  ;
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F04_Motor_High_temperature                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0 );
+////    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F05_ESC_current_sensor_abnormal              ].Test_Failed =  ;
+////    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F06_System_voltage_sensor_abnormal           ].Test_Failed =  ;
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F0A_ESC_Internal_circuit_logical_failure     ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BUFFER_IC_ERROR );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0C05_Motor_Phase_lost                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_PHASE_LOSS );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0219_Motor_Overspeed                          ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTOR_OVER_SPEED );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0666_ESC_Mosfet_Temperature_sensor_abnormal   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 ) \
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0666_ESC_Mosfet_Temperature_sensor_abnormal   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) \
                                                                                                           || AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 ) \
                                                                                                           || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_1 );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0667_ESC_Capacitor_Temperature_sensor_abnormal].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_2 ) \
-                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_2 );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0A2A_Motor_Temperature_sensor_abnormal        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_MOTOR_0 ) \
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0667_ESC_Capacitor_Temperature_sensor_abnormal].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_2 ) \
+//                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_2 );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0A2A_Motor_Temperature_sensor_abnormal        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_MOTOR_0 ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F00_Motor_Stalled                            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTORSTALL );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0111_Lost_communication_with_BMS              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_CAN1_TIMEOUT );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0107_Lost_communication_with_RF               ].Test_Failed =  ;
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P060E_Throttle_position_performance            ].Test_Failed =  ;
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0412_Invalid_data_received_from_BMS           ].Test_Failed =  ;
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_UNINITIALIZED ) \
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F00_Motor_Stalled                            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTORSTALL );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0111_Lost_communication_with_BMS              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_CAN1_TIMEOUT );
+////    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0107_Lost_communication_with_RF               ].Test_Failed =  ;
+////    v->StatusOfDTC_Realtime[DTC_RecordNumber_P060E_Throttle_position_performance            ].Test_Failed =  ;
+////    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0412_Invalid_data_received_from_BMS           ].Test_Failed =  ;
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_UNINITIALIZED ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_READ_FAILED )   \
 																										  || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_DAMAGED );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F12_ESC_Mosfet_High_temperature_warning              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0_WARNING ) \
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F12_ESC_Mosfet_High_temperature_warning              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0_WARNING ) \
                                                                                                           || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1_WARNING );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F13_ESC_Capacitor_High_temperature_warning           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2_WARNING );
-    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F14_Motor_High_temperature_warning                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0_WARNING );
-    for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
-    {
-    	v->StatusOfDTC_Realtime[i].Confirmed_DTC = v->StatusOfDTC_Realtime[i].Confirmed_DTC | v->StatusOfDTC_Realtime[i].Test_Failed;
-    	if ( v->DTCStorePackge[i].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[i].Confirmed_DTC == TRUE )
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F13_ESC_Capacitor_High_temperature_warning           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2_WARNING );
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F14_Motor_High_temperature_warning                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0_WARNING );
+
+	for ( uint8_t i = 0; i < MAX_NOW_ALARM_SIZE; i++ )
+	{
+		uint8_t break_flag = 0;
+		uint8_t tempDTC_Number = 0;
+		switch ( AlarmStack->NowAlarmID[i] )
+		{
+		    case ALARMID_UNDER_VOLTAGE_BUS:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0562_System_voltage_low;
+
+		    	break;
+		    }
+		    case ALARMID_OVER_VOLTAGE_BUS:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0563_System_voltage_high;
+	        	break;
+		    }
+		    case ALARMID_RC_INVALID:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module;
+	        	break;
+		    }
+		    case ALARMID_POWER_TRANSISTOR_OC:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F01_ESC_Over_current;
+	        	break;
+		    }
+		    case ALARMID_UNDER_VOLTAGE_13V:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range;
+	        	break;
+		    }
+		    case ALARMID_OT_PCU_0:
+		    case ALARMID_OT_PCU_1:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F02_ESC_Mosfet_High_temperature;
+	        	break;
+		    }
+		    case ALARMID_OT_PCU_2:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F03_ESC_Capacitor_High_temperature;
+	        	break;
+		    }
+		    case ALARMID_OT_MOTOR_0:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F04_Motor_High_temperature;
+	        	break;
+		    }
+		    case ALARMID_BUFFER_IC_ERROR:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F0A_ESC_Internal_circuit_logical_failure;
+	        	break;
+		    }
+		    case ALARMID_PHASE_LOSS:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0C05_Motor_Phase_lost;
+	        	break;
+		    }
+		    case ALARMID_MOTOR_OVER_SPEED:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0219_Motor_Overspeed;
+	        	break;
+		    }
+		    case ALARMID_FOIL_BREAK:
+		    case ALARMID_FOIL_SHORT:
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal;
+	        	break;
+		    }
+		    case ALARMID_BREAK_NTC_PCU_0 :
+		    case ALARMID_SHORT_NTC_PCU_0 :
+		    case ALARMID_BREAK_NTC_PCU_1 :
+		    case ALARMID_SHORT_NTC_PCU_1 :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0666_ESC_Mosfet_Temperature_sensor_abnormal;
+	        	break;
+		    }
+		    case ALARMID_BREAK_NTC_PCU_2 :
+		    case ALARMID_SHORT_NTC_PCU_2 :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0667_ESC_Capacitor_Temperature_sensor_abnormal;
+	        	break;
+		    }
+		    case ALARMID_BREAK_NTC_MOTOR_0 :
+		    case ALARMID_SHORT_NTC_MOTOR_0 :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0A2A_Motor_Temperature_sensor_abnormal;
+	        	break;
+		    }
+		    case ALARMID_MOTORSTALL :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F00_Motor_Stalled;
+	        	break;
+		    }
+		    case ALARMID_CAN1_TIMEOUT :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_U0111_Lost_communication_with_BMS;
+	        	break;
+		    }
+		    case ALARMID_FLASH_UNINITIALIZED :
+		    case ALARMID_FLASH_READ_FAILED :
+		    case ALARMID_FLASH_DAMAGED :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error;
+	        	break;
+		    }
+		    case ALARMID_OT_PCU_0_WARNING :
+		    case ALARMID_OT_PCU_1_WARNING :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F12_ESC_Mosfet_High_temperature_warning;
+	        	break;
+		    }
+		    case ALARMID_OT_PCU_2_WARNING :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F13_ESC_Capacitor_High_temperature_warning;
+	        	break;
+		    }
+		    case ALARMID_OT_MOTOR_0_WARNING :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P1F14_Motor_High_temperature_warning;
+	        	break;
+		    }
+		    default:
+		    {
+		    	break_flag = 1;
+		    	break;
+		    }
+		}
+		if ( break_flag == 1 )
+		{
+			break;
+		}
+    	v->StatusOfDTC_Realtime[tempDTC_Number].Test_Failed = 1;
+    	if ( v->DTCStorePackge[tempDTC_Number].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[tempDTC_Number].Test_Failed == TRUE )
     	{
-    		 v->DTCStorePackge[i].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
-    		drive_DTC_Pickup_Freeze_Frame_data( v, i );
+    		 v->DTCStorePackge[tempDTC_Number].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
+    		drive_DTC_Pickup_Freeze_Frame_data( v, tempDTC_Number );
 
     	    v->State = DTC_Process_State_Write;
     	}
-    }
+	}
+
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F05_ESC_current_sensor_abnormal              ].Test_Failed =  ;
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F06_System_voltage_sensor_abnormal           ].Test_Failed =  ;
+//
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0107_Lost_communication_with_RF               ].Test_Failed =  ;
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P060E_Throttle_position_performance            ].Test_Failed =  ;
+//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0412_Invalid_data_received_from_BMS           ].Test_Failed =  ;
+
+//    for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
+//    {
+//    	v->StatusOfDTC_Realtime[i].Confirmed_DTC = v->StatusOfDTC_Realtime[i].Confirmed_DTC | v->StatusOfDTC_Realtime[i].Test_Failed;
+//    	if ( v->DTCStorePackge[i].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[i].Confirmed_DTC == TRUE )
+//    	{
+//    		 v->DTCStorePackge[i].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
+//    		drive_DTC_Pickup_Freeze_Frame_data( v, i );
+//
+//    	    v->State = DTC_Process_State_Write;
+//    	}
+//    }
 }
 
 static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
@@ -1629,7 +1779,7 @@ void drive_Do100HzLoop(void)
 	MFStation1.GpioMfinfo( &MFStation1 );
 
 	/*update max and min value*/
-//	if ( IsPcuInitReady == PcuInitState_Ready )
+	/*To do: currently, MCU enter 100Hz earlier than PLC loop, temporary solution is bypass the first entering*/
 	if ( IsNotFirstLoop == 1 )
 	{
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max = \
