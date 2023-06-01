@@ -1094,10 +1094,10 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
     v->StatusOfDTC_Realtime[DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_UNINITIALIZED ) \
     		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_READ_FAILED )   \
 																										  || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_DAMAGED );
-    v->StatusOfDTC_Realtime[DTC_Code_P1F12_ESC_Mosfet_High_temperature_warning              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0_WARNING ) \
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F12_ESC_Mosfet_High_temperature_warning              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0_WARNING ) \
                                                                                                           || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1_WARNING );
-    v->StatusOfDTC_Realtime[DTC_Code_P1F13_ESC_Capacitor_High_temperature_warning           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2_WARNING );
-    v->StatusOfDTC_Realtime[DTC_Code_P1F14_Motor_High_temperature_warning                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0_WARNING );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F13_ESC_Capacitor_High_temperature_warning           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2_WARNING );
+    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F14_Motor_High_temperature_warning                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0_WARNING );
     for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
     {
     	v->StatusOfDTC_Realtime[i].Confirmed_DTC = v->StatusOfDTC_Realtime[i].Confirmed_DTC | v->StatusOfDTC_Realtime[i].Test_Failed;
