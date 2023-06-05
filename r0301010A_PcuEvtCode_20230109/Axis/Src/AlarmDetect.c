@@ -292,10 +292,10 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin ), HAL_GPIO_ReadPin( HWOCP_GPIO_Port, HWOCP_Pin ), v->AxisID );
 	}
 	
-	if( v->POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
-	{
-		AlarmDetect_PowerICOverCurrent( v, &v->POWER_TRANSISTOR_OC, v->AxisID );
-	}
+//	if( v->POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+//	{
+//		AlarmDetect_PowerICOverCurrent( v, &v->POWER_TRANSISTOR_OC, v->AxisID );
+//	}
 
 #if USE_FOIL_ABNORMAL_DETECT
 	// analog foil sensor should in 5~0V, and the input signal is between 5000~0000 (0.001V)

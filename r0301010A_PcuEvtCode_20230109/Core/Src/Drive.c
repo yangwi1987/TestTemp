@@ -1877,6 +1877,17 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 	} else;
 }
 
+void drive_DoHWOCPRegister(void)
+{
+	if( Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+	{
+		if( PwmStation1.PwmCh[Axis[0].AlarmDetect.AxisID-1].Group->Instance != 0 )
+		{
+			Axis[0].AlarmDetect.RegisterAxisAlarm( &Axis[0].AlarmDetect, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmID, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmType );
+		}
+	}
+}
+
 uint16_t Drive_BinVersionCompare( const uint16_t *dta)
 {
 	uint16_t Rtn;
