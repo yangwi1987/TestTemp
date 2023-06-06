@@ -1062,43 +1062,21 @@ static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, Li
 }
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0562_System_voltage_low].Test_Failed = AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_BUS );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0563_System_voltage_high                      ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OVER_VOLTAGE_BUS );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module  ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_RC_INVALID );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_POWER_TRANSISTOR_OC );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F09_ESC_Internal_circuit_voltage_out_of_range].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_UNDER_VOLTAGE_13V );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F02_ESC_Mosfet_High_temperature              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0 ) \
-    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1 );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F03_ESC_Capacitor_High_temperature           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2 )  ;
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F04_Motor_High_temperature                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0 );
-////    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F05_ESC_current_sensor_abnormal              ].Test_Failed =  ;
-////    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F06_System_voltage_sensor_abnormal           ].Test_Failed =  ;
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F0A_ESC_Internal_circuit_logical_failure     ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BUFFER_IC_ERROR );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0C05_Motor_Phase_lost                         ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_PHASE_LOSS );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0219_Motor_Overspeed                          ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTOR_OVER_SPEED );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK ) \
-    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0666_ESC_Mosfet_Temperature_sensor_abnormal   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 ) \
-    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) \
-                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 ) \
-                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_1 );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0667_ESC_Capacitor_Temperature_sensor_abnormal].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_2 ) \
-//                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_2 );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0A2A_Motor_Temperature_sensor_abnormal        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_MOTOR_0 ) \
-    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F00_Motor_Stalled                            ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_MOTORSTALL );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0111_Lost_communication_with_BMS              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_CAN1_TIMEOUT );
-////    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0107_Lost_communication_with_RF               ].Test_Failed =  ;
-////    v->StatusOfDTC_Realtime[DTC_RecordNumber_P060E_Throttle_position_performance            ].Test_Failed =  ;
-////    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0412_Invalid_data_received_from_BMS           ].Test_Failed =  ;
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P0605_Internal_Control_Module_ROM_Error        ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_UNINITIALIZED ) \
-    		                                                                                              || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_READ_FAILED )   \
-																										  || AlarmStack->FlagRead( AlarmStack, ALARMID_FLASH_DAMAGED );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F12_ESC_Mosfet_High_temperature_warning              ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_0_WARNING ) \
-                                                                                                          || AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_1_WARNING );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F13_ESC_Capacitor_High_temperature_warning           ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_PCU_2_WARNING );
-//    v->StatusOfDTC_Realtime[DTC_RecordNumber_P1F14_Motor_High_temperature_warning                   ].Test_Failed =  AlarmStack->FlagRead( AlarmStack, ALARMID_OT_MOTOR_0_WARNING );
-
+/*
+ * Jeff test
+ */
+	if (AlarmStack->NowAlarmID[0] == ALARMID_CAN1_TIMEOUT)
+	{
+		AlarmStack->NowAlarmID[1] = ALARMID_RC_INVALID;
+		AlarmStack->NowAlarmID[2] = ALARMID_FOIL_BREAK;
+		AlarmStack->NowAlarmID[3] = ALARMID_OT_PCU_0_WARNING;
+		AlarmStack->NowAlarmID[4] = ALARMID_OT_PCU_2_WARNING;
+		AlarmStack->NowAlarmID[5] = ALARMID_OT_MOTOR_0_WARNING;
+		AlarmStack->NowAlarmID[6] = ALARMID_OVER_VOLTAGE_BUS;
+		AlarmStack->NowAlarmID[7] = ALARMID_UNDER_VOLTAGE_13V;
+		AlarmStack->NowAlarmID[8] = ALARMID_BUFFER_IC_ERROR;
+		AlarmStack->NowAlarmID[9] = ALARMID_MOTOR_OVER_SPEED;
+	}
 	for ( uint8_t i = 0; i < MAX_NOW_ALARM_SIZE; i++ )
 	{
 		uint8_t break_flag = 0;
@@ -1248,17 +1226,6 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 //    v->StatusOfDTC_Realtime[DTC_RecordNumber_P060E_Throttle_position_performance            ].Test_Failed =  ;
 //    v->StatusOfDTC_Realtime[DTC_RecordNumber_U0412_Invalid_data_received_from_BMS           ].Test_Failed =  ;
 
-//    for ( uint8_t i = 0; i < DTC_RecordNumber_Total; i++ )
-//    {
-//    	v->StatusOfDTC_Realtime[i].Confirmed_DTC = v->StatusOfDTC_Realtime[i].Confirmed_DTC | v->StatusOfDTC_Realtime[i].Test_Failed;
-//    	if ( v->DTCStorePackge[i].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[i].Confirmed_DTC == TRUE )
-//    	{
-//    		 v->DTCStorePackge[i].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
-//    		drive_DTC_Pickup_Freeze_Frame_data( v, i );
-//
-//    	    v->State = DTC_Process_State_Write;
-//    	}
-//    }
 }
 
 static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
@@ -1266,21 +1233,27 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Battery_Voltage =
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Dc_Bus_Voltage = AdcStation1.AdcTraOut.BatVdc;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current = sqrtf(( Axis[0].MotorControl.CurrentControl.RotorCurrFb.D * Axis[0].MotorControl.CurrentControl.RotorCurrFb.D ) + \
+	/*
+	 * Move to housekeeping
+	 */
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current = sqrtf(( Axis[0].MotorControl.CurrentControl.RotorCurrFb.D * Axis[0].MotorControl.CurrentControl.RotorCurrFb.D ) + \
 			                                                                              ( Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q * Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q ));
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
                                                                                            Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * 0.8165f;
+	//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( 0.577350269f * AdcStation1.AdcTraOut.BatVdc );
+	/*
+	 *
+	 */
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Direct_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.D;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Quadrature_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Id = Axis[0].MotorControl.CurrentControl.IdCmd;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Iq = Axis[0].MotorControl.CurrentControl.IqCmd;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vd = Axis[0].MotorControl.VoltCmd.VdCmd;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vq = Axis[0].MotorControl.VoltCmd.VqCmd;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( 0.577350269f * AdcStation1.AdcTraOut.BatVdc );
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.DC_Current_Limit
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Electrical_Angle  = Axis[0].MotorControl.CurrentControl.EleAngle;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100.0f;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
@@ -1302,9 +1275,12 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time = TotalTime1.LocalThisTime * 3;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour = TotalTime1.LocalTotalTime * 3;
-    v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredDataRecordNumberOfIdentifiers = 1;
-    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierHi = DID_0xC2FF_Environmental_Data >> 8;
-    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierLow = DID_0xC2FF_Environmental_Data & 0xFF;
+	/*
+	 * Move to housekeeping
+	 */
+//    v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredDataRecordNumberOfIdentifiers = 1;
+//    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierHi = DID_0xC2FF_Environmental_Data >> 8;
+//    v->DTCStorePackge[DTC_Record_Number].StoreContent.DataIdentifierLow = DID_0xC2FF_Environmental_Data & 0xFF;
 }
 
 
