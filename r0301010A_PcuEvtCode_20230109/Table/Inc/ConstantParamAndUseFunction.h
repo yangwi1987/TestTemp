@@ -21,9 +21,6 @@
 #define POC UNUSE_FUNCTION
 #define EVT USE_FUNCTION
 
-#define Judge_function_delay USE_FUNCTION
-#define Measure_CPU_Load USE_FUNCTION
-
 #define MOTOR_P1 	0
 #define MOTOR_P1_3 	1
 #define MOTOR_STAGE MOTOR_P1_3
