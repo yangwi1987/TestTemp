@@ -93,18 +93,6 @@ static void AlarmDetect_BufferIcFb( AlarmDetect_t *v, PROTECT_POLLING_TYPE *p, u
 	}
 }
 
-static void AlarmDetect_PowerICOverCurrent( AlarmDetect_t *v, PROTECT_POLLING_TYPE *p,  int TargetID  )
-{
-	if( v->pPwmStation->PwmCh[v->AxisID-1].Group->Instance != 0 )
-	{
-		// MOE bit cleared
-		if( (v->pPwmStation->PwmCh[v->AxisID-1].Group->Instance->BDTR & 0x8000) == 0 )
-		{
-			v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, p->AlarmInfo.AlarmType );
-		}
-	}
-}
-
 static void SetAlarmThreshold(PROTECT_POLLING_TYPE *v, uint16_t index)
 	{
 	// set threshold from external flash (P3-00~P3-xx)
@@ -291,11 +279,6 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	{
 		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin ), HAL_GPIO_ReadPin( HWOCP_GPIO_Port, HWOCP_Pin ), v->AxisID );
 	}
-	
-//	if( v->POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
-//	{
-//		AlarmDetect_PowerICOverCurrent( v, &v->POWER_TRANSISTOR_OC, v->AxisID );
-//	}
 
 #if USE_FOIL_ABNORMAL_DETECT
 	// analog foil sensor should in 5~0V, and the input signal is between 5000~0000 (0.001V)
