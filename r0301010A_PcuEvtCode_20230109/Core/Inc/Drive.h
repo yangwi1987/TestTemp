@@ -114,7 +114,7 @@ extern void drive_DoLoad_DataToAdcGain(void);
 extern void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT );
-extern void drive_DoHWOCPRegister(void);
+extern void drive_DoHWOCPINT(void);
 /*
  * Version Read #define
  */
