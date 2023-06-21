@@ -16,7 +16,7 @@
  * Header Information
  * Note: AppVersion, BomNumber and SystemSupplyerID are put in the ".AppVerSpace", those order cannot be changed.
  */
-__attribute__((__section__(".AppVerSpace"),used)) const uint16_t AppVersion[5] = APP_VERSION;
+__attribute__((__section__(".AppVerSpace"),used)) const uint16_t AppVersion[VERSION_CODE_NUMBER] = APP_VERSION;
 __attribute__((__section__(".AppVerSpace"),used)) const uint8_t BomNumber[PART_NUM_IDX] = PART_NUMBER;
 __attribute__((__section__(".AppVerSpace"),used)) const uint8_t SystemSupplyerID[SYS_SUP_ID_IDX] = SUPPLYER_ID;
 

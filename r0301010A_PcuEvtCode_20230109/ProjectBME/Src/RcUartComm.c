@@ -6,13 +6,41 @@
  */
 
 #include "RcUartComm.h"
+#include "string.h"
+#include "stdlib.h"
+#include "UtilityBase.h"
+
 #define ABS(x) ((x) > 0 ? (x) : -(x))
 
 __IO uint32_t uwCRCValue = 0;
 
 uint8_t CrcBuff[40];
+const uint8_t EscAppVersion[VERSION_CODE_NUMBER] = APP_VERSION;
+
+#define RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA_ID_LOW 	IDX_RC_COMM_DATA_START
+#define RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA_ID_HIGH 	IDX_RC_COMM_DATA_START + 1
+#define RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_RESULT 		IDX_RC_COMM_DATA_START + 2
+#define RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA			IDX_RC_COMM_DATA_START + 3
+
+#define RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_LOW 	IDX_RC_COMM_DATA_START
+#define RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_HIGH 	IDX_RC_COMM_DATA_START + 1
+#define RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_RESULT 		IDX_RC_COMM_DATA_START + 2
+#define RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA			IDX_RC_COMM_DATA_START + 3
+
 
 StructUartCtrl RCCommCtrl = RC_COMM_CTRL_DEFAULT;
+
+uint8_t RcInfoQueryRetryCnt = 0;
+uint8_t RcInfoQueryCompleteFlag = 0;
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION 0x04
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN 0x08
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_ALL RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION|	\
+												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN|			\
+												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION|	\
+												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN			\
+
 
 uint32_t RcComm_CalCrc(StructUartCtrl *p, uint8_t *pDataStart, uint8_t size)
 {
@@ -30,7 +58,7 @@ void RcComm_MsgHandler(StructUartCtrl *p, uint8_t *pData)
 {
 	int16_t lTempI16 = 0;
 	uint32_t CrcResultU32 = 0;
-	//	uint16_t ulTemp16 = 0;
+	uint16_t ulTemp16 = 0;
 
 	if (p->RxFlag == RC_COMM_RX_STATE_COMPLETE)
 	{
@@ -88,6 +116,7 @@ void RcComm_MsgHandler(StructUartCtrl *p, uint8_t *pData)
 		{
 			break;
 		}
+
 		case RC_CMD_ID_RC_COMMAND:
 		{
 
@@ -122,6 +151,8 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 	int16_t lTempI16 = 0;
 	uint16_t lTempU16 = 0;
 	uint32_t CrcResultU32 = 0;
+	uint8_t result = RC_COMM_NO_ERROR;
+	uint8_t DlcTemp = 0;
 	//	uint16_t ulTemp16 = 0;
 
 	if (p->RxFlag == RC_COMM_RX_STATE_COMPLETE)
@@ -194,8 +225,97 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 
 			break;
 		}
+
 		case RC_CMD_ID_GET_SYS_INFO_REQ:
 		{
+			lTempU16 = *(pData + RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_LOW) + *(pData + RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_HIGH) * 256;
+			result = RC_COMM_NO_ERROR;
+			DlcTemp = 6;		/* = 2 byte crc + 1byte cmd ID + 2 bytes data ID + 1 byte result */
+
+			// send information to RC
+			p->TxBuff[IDX_RC_COMM_HEAD] = RC_COMM_HEAD_VALUE;
+			p->TxBuff[IDX_RC_COMM_DLC_H] = 0;
+			p->TxBuff[IDX_RC_COMM_CMD_ID] = RC_CMD_ID_GET_SYS_INFO_REQ;
+			/* load DATA ID */
+			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_LOW] =  lTempU16 & 0xFF;
+			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_HIGH] =  lTempU16 >> 8;
+			/* load result */
+			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_RESULT] = result;
+
+			/* load data according to data ID */
+			switch(lTempU16)
+			{
+			case RC_COMM_DATA_ID_ESC_FW_VERSION:
+				/* update DLC to be sent */
+				DlcTemp += VERSION_CODE_NUMBER;
+				/* load data into TX buffer */
+				memcpy(&p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA], EscAppVersion, DlcTemp);
+				break;
+
+			case RC_COMM_DATA_ID_ESC_SN:
+				break;
+
+			case RC_COMM_DATA_ID_BMS_FW_VERSION:
+				DlcTemp += BMS_VERSION_CODE_NUMBER;
+				memcpy(&p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA], p->pRxInterface->BmsReportInfo.BmsFwVer, DlcTemp);
+				break;
+
+			case RC_COMM_DATA_ID_BMS_SN:
+				DlcTemp += BMS_SN_BYTE_NUMBER;
+				memcpy(&p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA], p->pRxInterface->BmsReportInfo.BmsSN, DlcTemp);
+				break;
+
+			default :
+				result = RC_COMM_ERROR_UNSUPPORT_DATA_ID;
+				break;
+			}
+
+			/* load final data length */
+			p->TxBuff[IDX_RC_COMM_DLC_L] = DlcTemp;
+
+			CrcResultU32 = p->CalCrc(p, &p->TxBuff[IDX_RC_COMM_DLC_L], p->TxBuff[IDX_RC_COMM_DLC_L]);
+			p->TxBuff[DlcTemp + 1] = CrcResultU32 & 0x00FF;
+			p->TxBuff[DlcTemp + 2] = (CrcResultU32 & 0xFF00) >> 8;
+			p->TxBuff[DlcTemp + 3] = RC_COMM_END_VALUE;
+			p->TxDlc = DlcTemp + 4;
+			p->TxFlag = RC_COMM_TX_STATE_TXREQ;
+			break;
+		}
+
+		case RC_CMD_ID_QUERY_RF_INFO:
+		{
+			/* check request result */
+			if(*(pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_RESULT) == RC_COMM_NO_ERROR )
+			{
+				/* query success, load data from RX buffer according to DATA ID */
+				lTempU16 = *(pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA_ID_LOW) + *(pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA_ID_HIGH) * 256;
+
+				switch (lTempU16)
+				{
+				case RC_COMM_DATA_ID_RF_FW_VERSION:
+					memcpy( p->RFFwVer, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RF_FW_VER_SIZE);
+					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION;
+					break;
+
+				case RC_COMM_DATA_ID_RF_SN:
+					memcpy( p->RFSN, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RF_SN_SIZE);
+					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN;
+					break;
+
+				case RC_COMM_DATA_ID_RC_FW_VERSION:
+					memcpy( p->RCFwVer, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RC_FW_VER_SIZE);
+					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION;
+					break;
+
+				case RC_COMM_DATA_ID_RC_SN:
+					memcpy( p->RCSN, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RC_SN_SIZE);
+					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN;
+					break;
+
+				default:
+					break;
+				}
+			}
 			break;
 		}
 		case RC_CMD_ID_RC_COMMAND:
@@ -357,8 +477,83 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 #endif
 }
 
+uint16_t RcCommRFInfoQueryOrderTable[4] = 
+{
+	RC_COMM_DATA_ID_RF_FW_VERSION, RC_COMM_DATA_ID_RF_SN, RC_COMM_DATA_ID_RC_FW_VERSION, RC_COMM_DATA_ID_RC_SN
+};
+
+RcCommError_t RcComm_QueryInfoFromRF (StructUartCtrl *p, RcCommDataId_t IdxIn)
+{
+	RcCommError_t ret = RC_COMM_NO_ERROR;
+	uint16_t u16Temp = 0;
+	uint32_t CrcResultU32 = 0;
+
+	/* Check if RX buffer is filling */
+	if(p->RxFlag != RC_COMM_RX_STATE_IDLE )
+	{
+		ret = RC_COMM_ERROR;
+	}
+
+	/* Check if TX buffer is occupied */
+	if(p->TxFlag != RC_COMM_TX_STATE_IDLE )
+	{
+		ret = RC_COMM_ERROR;
+	}
+
+	if(ret == RC_COMM_NO_ERROR)
+	{
+		switch (IdxIn)
+		{
+			case RC_COMM_DATA_ID_RF_FW_VERSION:
+			case RC_COMM_DATA_ID_RF_SN:
+			case RC_COMM_DATA_ID_RC_FW_VERSION:
+			case RC_COMM_DATA_ID_RC_SN:
+				// Fill Tx buffer to RC
+				p->TxBuff[0] = RC_COMM_HEAD_VALUE;
+				p->TxBuff[1] = 5;
+				p->TxBuff[2] = 0;
+				p->TxBuff[3] = RC_CMD_ID_QUERY_RF_INFO;
+
+				u16Temp = IdxIn;
+				p->TxBuff[4] = u16Temp & 0xFF;
+				p->TxBuff[5] = u16Temp >> 8;
+
+				CrcResultU32 = p->CalCrc(p, &p->TxBuff[IDX_RC_COMM_DLC_L], p->TxBuff[IDX_RC_COMM_DLC_L]);
+				p->TxBuff[6] = CrcResultU32 & 0x00FF;
+				p->TxBuff[7] = (CrcResultU32 & 0xFF00) >> 8;
+				p->TxBuff[8] = RC_COMM_END_VALUE;
+				p->TxDlc = 9;
+				p->TxFlag = RC_COMM_TX_STATE_TXREQ;
+				break;
+
+			default :
+				ret = RC_COMM_ERROR;
+
+				break;
+		}
+	}
+
+	return ret;
+}
+
 void RcComm_10HzLoop(StructUartCtrl *p)
 {
+	static uint16_t PrescalerCnt = 0;
+	
+	/* query RC information if available */
+	if((PrescalerCnt % RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT) == 0)
+	{
+		for(uint8_t i = 0; i < 4; i++)
+		{
+			if(((RcInfoQueryCompleteFlag >> i) & 0x01) == 0)
+			{
+				/* This info is not acquired yet, query it from RF */
+				p->QueryRfInfo(p, RcCommRFInfoQueryOrderTable[i]);
+				/**/
+				break;
+			}
+		}
+	}
 
 	if (p->TimeoutCnt < RC_COMM_TIMEOUT_THRESHOLD_100MS)
 	{
@@ -383,6 +578,8 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 		HAL_UART_Transmit_DMA(p->pTarget, p->TxBuff, 4);
 #endif
 	}
+
+	PrescalerCnt++;
 }
 
 void RcComm_Reset(StructUartCtrl *p)
@@ -409,6 +606,9 @@ void RcComm_Reset(StructUartCtrl *p)
 #endif
 }
 
+
+
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 #if !RC_COMM_DMA_USAGE
@@ -421,3 +621,4 @@ void HAL_UART_txCpltCallback(UART_HandleTypeDef *huart)
 {
 	RCCommCtrl.TxFlag = RC_COMM_TX_STATE_IDLE;
 }
+

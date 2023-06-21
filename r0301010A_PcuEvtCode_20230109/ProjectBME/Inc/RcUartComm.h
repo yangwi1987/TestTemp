@@ -12,6 +12,33 @@
 #include "stm32g4xx_hal.h"
 #include "ICANInterface.h"
 
+typedef enum RcCommError_e
+{
+	RC_COMM_ERROR = -1,
+	RC_COMM_NO_ERROR = 0,	
+	RC_COMM_ERROR_UNSUPPORT_DATA_ID = 1,
+}RcCommError_t;
+
+typedef enum RcCommDataId_e
+{
+	RC_COMM_DATA_ID_RF_FW_VERSION 	= 0x0100,
+	RC_COMM_DATA_ID_RF_SN 			= 0x0101,	
+	RC_COMM_DATA_ID_RC_FW_VERSION 	= 0x0200,
+	RC_COMM_DATA_ID_RC_SN 			= 0x0201,
+	RC_COMM_DATA_ID_ESC_FW_VERSION = 0x0300,
+	RC_COMM_DATA_ID_ESC_SN 		= 0x0301,
+	RC_COMM_DATA_ID_BMS_FW_VERSION = 0x0400,
+	RC_COMM_DATA_ID_BMS_SN 		= 0x0401,
+}RcCommDataId_t;
+
+#define RC_COMM_QUERY_RF_INFO_INTERVAL_MS	200
+#define RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT	RC_COMM_QUERY_RF_INFO_INTERVAL_MS/100
+
+#define RC_COMM_RC_FW_VER_SIZE	20	/* RC firmware version array size in byte */
+#define RC_COMM_RC_SN_SIZE		20	/* RC serial number array size in byte */
+#define RC_COMM_RF_FW_VER_SIZE	20	/* RF firmware version array size in byte */
+#define RC_COMM_RF_SN_SIZE		20	/* RF serial number array size in byte */
+
 #define RC_TEIMOUT_TEST 0
 #define RC_COMM_DMA_USAGE 1
 #define RC_COMM_BYPASS_CRC 0
@@ -29,6 +56,7 @@ typedef void (*functypeRcComm_StartScan)(void*);
 typedef void (*functypeRcComm_GetUartMsgFromIsr)(void*);
 typedef void (*functypeRcComm_MsgHandler)(void*,uint8_t*);
 typedef void (*functypeRcComm_MsgDecoder)(void*);
+typedef RcCommError_t (*functypeRcComm_QueryInfoFromRF)(void*, RcCommDataId_t);
 typedef void (*functypeRcComm_10HzLoop)(void*);
 typedef void (*functypeRcComm_Reset)(void*);
 
@@ -49,12 +77,17 @@ typedef struct{
 	uint16_t TxDlc;
 	uint16_t TimeoutCnt;
 	uint16_t VerConfig;
+	uint8_t RCFwVer[RC_COMM_RC_FW_VER_SIZE];
+	uint8_t RCSN[RC_COMM_RC_SN_SIZE];
+	uint8_t RFFwVer[RC_COMM_RF_FW_VER_SIZE];
+	uint8_t RFSN[RC_COMM_RF_SN_SIZE];
 	functypeRcComm_Init Init;
 	functypeRcComm_CalCrc CalCrc;
 	functypeRcComm_StartScan StartScan;
 	functypeRcComm_GetUartMsgFromIsr GetMsgFromIsr;
 	functypeRcComm_MsgHandler MsgHandler;
 	functypeRcComm_MsgDecoder MsgDecoder;
+	functypeRcComm_QueryInfoFromRF QueryRfInfo;
 	functypeRcComm_10HzLoop _10HzLoop;
 	functypeRcComm_Reset	Reset;
 }StructUartCtrl;
@@ -77,10 +110,10 @@ typedef enum{
 }EnumRCCommRxState;
 
 typedef enum{
-	RC_COMM_TX_STATE_IDLE,
-	RC_COMM_TX_STATE_TXREQ,
-	RC_COMM_TX_STATE_TRANSFERING,
-	RC_COMM_TX_STATE_COMPLETE,
+	RC_COMM_TX_STATE_IDLE,			/* UART Tx buffer is able to be accessed */
+	RC_COMM_TX_STATE_FILLING,		/* UART Tx buffer is filling bt other functions*/
+	RC_COMM_TX_STATE_TXREQ,			/* UART TX Buffer is filled, waiting for transmitting */
+	RC_COMM_TX_STATE_TRANSFERING,	/* UART TX Buffer is transmitting via hal functions*/
 }EnumRCCommTxState;
 
 #define RC_CMD_DATA_IDX_THROTTLE_CMD 	0 + IDX_RC_COMM_DATA_START
@@ -93,6 +126,7 @@ typedef enum{
 typedef enum{
 	RC_CMD_ID_ROUTINE_INFO_REQ = 40,
 	RC_CMD_ID_GET_SYS_INFO_REQ = 41,
+	RC_CMD_ID_QUERY_RF_INFO	= 42,
 	RC_CMD_ID_RC_COMMAND = 50
 }EnumRCCommCmdID;
 
@@ -108,6 +142,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl*p,uint8_t *pData);
 void RcComm_LoadRxDataFromIsr(StructUartCtrl*p);
 void RcComm_MsgDecoder(StructUartCtrl*p);
 void RcComm_Reset(StructUartCtrl*p);
+RcCommError_t RcComm_QueryInfoFromRF (StructUartCtrl *p, RcCommDataId_t IdxIn);
 void RcComm_10HzLoop(StructUartCtrl*p);
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
@@ -131,12 +166,17 @@ void HAL_UART_txCpltCallback(UART_HandleTypeDef *huart);
 	0,\
 	0,\
 	0,\
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},\
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},\
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},\
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},\
 	(functypeRcComm_Init)&RcComm_Init,\
 	(functypeRcComm_CalCrc)&RcComm_CalCrc,\
 	(functypeRcComm_StartScan)&RcComm_StartScan,\
 	(functypeRcComm_GetUartMsgFromIsr)&RcComm_LoadRxDataFromIsr,\
 	(functypeRcComm_MsgHandler)&RcComm_MsgHandlerVP3,\
 	(functypeRcComm_MsgDecoder)&RcComm_MsgDecoder,\
+	(functypeRcComm_QueryInfoFromRF)&RcComm_QueryInfoFromRF,\
 	(functypeRcComm_10HzLoop)&RcComm_10HzLoop,\
 	(functypeRcComm_Reset)&RcComm_Reset,\
 }\
