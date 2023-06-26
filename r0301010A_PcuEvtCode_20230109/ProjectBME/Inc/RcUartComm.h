@@ -21,23 +21,25 @@ typedef enum RcCommError_e
 
 typedef enum RcCommDataId_e
 {
-	RC_COMM_DATA_ID_RF_FW_VERSION 	= 0x0100,
-	RC_COMM_DATA_ID_RF_SN 			= 0x0101,	
-	RC_COMM_DATA_ID_RC_FW_VERSION 	= 0x0200,
-	RC_COMM_DATA_ID_RC_SN 			= 0x0201,
+	RC_COMM_DATA_ID_RC_FW_VERSION 	= 0x0100,
+	RC_COMM_DATA_ID_RC_SN 			= 0x0101,	
+	RC_COMM_DATA_ID_RF_FW_VERSION 	= 0x0200,
+	RC_COMM_DATA_ID_RF_SN 			= 0x0201,
 	RC_COMM_DATA_ID_ESC_FW_VERSION = 0x0300,
 	RC_COMM_DATA_ID_ESC_SN 		= 0x0301,
 	RC_COMM_DATA_ID_BMS_FW_VERSION = 0x0400,
 	RC_COMM_DATA_ID_BMS_SN 		= 0x0401,
 }RcCommDataId_t;
 
-#define RC_COMM_QUERY_RF_INFO_INTERVAL_MS	200
-#define RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT	RC_COMM_QUERY_RF_INFO_INTERVAL_MS/100
+#define RC_COMM_QUERY_RF_INFO_INTERVAL_MS	100
+#define RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT	1	/* 1 = RC_COMM_QUERY_RF_INFO_INTERVAL_MS / 100 */
+#define RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD		1500	/* 1500ms = 1.5 sec */
+#define RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT  15				/* 15 = RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD / 100 */
 
-#define RC_COMM_RC_FW_VER_SIZE	20	/* RC firmware version array size in byte */
-#define RC_COMM_RC_SN_SIZE		20	/* RC serial number array size in byte */
-#define RC_COMM_RF_FW_VER_SIZE	20	/* RF firmware version array size in byte */
-#define RC_COMM_RF_SN_SIZE		20	/* RF serial number array size in byte */
+#define RC_COMM_RC_FW_VER_SIZE	20	/* RC firmware version array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RC_SN_SIZE		20	/* RC serial number array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RF_FW_VER_SIZE	20	/* RF firmware version array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RF_SN_SIZE		20	/* RF serial number array size in byte. Todo: clarify the exact nuber with TBS */
 
 #define RC_TEIMOUT_TEST 0
 #define RC_COMM_DMA_USAGE 1
@@ -87,7 +89,7 @@ typedef struct{
 	functypeRcComm_GetUartMsgFromIsr GetMsgFromIsr;
 	functypeRcComm_MsgHandler MsgHandler;
 	functypeRcComm_MsgDecoder MsgDecoder;
-	functypeRcComm_QueryInfoFromRF QueryRfInfo;
+	functypeRcComm_QueryInfoFromRF QueryInfoFromRF;
 	functypeRcComm_10HzLoop _10HzLoop;
 	functypeRcComm_Reset	Reset;
 }StructUartCtrl;

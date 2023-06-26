@@ -15,7 +15,6 @@
 #include "math.h"
 
 
-
 /* ==== macro for CANTX IDs for transmit ==== */
 #define CANTXID_BMS_CONTROL_01  0x500   /* command to control BMS actions*/
 
@@ -47,6 +46,7 @@
 
 #define CAN_TX_ALARM_MASK 0x01
 #define CAN_TX_WARNING_MASK 0x02
+
 
 /*======================================
  *  Enum definition
@@ -331,8 +331,10 @@ typedef union EscCanTxCmd_u
 } EscCanTxCmd_t;
 
 /* define the informations reported from BMS */
-#define BMS_VERSION_CODE_NUMBER 5
+/* Todo : check the value of BMS_SN_BYTE_NUMBER with BMS vendor */
+#define BMS_VERSION_CODE_NUMBER 5 
 #define BMS_SN_BYTE_NUMBER 20
+
 typedef struct 
 {
   BmsMainSm_t MainSm;
@@ -341,8 +343,8 @@ typedef struct
   uint8_t Soc;
   uint8_t LimpHomeActiveFlag;
   uint8_t WarningActiveFlag;
-  uint8_t BmsFwVer[6];
-  uint8_t BmsSN[20];
+  uint8_t BmsFwVer[BMS_VERSION_CODE_NUMBER];
+  uint8_t BmsSN[BMS_SN_BYTE_NUMBER];
   uint16_t ErrorCode;
   float Current01;
   float Current02;
@@ -363,11 +365,11 @@ typedef struct
   0,  /* SOC */                 \
   0,  /* LimpHomeActiveFlag */  \
   0,  /* WarningActiveFlag */   \
-  {0,0,0,0,0,0},/*BmsFwVer[6]*/	\
+  {0,0,0,0,0},	/*BmsFwVer[BMS_VERSION_CODE_NUMBER]*/	\
   {								\
    0,0,0,0,0,0,0,0,0,0,			\
    0,0,0,0,0,0,0,0,0,0			\
-  }, 	/*BmsSN[20]*/			\
+  }, 	/*BmsSN[BMS_SN_BYTE_NUMBER]*/			\
   0,  /* Error code */          \
   0.0f, /*Current01*/           \
   0.0f, /*Current02*/           \

@@ -15,7 +15,7 @@
 __IO uint32_t uwCRCValue = 0;
 
 uint8_t CrcBuff[40];
-const uint8_t EscAppVersion[VERSION_CODE_NUMBER] = APP_VERSION;
+const uint8_t EscAppVersion[VERSION_CODE_NUMBER] = APP_VERSION;	/* APP version are uint16 in general code definition, But here only use low 8bit in UART communication */
 
 #define RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA_ID_LOW 	IDX_RC_COMM_DATA_START
 #define RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA_ID_HIGH 	IDX_RC_COMM_DATA_START + 1
@@ -30,8 +30,11 @@ const uint8_t EscAppVersion[VERSION_CODE_NUMBER] = APP_VERSION;
 
 StructUartCtrl RCCommCtrl = RC_COMM_CTRL_DEFAULT;
 
-uint8_t RcInfoQueryRetryCnt = 0;
+uint16_t RcInfoQueryRetryCnt = 0;
+uint8_t RcInfoQueryRetryEnable = 1;
 uint8_t RcInfoQueryCompleteFlag = 0;
+uint8_t RcConnectedFlag = 0;
+
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION 0x04
@@ -58,7 +61,6 @@ void RcComm_MsgHandler(StructUartCtrl *p, uint8_t *pData)
 {
 	int16_t lTempI16 = 0;
 	uint32_t CrcResultU32 = 0;
-	uint16_t ulTemp16 = 0;
 
 	if (p->RxFlag == RC_COMM_RX_STATE_COMPLETE)
 	{
@@ -239,8 +241,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			/* load DATA ID */
 			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_LOW] =  lTempU16 & 0xFF;
 			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA_ID_HIGH] =  lTempU16 >> 8;
-			/* load result */
-			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_RESULT] = result;
+
 
 			/* load data according to data ID */
 			switch(lTempU16)
@@ -253,6 +254,11 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				break;
 
 			case RC_COMM_DATA_ID_ESC_SN:
+				/* todo: load ESC serial number :
+				 * 20230626 : so far we don't have ESC serial number in code, so for now we will
+				 * report "RC_COMM_ERROR_UNSUPPORT_DATA_ID" when this info is queried for now 
+				 */
+				result = RC_COMM_ERROR_UNSUPPORT_DATA_ID;
 				break;
 
 			case RC_COMM_DATA_ID_BMS_FW_VERSION:
@@ -261,14 +267,20 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				break;
 
 			case RC_COMM_DATA_ID_BMS_SN:
-				DlcTemp += BMS_SN_BYTE_NUMBER;
-				memcpy(&p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_DATA], p->pRxInterface->BmsReportInfo.BmsSN, DlcTemp);
+				/* todo: load BMS serial number :
+				 * 20230626 : so far we don't have BMS serial number in code, so we will
+				 * report "RC_COMM_ERROR_UNSUPPORT_DATA_ID" when this info is queried for now 
+				 */
+				result = RC_COMM_ERROR_UNSUPPORT_DATA_ID;
 				break;
 
 			default :
 				result = RC_COMM_ERROR_UNSUPPORT_DATA_ID;
 				break;
 			}
+
+			/* load result */
+			p->TxBuff[RC_COMM_DATA_IDX_OF_GET_SYS_INFO_CMD_RESULT] = result;
 
 			/* load final data length */
 			p->TxBuff[IDX_RC_COMM_DLC_L] = DlcTemp;
@@ -330,6 +342,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				p->TimeoutCnt = 0;
 				p->RcEnable = 1;
 				p->pRxInterface->RcConnStatus = 1;
+				RcConnectedFlag = 1;
 			}
 			else
 			{
@@ -460,7 +473,10 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 	p->phcrc = pHcrc;
 	p->pTxInterface = t;
 	p->pRxInterface = r;
-
+	RcInfoQueryRetryCnt = 0;
+	RcInfoQueryRetryEnable = 1;
+	RcInfoQueryCompleteFlag = 0;
+	RcConnectedFlag = 0;
 	if(p->VerConfig == 0) // default to VP1.3 UART protocol
 	{
 		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
@@ -541,17 +557,32 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 	static uint16_t PrescalerCnt = 0;
 	
 	/* query RC information if available */
-	if((PrescalerCnt % RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT) == 0)
+	if(((PrescalerCnt % RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT) == 0) && (RcInfoQueryRetryEnable == 1))
 	{
 		for(uint8_t i = 0; i < 4; i++)
 		{
-			if(((RcInfoQueryCompleteFlag >> i) & 0x01) == 0)
+			if(((RcInfoQueryCompleteFlag >> i) & 0x01) == 0) 
 			{
 				/* This info is not acquired yet, query it from RF */
-				p->QueryRfInfo(p, RcCommRFInfoQueryOrderTable[i]);
+				p->QueryInfoFromRF(p, RcCommRFInfoQueryOrderTable[i]);
 				/**/
 				break;
 			}
+		}
+	
+		if(RcConnectedFlag == 1)
+		{
+			/* The RC is connect with RF module, check retry timeout */
+			if( RcInfoQueryRetryCnt < RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT)
+			{
+				RcInfoQueryRetryEnable = 1;
+			}
+			else
+			{
+				RcInfoQueryRetryEnable = 0;
+			}
+
+			RcInfoQueryRetryCnt++;
 		}
 	}
 
