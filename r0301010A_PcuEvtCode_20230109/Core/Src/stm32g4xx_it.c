@@ -389,10 +389,10 @@ void TIM7_DAC_IRQHandler(void)
 
   /* USER CODE END TIM7_DAC_IRQn 1 */
 }
+
 /**
   * @brief This function handles TIM20 update interrupt.
   */
-
 void TIM20_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM20_UP_IRQn 0 */
@@ -404,6 +404,7 @@ void TIM20_UP_IRQHandler(void)
 #endif
   USER_HAL_TIM_IRQHandler(&htim20);
   AdcStation1.AdcInjGroup = 0;		// Clear ADC Flag
+
   /* USER CODE END TIM20_UP_IRQn 1 */
 }
 
