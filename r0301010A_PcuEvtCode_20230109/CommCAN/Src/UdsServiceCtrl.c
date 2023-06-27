@@ -7,6 +7,7 @@
 
 #include "UdsServiceCtrl.h"
 #include "string.h"
+#include "RcUartComm.h"
 
 
 static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
@@ -92,12 +93,13 @@ void UdsServiceCtrl_NegativeRspReq( LinkLayerCtrlUnit_t *pTx, uint8_t Sid, uint8
 	pTx->Status = Tx_Request;
 }
 
-void UdsServiceCtrl_ReadDataRegionF( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, uint16_t ParamID )
+EnumUdsBRPNRC UdsServiceCtrl_ReadDataRegionF( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, uint16_t ParamID )
 {
 	uint8_t i = 0;
 	uint16_t UDSDataBuf[MAX_UDS_DATA_BUF] = {0};
 	uint8_t *pPt;
-	uint16_t DIDDataLength; // the length of DID data(bytes), excluding first 3 bytes(SID, ParamID)
+	uint16_t DIDDataLength = 0; // the length of DID data(bytes), excluding first 3 bytes(SID, ParamID)
+	EnumUdsBRPNRC NrcRet = NRC_0x00_PR;
 
 	switch( ParamID )
 	{
@@ -157,13 +159,42 @@ void UdsServiceCtrl_ReadDataRegionF( NetWorkService_t *p, LinkLayerCtrlUnit_t *p
 			pPt = (uint8_t*)&PSBVerNumber;
 			DIDDataLength = MOT_SW_VER_NUM_IDX;
 			break;
+
+		case 0x1F2:
+			pPt = (uint8_t*)RCCommCtrl.RFFwVer;
+			DIDDataLength = RC_COMM_RF_FW_VER_SIZE;
+			break;
+
+		case 0x1F3:
+			pPt = (uint8_t*)RCCommCtrl.RFSN;
+			DIDDataLength = RC_COMM_RF_SN_SIZE;
+			break;
+
+		case 0x1F4:
+			pPt = (uint8_t*)RCCommCtrl.RCFwVer;
+			DIDDataLength = RC_COMM_RC_FW_VER_SIZE;
+			break;
+
+		case 0x1F5:
+			pPt = (uint8_t*)RCCommCtrl.RCSN;
+			DIDDataLength = RC_COMM_RC_SN_SIZE;
+			break;
+
+		default :
+			NrcRet = NRC_0x31_ROOR;
+			break;
 	}
 
-	for( i = 0; i < DIDDataLength; i++ )
+	if(NrcRet == NRC_0x00_PR)
 	{
-		pTx->Data[i + 3] = *(pPt + i);
+		for( i = 0; i < DIDDataLength; i++ )
+		{
+			pTx->Data[i + 3] = *(pPt + i);
+		}
+		pTx->LengthTotal = (DIDDataLength + 3);
 	}
-	pTx->LengthTotal = (DIDDataLength + 3);
+	
+	return NrcRet;
 }
 
 void UdsServiceCtrl_ServiceHandler( NetWorkService_t *p ,NetworkCtrl_t *v  )
@@ -265,10 +296,19 @@ void UdsServiceCtrl_ReadDataByID( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx,
 				pTx->Data[i] = pRx->Data[i];
 			}
 
-			// assign data from specific data address and set length of total data.
-			UdsServiceCtrl_ReadDataRegionF( p, pRx, pTx, ParamID );
-			pTx->Data[0] += POSITIVE_RESPONSE_OFFSET;
-			pTx->Status = Tx_Request;
+			ReplyResult = UdsServiceCtrl_ReadDataRegionF( p, pRx, pTx, ParamID );
+
+			if( ReplyResult == NRC_0x00_PR)
+			{
+				// assign data from specific data address and set length of total data if access success
+				pTx->Data[0] += POSITIVE_RESPONSE_OFFSET;
+				pTx->Status = Tx_Request;
+			}
+			else
+			{
+				// assign data from specific data address and set length of total data if access success
+				p->NegativeRspReq( pTx, SID_READ_DATA_BY_ID, ReplyResult );
+			}
 			break;
 
 		case 0x2: // read target is AxisID 2
