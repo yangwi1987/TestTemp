@@ -8,6 +8,7 @@
 #include "DiagnosticTroubleCode.h"
 #include "string.h"
 
+__STATIC_FORCEINLINE void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData );
 
 void DTC_Init( DTCStation_t *v )
 {
@@ -63,8 +64,14 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
         {
         	DTCStoreContent_t tempDTCStoreContent0 = {0};
         	DTCStoreContent_t tempDTCStoreContent1 = {0};
+
             if ( v->DTCStorePackge[i].DTC_Store_State == DTC_Store_State_Confirmed_and_wait_for_Store )
             {
+            	DTC_Rest_Freeze_Frame_Data( &(v->DTCStorePackge[i].StoreContent.DTCStoredData ));
+                v->DTCStorePackge[i].StoreContent.DTCStoredDataRecordNumberOfIdentifiers = 1;
+                v->DTCStorePackge[i].StoreContent.DataIdentifierHi = DID_0xC2FF_Environmental_Data >> 8;
+                v->DTCStorePackge[i].StoreContent.DataIdentifierLow = DID_0xC2FF_Environmental_Data & 0xFF;
+
             	if ( v->DTCRespondPackgeLast[i].DTCStoredData.Error_Occurred_Counter >= 2)
             	{
                 	v->DTCStorePackge[i].StoreContent.DTCStoredData.Error_Occurred_Counter = v->DTCRespondPackgeLast[i].DTCStoredData.Error_Occurred_Counter + 1;
@@ -150,4 +157,14 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
         }
 	}
 
+}
+__STATIC_FORCEINLINE void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData )
+{
+	DTCStoredData->Motor_Current = sqrtf(( DTCStoredData->Motor_Direct_Axis_Current * DTCStoredData->Motor_Direct_Axis_Current ) + \
+			                             ( DTCStoredData->Motor_Quadrature_Axis_Current * DTCStoredData->Motor_Quadrature_Axis_Current ));
+	DTCStoredData->Motor_Input_Power =  ( DTCStoredData->Set_Point_For_Id * DTCStoredData->Set_Point_For_Vd + \
+			                              DTCStoredData->Set_Point_For_Iq * DTCStoredData->Set_Point_For_Vq ) * Factor_to_cal_power_from_dq;
+	DTCStoredData->Modulation_Index = ( sqrtf(( DTCStoredData->Set_Point_For_Vd * DTCStoredData->Set_Point_For_Vd ) + \
+                                            ( DTCStoredData->Set_Point_For_Vq * DTCStoredData->Set_Point_For_Vq ))) / \
+                                            ( 0.577350269f * DTCStoredData->Dc_Bus_Voltage );
 }
