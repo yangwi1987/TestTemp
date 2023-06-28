@@ -844,7 +844,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC025_Modulation_Index                         :
         {
             float tempVsMax = AdcStation1.AdcTraOut.BatVdc > 5.0f ? AdcStation1.AdcTraOut.BatVdc : 5.0f;
-            tempVsMax = tempVsMax * 0.577350269f;
+            tempVsMax = tempVsMax * Root_of_One_Third;
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.VoltCmd.VcmdAmp / tempVsMax );
         	break;
         }
@@ -1226,7 +1226,7 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 			                                                                              ( Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q * Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q ));
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
                                                                                            Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * Factor_to_cal_power_from_dq;
-	//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( 0.577350269f * AdcStation1.AdcTraOut.BatVdc );
+	//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( Root_of_One_Third * AdcStation1.AdcTraOut.BatVdc );
 	/*
 	 *
 	 */

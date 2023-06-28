@@ -18,6 +18,7 @@
 #define EEMF_START_SPEED 251.327412287f  //600RPM/60*4*2PI=251.327412287
 #define SENSORLESS_BASE_TEMP 20.0f
 #define Factor_to_cal_power_from_dq 1.5f
+#define Root_of_One_Third 0.577350269f
 
 #define POC UNUSE_FUNCTION
 #define EVT USE_FUNCTION
