@@ -1063,9 +1063,8 @@ static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, Li
 }
 static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
-	for ( uint8_t i = 0; i < MAX_NOW_ALARM_SIZE; i++ )
+	for ( uint8_t i = 0; i < AlarmStack->TopIndicator; i++ )
 	{
-		uint8_t break_flag = 0;
 		uint8_t tempDTC_Number = 0;
 		switch ( AlarmStack->NowAlarmID[i] )
 		{
@@ -1187,14 +1186,10 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 		    }
 		    default:
 		    {
-		    	break_flag = 1;
 		    	break;
 		    }
 		}
-		if ( break_flag == 1 )
-		{
-			break;
-		}
+
     	v->StatusOfDTC_Realtime[tempDTC_Number].Test_Failed = 1;
     	if ( v->DTCStorePackge[tempDTC_Number].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[tempDTC_Number].Test_Failed == TRUE )
     	{
