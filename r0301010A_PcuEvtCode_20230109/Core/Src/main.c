@@ -171,6 +171,8 @@ int main(void)
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 
+
+
   drive_Init();
   __disable_irq();
   HAL_TIM_Base_Start(&htim6);
@@ -1276,7 +1278,6 @@ static void MX_GPIO_Init(void)
   * @param  None
   * @retval None
   */
-
 /* USER CODE END 4 */
 
 /**

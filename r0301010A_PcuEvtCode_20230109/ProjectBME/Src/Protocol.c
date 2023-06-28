@@ -120,6 +120,11 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 
     case CANRXID_BMS_STATUS_01 :
     {
+      v->BmsReportInfo.BmsFwVer[0] = p->BmsStatus.SwVer_internal;
+      v->BmsReportInfo.BmsFwVer[1] = p->BmsStatus.SwVer_Major;
+      v->BmsReportInfo.BmsFwVer[2] = p->BmsStatus.SwVer_Minor;
+      v->BmsReportInfo.BmsFwVer[3] = p->BmsStatus.SwVer_BugFix;
+      v->BmsReportInfo.BmsFwVer[4] = p->BmsStatus.SwVer_RC;
       break;
     }
 
