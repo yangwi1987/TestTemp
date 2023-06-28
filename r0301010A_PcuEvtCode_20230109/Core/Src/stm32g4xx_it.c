@@ -28,18 +28,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-#if Judge_function_delay
-typedef struct
-{
-	uint32_t previousTimestamp;
-	uint32_t deltaCnt;
-	uint32_t maxDelta;
-	float AveDelta;
-	float Intervals_us;
-	float Max_Intervals_us;
-	float Ave_Intervals_us;
-}Judge_Delay;
-#endif
+
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
@@ -54,6 +43,7 @@ typedef struct
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+
 #if Judge_function_delay
 Judge_Delay TIM20INT_Judge_Delay = { 0 };
 Judge_Delay CurrentLoop_Judge_Delay = { 0 };
@@ -80,6 +70,7 @@ float Ave_CurrentLoop_Load_pct = 100.0f;
 
 float aveLoad_filter_coef = 0.001;
 #endif
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -421,6 +412,7 @@ void TIM5_IRQHandler(void)
 void TIM7_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
+
 #if Measure_CPU_Load_100Hz || Judge_function_delay
 	uint32_t currentTimestamp = DWT->CYCCNT;
 	uint32_t EndTimestame = 0;
@@ -472,15 +464,17 @@ void TIM7_DAC_IRQHandler(void)
     Ave_PLCLoop_Load_pct = ((float)Ave_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
     Ave_CurrentLoop_Load_pct = ((float)Ave_CurrentLoop_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
 #endif
+
   /* USER CODE END TIM7_DAC_IRQn 1 */
 }
+
 /**
   * @brief This function handles TIM20 update interrupt.
   */
-
 void TIM20_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM20_UP_IRQn 0 */
+
 #if  Judge_function_delay
 uint32_t currentTimestamp = DWT->CYCCNT;
 uint32_t EndTimestame = 0;
@@ -507,6 +501,7 @@ else
 #endif
   USER_HAL_TIM_IRQHandler(&htim20);
   AdcStation1.AdcInjGroup = 0;		// Clear ADC Flag
+
   /* USER CODE END TIM20_UP_IRQn 1 */
 }
 

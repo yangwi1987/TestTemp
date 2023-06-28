@@ -16,7 +16,7 @@
  * Header Information
  * Note: AppVersion, BomNumber and SystemSupplyerID are put in the ".AppVerSpace", those order cannot be changed.
  */
-__attribute__((__section__(".AppVerSpace"),used)) const uint16_t AppVersion[5] = APP_VERSION;
+__attribute__((__section__(".AppVerSpace"),used)) const uint16_t AppVersion[VERSION_CODE_NUMBER] = APP_VERSION;
 __attribute__((__section__(".AppVerSpace"),used)) const uint8_t BomNumber[PART_NUM_IDX] = PART_NUMBER;
 __attribute__((__section__(".AppVerSpace"),used)) const uint8_t SystemSupplyerID[SYS_SUP_ID_IDX] = SUPPLYER_ID;
 
@@ -69,9 +69,9 @@ int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
-static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input );
-static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
-static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
+__STATIC_FORCEINLINE EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input );
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
 
 DTCStation_t DTCStation1 = DTC_STATION_DEFFAULT;
 void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
@@ -682,7 +682,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC007_Motor_Input_Power                           :
         {
             float tempInputPower = ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
-       	                             Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * 0.8165f;
+       	                             Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * Factor_to_cal_power_from_dq;
 	        tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, tempInputPower );
     	    break;
         }
@@ -843,7 +843,8 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC025_Modulation_Index                         :
         {
-            float tempVsMax = AdcStation1.AdcTraOut.BatVdc * 0.577350269f;
+            float tempVsMax = AdcStation1.AdcTraOut.BatVdc > 5.0f ? AdcStation1.AdcTraOut.BatVdc : 5.0f;
+            tempVsMax = tempVsMax * Root_of_One_Third;
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].MotorControl.VoltCmd.VcmdAmp / tempVsMax );
         	break;
         }
@@ -1048,7 +1049,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     return tempRsp;
 }
 
-static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input )
+__STATIC_FORCEINLINE EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input )
 {
 	EnumUdsBRPNRC tempRsp = NRC_0x10_GR;
     pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
@@ -1060,26 +1061,10 @@ static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, Li
 
     return tempRsp;
 }
-static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
-/*
- * Jeff test
- */
-	if (AlarmStack->NowAlarmID[0] == ALARMID_CAN1_TIMEOUT)
+	for ( uint8_t i = 0; i < AlarmStack->TopIndicator; i++ )
 	{
-		AlarmStack->NowAlarmID[1] = ALARMID_RC_INVALID;
-		AlarmStack->NowAlarmID[2] = ALARMID_FOIL_BREAK;
-		AlarmStack->NowAlarmID[3] = ALARMID_OT_PCU_0_WARNING;
-		AlarmStack->NowAlarmID[4] = ALARMID_OT_PCU_2_WARNING;
-		AlarmStack->NowAlarmID[5] = ALARMID_OT_MOTOR_0_WARNING;
-		AlarmStack->NowAlarmID[6] = ALARMID_OVER_VOLTAGE_BUS;
-		AlarmStack->NowAlarmID[7] = ALARMID_UNDER_VOLTAGE_13V;
-		AlarmStack->NowAlarmID[8] = ALARMID_BUFFER_IC_ERROR;
-		AlarmStack->NowAlarmID[9] = ALARMID_MOTOR_OVER_SPEED;
-	}
-	for ( uint8_t i = 0; i < MAX_NOW_ALARM_SIZE; i++ )
-	{
-		uint8_t break_flag = 0;
 		uint8_t tempDTC_Number = 0;
 		switch ( AlarmStack->NowAlarmID[i] )
 		{
@@ -1201,14 +1186,10 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 		    }
 		    default:
 		    {
-		    	break_flag = 1;
 		    	break;
 		    }
 		}
-		if ( break_flag == 1 )
-		{
-			break;
-		}
+
     	v->StatusOfDTC_Realtime[tempDTC_Number].Test_Failed = 1;
     	if ( v->DTCStorePackge[tempDTC_Number].DTC_Store_State == DTC_Store_State_None && v->StatusOfDTC_Realtime[tempDTC_Number].Test_Failed == TRUE )
     	{
@@ -1228,7 +1209,7 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 
 }
 
-static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
 {
 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Battery_Voltage =
@@ -1239,8 +1220,8 @@ static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current = sqrtf(( Axis[0].MotorControl.CurrentControl.RotorCurrFb.D * Axis[0].MotorControl.CurrentControl.RotorCurrFb.D ) + \
 			                                                                              ( Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q * Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q ));
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
-                                                                                           Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * 0.8165f;
-	//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( 0.577350269f * AdcStation1.AdcTraOut.BatVdc );
+                                                                                           Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * Factor_to_cal_power_from_dq;
+	//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( Root_of_One_Third * AdcStation1.AdcTraOut.BatVdc );
 	/*
 	 *
 	 */

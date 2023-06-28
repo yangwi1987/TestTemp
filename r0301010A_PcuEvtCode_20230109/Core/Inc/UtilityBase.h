@@ -24,6 +24,7 @@
 #define VERSION_MAIN_RELEASE_OFFSET		2
 #define VERSION_MINOR_RELEASE_OFFSET	3
 #define VERSION_RC_OFFSET				4
+#define VERSION_CODE_NUMBER				5
 
 // app version define
 #define APP_VERSION	{ \
