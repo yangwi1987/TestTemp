@@ -163,7 +163,7 @@ static void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DT
 	DTCStoredData->Motor_Current = sqrtf(( DTCStoredData->Motor_Direct_Axis_Current * DTCStoredData->Motor_Direct_Axis_Current ) + \
 			                             ( DTCStoredData->Motor_Quadrature_Axis_Current * DTCStoredData->Motor_Quadrature_Axis_Current ));
 	DTCStoredData->Motor_Input_Power =  ( DTCStoredData->Set_Point_For_Id * DTCStoredData->Set_Point_For_Vd + \
-			                              DTCStoredData->Set_Point_For_Iq * DTCStoredData->Set_Point_For_Vq ) * 0.8165f;
+			                              DTCStoredData->Set_Point_For_Iq * DTCStoredData->Set_Point_For_Vq ) * Factor_to_cal_power_from_dq;
 	DTCStoredData->Modulation_Index = ( sqrtf(( DTCStoredData->Set_Point_For_Vd * DTCStoredData->Set_Point_For_Vd ) + \
                                             ( DTCStoredData->Set_Point_For_Vq * DTCStoredData->Set_Point_For_Vq ))) / \
                                             ( 0.577350269f * DTCStoredData->Dc_Bus_Voltage );
