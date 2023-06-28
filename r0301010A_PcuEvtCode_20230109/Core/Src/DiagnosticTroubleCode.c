@@ -8,7 +8,7 @@
 #include "DiagnosticTroubleCode.h"
 #include "string.h"
 
-static void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData );
+__STATIC_FORCEINLINE void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData );
 
 void DTC_Init( DTCStation_t *v )
 {
@@ -158,12 +158,12 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
 	}
 
 }
-static void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData )
+__STATIC_FORCEINLINE void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData )
 {
 	DTCStoredData->Motor_Current = sqrtf(( DTCStoredData->Motor_Direct_Axis_Current * DTCStoredData->Motor_Direct_Axis_Current ) + \
 			                             ( DTCStoredData->Motor_Quadrature_Axis_Current * DTCStoredData->Motor_Quadrature_Axis_Current ));
 	DTCStoredData->Motor_Input_Power =  ( DTCStoredData->Set_Point_For_Id * DTCStoredData->Set_Point_For_Vd + \
-			                              DTCStoredData->Set_Point_For_Iq * DTCStoredData->Set_Point_For_Vq ) * 0.8165f;
+			                              DTCStoredData->Set_Point_For_Iq * DTCStoredData->Set_Point_For_Vq ) * Factor_to_cal_power_from_dq;
 	DTCStoredData->Modulation_Index = ( sqrtf(( DTCStoredData->Set_Point_For_Vd * DTCStoredData->Set_Point_For_Vd ) + \
                                             ( DTCStoredData->Set_Point_For_Vq * DTCStoredData->Set_Point_For_Vq ))) / \
                                             ( 0.577350269f * DTCStoredData->Dc_Bus_Voltage );
