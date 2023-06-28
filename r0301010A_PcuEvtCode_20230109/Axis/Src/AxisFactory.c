@@ -800,7 +800,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
             v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
             v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
-            v->FourQuadCtrl.Throttle =  v->ThrotMapping.PercentageOut;
+            v->FourQuadCtrl.Throttle = v->ThrotMapping.PercentageOut;
             v->FourQuadCtrl.Calc( &v->FourQuadCtrl );
 
             v->TorqCommandGenerator.AcCurrLimit = v->ThermoStrategy.ACCurrentLimitOut;
