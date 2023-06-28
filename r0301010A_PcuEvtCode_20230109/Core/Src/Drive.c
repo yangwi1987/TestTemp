@@ -1985,7 +1985,7 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 	} else;
 }
 
-void drive_DoHWOCPINT(void)
+void drive_DoHWOCPIRQ(void)
 {
 	if( Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
 	{

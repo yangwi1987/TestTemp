@@ -400,7 +400,7 @@ void TIM20_BRK_IRQHandler(void)
   /* USER CODE END TIM20_BRK_IRQn 0 */
 //  HAL_TIM_IRQHandler(&htim20);
   /* USER CODE BEGIN TIM20_BRK_IRQn 1 */
-  drive_DoHWOCPINT();
+  drive_DoHWOCPIRQ();
   HAL_NVIC_DisableIRQ(TIM20_BRK_IRQn);
   /* USER CODE END TIM20_BRK_IRQn 1 */
 }
