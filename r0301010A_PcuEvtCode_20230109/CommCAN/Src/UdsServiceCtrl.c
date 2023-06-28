@@ -306,7 +306,7 @@ void UdsServiceCtrl_ReadDataByID( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx,
 			}
 			else
 			{
-				// assign data from specific data address and set length of total data if access success
+				// invalid service request,  report NRC to client
 				p->NegativeRspReq( pTx, SID_READ_DATA_BY_ID, ReplyResult );
 			}
 			break;

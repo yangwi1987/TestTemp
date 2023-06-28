@@ -113,7 +113,7 @@ typedef enum{
 
 typedef enum{
 	RC_COMM_TX_STATE_IDLE,			/* UART Tx buffer is able to be accessed */
-	RC_COMM_TX_STATE_FILLING,		/* UART Tx buffer is filling bt other functions*/
+	RC_COMM_TX_STATE_FILLING,		/* UART Tx buffer is filling by other functions*/
 	RC_COMM_TX_STATE_TXREQ,			/* UART TX Buffer is filled, waiting for transmitting */
 	RC_COMM_TX_STATE_TRANSFERING,	/* UART TX Buffer is transmitting via hal functions*/
 }EnumRCCommTxState;
