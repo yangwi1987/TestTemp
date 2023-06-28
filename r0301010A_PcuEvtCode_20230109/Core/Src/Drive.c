@@ -69,9 +69,9 @@ int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
-static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input );
-static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
-static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
+__STATIC_FORCEINLINE EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input );
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number );
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v );
 
 DTCStation_t DTCStation1 = DTC_STATION_DEFFAULT;
 void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
@@ -1049,7 +1049,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     return tempRsp;
 }
 
-static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input )
+__STATIC_FORCEINLINE EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, float input )
 {
 	EnumUdsBRPNRC tempRsp = NRC_0x10_GR;
     pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
@@ -1061,7 +1061,7 @@ static inline EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *pRx, Li
 
     return tempRsp;
 }
-static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
 	for ( uint8_t i = 0; i < AlarmStack->TopIndicator; i++ )
 	{
@@ -1209,7 +1209,7 @@ static inline void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTC
 
 }
 
-static inline void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
+__STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, uint8_t DTC_Record_Number )
 {
 
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Battery_Voltage =

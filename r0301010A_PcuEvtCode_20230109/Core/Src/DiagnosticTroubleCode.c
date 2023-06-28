@@ -8,7 +8,7 @@
 #include "DiagnosticTroubleCode.h"
 #include "string.h"
 
-static void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData );
+__STATIC_FORCEINLINE void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData );
 
 void DTC_Init( DTCStation_t *v )
 {
@@ -158,7 +158,7 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p )
 	}
 
 }
-static void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData )
+__STATIC_FORCEINLINE void DTC_Rest_Freeze_Frame_Data( UdsDTCFreezeFrameEnvironmentalData_t *DTCStoredData )
 {
 	DTCStoredData->Motor_Current = sqrtf(( DTCStoredData->Motor_Direct_Axis_Current * DTCStoredData->Motor_Direct_Axis_Current ) + \
 			                             ( DTCStoredData->Motor_Quadrature_Axis_Current * DTCStoredData->Motor_Quadrature_Axis_Current ));
