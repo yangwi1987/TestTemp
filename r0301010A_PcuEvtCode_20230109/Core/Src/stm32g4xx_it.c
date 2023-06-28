@@ -28,7 +28,18 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
-
+#if Judge_function_delay
+typedef struct
+{
+	uint32_t previousTimestamp;
+	uint32_t deltaCnt;
+	uint32_t maxDelta;
+	float AveDelta;
+	float Intervals_us;
+	float Max_Intervals_us;
+	float Ave_Intervals_us;
+}Judge_Delay;
+#endif
 /* USER CODE END TD */
 
 /* Private define ------------------------------------------------------------*/
