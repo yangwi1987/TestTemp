@@ -28,6 +28,10 @@ typedef enum
 	DID_0xF100_Diagnostic_Code                      =  0xF100,
 	DID_0xF1F0_Manufacturer_Calibration_Number      =  0xF1F0,
 	DID_0xF1F1_Internal_Flash_Write_Times           =  0xF1F1,
+	DID_0xF1F2_RF_FW_VERSION                        =  0xF1F2,
+	DID_0xF1F3_RF_SERAIL_NUMBER                     =  0xF1F3,
+	DID_0xF1F4_RC_FW_VERSION                        =  0xF1F4,
+	DID_0xF1F5_RC_SERIAL_NUMBER                     =  0xF1F5,
 
 	DID_0xC000_Battery_Voltage                                      = 0xC000,
 	DID_0xC001_Throttle_Raw                                         = 0xC001,

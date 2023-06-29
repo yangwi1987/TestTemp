@@ -598,7 +598,7 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 	{
 		p->pRxInterface->ThrottleCmd = 0;
 		p->pRxInterface->RcConnStatus = 0;
-		p->pRxInterface->PowerLevel = 0;
+		p->pRxInterface->PowerLevel = 1;
 		p->Reset(p);
 #if RC_TEIMOUT_TEST
 		p->TxBuff[0] = 0x77;
