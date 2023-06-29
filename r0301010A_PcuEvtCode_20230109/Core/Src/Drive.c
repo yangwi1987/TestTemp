@@ -588,12 +588,13 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xF18B_ECU_Build_Date:
         {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18B_ECU_Build_Date, pRx, pTx );
+        	//contents below are dummy info for EOL test
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
-    	    pTx->Data[3] = 0;
-    	    pTx->Data[4] = 0;
-    	    pTx->Data[5] = 0;
+    	    pTx->Data[3] = 99;
+    	    pTx->Data[4] = 1;
+    	    pTx->Data[5] = 1;
     		pTx->LengthTotal = 6;
     	    tempRsp = NRC_0x00_PR;
         	break;
@@ -601,27 +602,28 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xF18C_ECU_Serial_Number:
         {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18C_ECU_Serial_Number, pRx, pTx );
+        	//contents below are dummy info for EOL test
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
-    	    pTx->Data[3] = 0;
-    	    pTx->Data[4] = 0;
-    	    pTx->Data[5] = 0;
-    	    pTx->Data[6] = 0;
-    	    pTx->Data[7] = 0;
-    	    pTx->Data[8] = 0;
-    	    pTx->Data[9] = 0;
-    	    pTx->Data[10] = 0;
-    	    pTx->Data[11] = 0;
-    	    pTx->Data[12] = 0;
-    	    pTx->Data[13] = 0;
-    	    pTx->Data[14] = 0;
-    	    pTx->Data[15] = 0;
-    	    pTx->Data[16] = 0;
-    	    pTx->Data[17] = 0;
-    	    pTx->Data[18] = 0;
-    	    pTx->Data[19] = 0;
-    	    pTx->Data[20] = 0;
+    	    pTx->Data[3] = '2';
+    	    pTx->Data[4] = '7';
+    	    pTx->Data[5] = '8';
+    	    pTx->Data[6] = '0';
+    	    pTx->Data[7] = '0';
+    	    pTx->Data[8] = '4';
+    	    pTx->Data[9] = '1';
+    	    pTx->Data[10] = '0';
+    	    pTx->Data[11] = '3';
+    	    pTx->Data[12] = 'A';
+    	    pTx->Data[13] = '1';
+    	    pTx->Data[14] = '2';
+    	    pTx->Data[15] = '3';
+    	    pTx->Data[16] = '4';
+    	    pTx->Data[17] = '5';
+    	    pTx->Data[18] = '6';
+    	    pTx->Data[19] = '7';
+    	    pTx->Data[20] = '8';
     		pTx->LengthTotal = 21;
     	    tempRsp = NRC_0x00_PR;
         	break;
