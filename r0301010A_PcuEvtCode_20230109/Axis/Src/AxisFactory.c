@@ -796,6 +796,15 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
             v->MotorControl.TorqueToIdq.GetAllowFluxRec( &(v->MotorControl.TorqueToIdq), v->MotorControl.SensorFb.EleSpeed, \
                     v->MotorControl.SensorFb.Vbus, v->MotorControl.PwmDutyCmd.MaxDuty, &(v->MotorControl.SensorFb.AllowFluxRec), &(v->TorqCommandGenerator.AllowFluxRec) );
 
+            /*
+             * code below is to fix a motor reverse bug.
+             * We found if user pull the trigger before angle initial align complete, motor reverse may occur
+             * We thing the cause is in this condition, the throttle filter is bypassed, step torque command cause motor react too fast make sensorless failed.
+             * Solution is replace throttle command (after filter) as 0 before angle initial align complete, then the throttle filter can work well.
+             */
+
+            v->ThrotMapping.PercentageOut = v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_NO ? v->ThrotMapping.PercentageOut : 0.0f;
+
             v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
             v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
             v->FourQuadCtrl.Throttle = v->ThrotMapping.PercentageOut;
