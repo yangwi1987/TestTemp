@@ -406,7 +406,7 @@ typedef struct {
 	10000,  /* MEPowerOutputLimit0P1W */\
 	0,      /* RTCData */\
 	0,      /* ThrottleCmd */\
-	0,      /* PowerLevel */\
+	1,      /* PowerLevel */\
 	0,      /* RcConnStatus */\
 	0,      /* ShiftCmd */\
 	0,      /* OutputModeCmd */\
