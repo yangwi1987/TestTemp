@@ -1038,13 +1038,6 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC039_BMS_State_Read_by_ESC                    :
         {
-        	uint32_t tempSessionTime = TotalTime1.LocalThisTime * 3;
-    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-    	    pTx->Data[1] = pRx->Data[1];
-    	    pTx->Data[2] = pRx->Data[2];
-    		memcpy( &(pTx->Data[3]), &tempSessionTime, 4 );
-    		pTx->LengthTotal = 7;
-    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC03A_Estimated_Time_Remaining                 :
