@@ -585,16 +585,47 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     	    tempRsp = NRC_0x00_PR;
         	break;
         }
-//        case DID_0xF18B_ECU_Build_Date:
-//        {
+        case DID_0xF18B_ECU_Build_Date:
+        {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18B_ECU_Build_Date, pRx, pTx );
-//        	break;
-//        }
-//        case DID_0xF18C_ECU_Serial_Number:
-//        {
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    pTx->Data[3] = 0;
+    	    pTx->Data[4] = 0;
+    	    pTx->Data[5] = 0;
+    		pTx->LengthTotal = 6;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xF18C_ECU_Serial_Number:
+        {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18C_ECU_Serial_Number, pRx, pTx );
-//        	break;
-//        }
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    pTx->Data[3] = 0;
+    	    pTx->Data[4] = 0;
+    	    pTx->Data[5] = 0;
+    	    pTx->Data[6] = 0;
+    	    pTx->Data[7] = 0;
+    	    pTx->Data[8] = 0;
+    	    pTx->Data[9] = 0;
+    	    pTx->Data[10] = 0;
+    	    pTx->Data[11] = 0;
+    	    pTx->Data[12] = 0;
+    	    pTx->Data[13] = 0;
+    	    pTx->Data[14] = 0;
+    	    pTx->Data[15] = 0;
+    	    pTx->Data[16] = 0;
+    	    pTx->Data[17] = 0;
+    	    pTx->Data[18] = 0;
+    	    pTx->Data[19] = 0;
+    	    pTx->Data[20] = 0;
+    		pTx->LengthTotal = 21;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
 //        case DID_0xF1A6_Vehicle_Model:
 //        {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF1A6_Vehicle_Model, pRx, pTx );
@@ -887,8 +918,15 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         {
         	break;
         }
-        case DID_0xC02E_Temperature_Max                          :
+        case DID_0xC02E_Power_Level                          :
         {
+        	uint8_t tempPowerLevel = Axis[0].pCANRxInterface->PowerLevel;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempPowerLevel;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC02F_Foil_Position_State                      :
@@ -998,6 +1036,13 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC039_BMS_State_Read_by_ESC                    :
         {
+        	uint32_t tempSessionTime = TotalTime1.LocalThisTime * 3;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		memcpy( &(pTx->Data[3]), &tempSessionTime, 4 );
+    		pTx->LengthTotal = 7;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC03A_Estimated_Time_Remaining                 :
@@ -1007,6 +1052,19 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC03B_Foil_Position_Voltage                 :
         {
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+        	break;
+        }
+        case DID_0xC03C_ESC_Error_Code                 :
+        {
+
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+            for( uint8_t i = 0; i < MAX_NOW_ALARM_SIZE; i++){
+            	pTx->Data[3 + i] = Axis[0].pAlarmStack->NowAlarmID[i];
+            }
+    		pTx->LengthTotal = 13;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC100_This_Driving_Cycle_Information  :
