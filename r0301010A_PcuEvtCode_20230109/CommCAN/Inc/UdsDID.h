@@ -79,7 +79,7 @@ typedef enum
 	DID_0xC02B_Motor_Flux                                           = 0xC02B,
 	DID_0xC02C_ESC_Internal_circuit_voltage                         = 0xC02C,
 	DID_0xC02D_DC_Current_Limit                                     = 0xC02D,
-	DID_0xC02E_Temperature_Max                                      = 0xC02E,
+	DID_0xC02E_Power_Level                                          = 0xC02E,
 	DID_0xC02F_Foil_Position_State                                  = 0xC02F,
 	DID_0xC030_Tether_Cord_State                                    = 0xC030,
 	DID_0xC031_Session_Time                                         = 0xC031,
@@ -93,6 +93,7 @@ typedef enum
 	DID_0xC039_BMS_State_Read_by_ESC                                = 0xC039,
 	DID_0xC03A_Estimated_Time_Remaining                             = 0xC03A,
 	DID_0xC03B_Foil_Position_Voltage                                = 0xC03B,
+	DID_0xC03C_ESC_Error_Code                                       = 0xC03C,
 
 	DID_0xC100_This_Driving_Cycle_Information                       = 0xC100,
 
@@ -185,20 +186,6 @@ typedef enum
 	BMS_SM_PROGRAMMING,
 	BMS_SM_SHUTDOWN
 }UdsDIDBMSStateReadbyESC_e;
-
-typedef enum
-{
-	ESC_Mosfet_Center,
-	ESC_Mosfet_Side,
-	ESC_Capacitor,
-	Motor
-}UdsDIDTemperatureMaxItem_e;
-
-typedef struct
-{
-	UdsDIDTemperatureMaxItem_e Temperature_Max_Item;
-	float   Temperature_Max_Value;
-}UdsDIDTemperatureMax_t;
 
 typedef struct
 {
