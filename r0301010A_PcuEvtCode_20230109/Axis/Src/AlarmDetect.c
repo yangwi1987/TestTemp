@@ -348,8 +348,8 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 	// Axis alarm detect
 	AlarmDetect_Accumulation( v, &v->OSP, (int16_t)ABS( v->pSpeedInfo->MotorMechSpeedRPM ) );
 
-	// PWM RC SIGNAL ABNORMAL
-	if( RCCommCtrl.RcEnable == 1){
+	// PWM RC SIGNAL ABNORMAL, check if RC have connected to RF after ESC power on.
+	if( RCCommCtrl.RcHaveConnectedFlag == 1){
 		AlarmDetect_Accumulation( v, &v->RC_INVALID, RCCommCtrl.TimeoutCnt );
 	}
 }

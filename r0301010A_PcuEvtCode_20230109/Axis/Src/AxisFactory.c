@@ -70,7 +70,7 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 
     if( ( HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == 0 ) &&
         ( v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE ) &&
-        ( RCCommCtrl.RcEnable == 1 ))
+        ( RCCommCtrl.pRxInterface->RcConnStatus == 1 ))
     {
         v->FourQuadCtrl.ServoCmdIn = ENABLE;
         v->FourQuadCtrl.GearPositionCmd = ENABLE;

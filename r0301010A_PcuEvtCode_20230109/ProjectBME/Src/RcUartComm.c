@@ -33,7 +33,6 @@ StructUartCtrl RCCommCtrl = RC_COMM_CTRL_DEFAULT;
 uint16_t RcInfoQueryRetryCnt = 0;
 uint8_t RcInfoQueryRetryEnable = 1;
 uint8_t RcInfoQueryCompleteFlag = 0;
-uint8_t RcConnectedFlag = 0;
 
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
@@ -130,7 +129,7 @@ void RcComm_MsgHandler(StructUartCtrl *p, uint8_t *pData)
 				p->pRxInterface->ThrottleCmd = (*(pData + 4) > 100) ? 100 : *(pData + 4);
 				p->pRxInterface->PowerLevel = *(pData + 7);
 				p->TimeoutCnt = 0;
-				p->RcEnable = 1;
+				p->RcHaveConnectedFlag = 1;
 				p->pRxInterface->RcConnStatus = 1;
 			}
 			else
@@ -340,9 +339,8 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				p->pRxInterface->ThrottleCmd = (*(pData + RC_CMD_DATA_IDX_THROTTLE_CMD) > 100) ? 100 : *(pData + RC_CMD_DATA_IDX_THROTTLE_CMD);
 				p->pRxInterface->PowerLevel = *(pData + RC_CMD_DATA_IDX_PWR_LEVEL);
 				p->TimeoutCnt = 0;
-				p->RcEnable = 1;
+				p->RcHaveConnectedFlag = 1;
 				p->pRxInterface->RcConnStatus = 1;
-				RcConnectedFlag = 1;
 			}
 			else
 			{
@@ -476,7 +474,7 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 	RcInfoQueryRetryCnt = 0;
 	RcInfoQueryRetryEnable = 1;
 	RcInfoQueryCompleteFlag = 0;
-	RcConnectedFlag = 0;
+	p->RcHaveConnectedFlag = 0;
 	if(p->VerConfig == 0) // default to VP1.3 UART protocol
 	{
 		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
@@ -570,7 +568,7 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 			}
 		}
 	
-		if(RcConnectedFlag == 1)
+		if(p->RcHaveConnectedFlag == 1)
 		{
 			/* The RC is connect with RF module, check retry timeout */
 			if( RcInfoQueryRetryCnt < RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT)

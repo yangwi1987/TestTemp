@@ -71,7 +71,7 @@ typedef struct{
 	uint8_t RxReadIdx;
 	uint8_t RxFlag;
 	uint8_t TxFlag;
-	uint8_t RcEnable;
+	uint8_t RcHaveConnectedFlag;
 	uint8_t RxUnit[1];
 	uint8_t RxBuff[RC_COMM_RX_BUFF_SIZE];
 	uint8_t TxBuff[RC_COMM_TX_BUFF_SIZE];
