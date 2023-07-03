@@ -585,16 +585,49 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     	    tempRsp = NRC_0x00_PR;
         	break;
         }
-//        case DID_0xF18B_ECU_Build_Date:
-//        {
+        case DID_0xF18B_ECU_Build_Date:
+        {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18B_ECU_Build_Date, pRx, pTx );
-//        	break;
-//        }
-//        case DID_0xF18C_ECU_Serial_Number:
-//        {
+        	//contents below are dummy info for EOL test
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    pTx->Data[3] = 99;
+    	    pTx->Data[4] = 1;
+    	    pTx->Data[5] = 1;
+    		pTx->LengthTotal = 6;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
+        case DID_0xF18C_ECU_Serial_Number:
+        {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF18C_ECU_Serial_Number, pRx, pTx );
-//        	break;
-//        }
+        	//contents below are dummy info for EOL test
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    	    pTx->Data[3] = '2';
+    	    pTx->Data[4] = '7';
+    	    pTx->Data[5] = '8';
+    	    pTx->Data[6] = '0';
+    	    pTx->Data[7] = '0';
+    	    pTx->Data[8] = '4';
+    	    pTx->Data[9] = '1';
+    	    pTx->Data[10] = '0';
+    	    pTx->Data[11] = '3';
+    	    pTx->Data[12] = 'A';
+    	    pTx->Data[13] = '1';
+    	    pTx->Data[14] = '2';
+    	    pTx->Data[15] = '3';
+    	    pTx->Data[16] = '4';
+    	    pTx->Data[17] = '5';
+    	    pTx->Data[18] = '6';
+    	    pTx->Data[19] = '7';
+    	    pTx->Data[20] = '8';
+    		pTx->LengthTotal = 21;
+    	    tempRsp = NRC_0x00_PR;
+        	break;
+        }
 //        case DID_0xF1A6_Vehicle_Model:
 //        {
 //        	tempRsp = drive_RDBI_From_IntFlash( &IntFlashCtrl, DID_0xF1A6_Vehicle_Model, pRx, pTx );
@@ -887,8 +920,15 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         {
         	break;
         }
-        case DID_0xC02E_Temperature_Max                          :
+        case DID_0xC02E_Power_Level                          :
         {
+        	uint8_t tempPowerLevel = Axis[0].pCANRxInterface->PowerLevel;
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+    		pTx->Data[3] = tempPowerLevel;
+    		pTx->LengthTotal = 4;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC02F_Foil_Position_State                      :
@@ -983,7 +1023,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC037_RC_connetion_status                      :
         {
-        	UdsDIDRCConnectionStatus_e tempRCConnct = RCCommCtrl.RcEnable;
+        	UdsDIDRCConnectionStatus_e tempRCConnct = Axis[0].pCANRxInterface->RcConnStatus;
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1007,6 +1047,19 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC03B_Foil_Position_Voltage                 :
         {
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+        	break;
+        }
+        case DID_0xC03C_ESC_Error_Code                 :
+        {
+
+    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+    	    pTx->Data[1] = pRx->Data[1];
+    	    pTx->Data[2] = pRx->Data[2];
+            for( uint8_t i = 0; i < MAX_NOW_ALARM_SIZE; i++){
+            	pTx->Data[3 + i] = Axis[0].pAlarmStack->NowAlarmID[i];
+            }
+    		pTx->LengthTotal = 13;
+    	    tempRsp = NRC_0x00_PR;
         	break;
         }
         case DID_0xC100_This_Driving_Cycle_Information  :
@@ -1293,7 +1346,7 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 			                                                             ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 ) ? NTC_Short : NTC_Normal );
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Sensorless_State = Axis[0].MotorControl.Sensorless.SensorlessState;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State = Axis[0].ESCOperationState;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status = RCCommCtrl.RcEnable;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status = Axis[0].pCANRxInterface->RcConnStatus;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time = TotalTime1.LocalThisTime * 3;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour = TotalTime1.LocalTotalTime * 3;

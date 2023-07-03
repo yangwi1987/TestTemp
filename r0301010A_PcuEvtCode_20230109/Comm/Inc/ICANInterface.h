@@ -286,7 +286,7 @@ typedef struct
 	uint32_t RTCData;
 	uint8_t ThrottleCmd;
 	uint8_t PowerLevel;
-	uint8_t RcConnStatus;
+	uint8_t RcConnStatus; // 1: means RC is connected to RF now, 0: RC is disconnected now.
 	uint8_t ShiftCmd;
 	uint8_t OutputModeCmd;
 	uint8_t PcuStateCmd;
