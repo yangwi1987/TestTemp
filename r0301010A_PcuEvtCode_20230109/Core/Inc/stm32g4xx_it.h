@@ -68,6 +68,7 @@ void USART2_IRQHandler(void);
 void TIM2_IRQHandler(void);
 void TIM5_IRQHandler(void);
 void TIM7_DAC_IRQHandler(void);
+void TIM20_BRK_IRQHandler(void);
 void TIM20_UP_IRQHandler(void);
 void FDCAN2_IT0_IRQHandler(void);
 void FDCAN2_IT1_IRQHandler(void);

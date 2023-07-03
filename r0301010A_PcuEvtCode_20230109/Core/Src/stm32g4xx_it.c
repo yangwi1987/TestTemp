@@ -480,6 +480,21 @@ void TIM7_DAC_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM20 break interrupt.
+  */
+void TIM20_BRK_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM20_BRK_IRQn 0 */
+
+  /* USER CODE END TIM20_BRK_IRQn 0 */
+//  HAL_TIM_IRQHandler(&htim20);
+  /* USER CODE BEGIN TIM20_BRK_IRQn 1 */
+  drive_DoHWOCPIRQ();
+  HAL_NVIC_DisableIRQ(TIM20_BRK_IRQn);
+  /* USER CODE END TIM20_BRK_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM20 update interrupt.
   */
 void TIM20_UP_IRQHandler(void)
