@@ -846,6 +846,8 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     HAL_GPIO_Init(HWOCP_GPIO_Port, &GPIO_InitStruct);
 
     /* TIM20 interrupt Init */
+    HAL_NVIC_SetPriority(TIM20_BRK_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM20_BRK_IRQn);
     HAL_NVIC_SetPriority(TIM20_UP_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(TIM20_UP_IRQn);
   /* USER CODE BEGIN TIM20_MspInit 1 */
@@ -990,6 +992,7 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
     HAL_GPIO_DeInit(HWOCP_GPIO_Port, HWOCP_Pin);
 
     /* TIM20 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(TIM20_BRK_IRQn);
     HAL_NVIC_DisableIRQ(TIM20_UP_IRQn);
   /* USER CODE BEGIN TIM20_MspDeInit 1 */
 

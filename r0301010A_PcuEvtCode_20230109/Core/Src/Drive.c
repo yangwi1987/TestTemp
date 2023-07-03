@@ -1180,7 +1180,8 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    }
 		    case ALARMID_POWER_TRANSISTOR_OC:
 		    {
-		    	tempDTC_Number = DTC_RecordNumber_P1F01_ESC_Over_current;
+		    	continue;
+		    	//tempDTC_Number = DTC_RecordNumber_P1F01_ESC_Over_current;
 	        	break;
 		    }
 		    case ALARMID_UNDER_VOLTAGE_13V:
@@ -2076,6 +2077,25 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 			*Ena = DISABLE;
 		} else; // Do nothing
 	} else;
+}
+
+void drive_DoHWOCPIRQ(void)
+{
+	if( Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+	{
+		if( PwmStation1.PwmCh[Axis[0].AlarmDetect.AxisID-1].Group->Instance != 0 )
+		{
+			Axis[0].AlarmDetect.RegisterAxisAlarm( &Axis[0].AlarmDetect, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmID, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmType );
+		}
+	}
+	DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed = 1;
+	if ( DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State == DTC_Store_State_None && DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed == TRUE )
+	{
+		DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
+		drive_DTC_Pickup_Freeze_Frame_data( &DTCStation1, DTC_RecordNumber_P1F01_ESC_Over_current );
+
+		DTCStation1.State = DTC_Process_State_Write;
+	}
 }
 
 uint16_t Drive_BinVersionCompare( const uint16_t *dta)
