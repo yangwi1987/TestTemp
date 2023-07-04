@@ -1157,6 +1157,24 @@ __STATIC_FORCEINLINE EnumUdsBRPNRC drive_RDBI_CopyF32toTx( LinkLayerCtrlUnit_t *
 }
 __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmStack, DTCStation_t *v )
 {
+	//Jeff test
+
+	if ( AlarmStack->NowAlarmID[0]  == ALARMID_CAN1_TIMEOUT )
+	{
+	    AlarmStack->NowAlarmID[1] = ALARMID_RC_INVALID;
+	    AlarmStack->NowAlarmID[2] = ALARMID_FOIL_BREAK;
+	    AlarmStack->NowAlarmID[3] = ALARMID_OT_PCU_0_WARNING;
+	    AlarmStack->NowAlarmID[4] = ALARMID_OT_PCU_2_WARNING;
+	    AlarmStack->NowAlarmID[5] = ALARMID_OT_MOTOR_0_WARNING;
+	    AlarmStack->NowAlarmID[6] = ALARMID_OVER_VOLTAGE_BUS;
+	    AlarmStack->NowAlarmID[7] = ALARMID_UNDER_VOLTAGE_13V;
+	    AlarmStack->NowAlarmID[8] = ALARMID_BUFFER_IC_ERROR;
+	    AlarmStack->NowAlarmID[9] = ALARMID_MOTOR_OVER_SPEED;
+
+	}
+	/*
+	 *
+	 */
 	for ( uint8_t i = 0; i < AlarmStack->TopIndicator; i++ )
 	{
 		uint8_t tempDTC_Number = 0;

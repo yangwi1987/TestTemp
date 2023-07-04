@@ -424,7 +424,7 @@ void TIM7_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
 
-#if Measure_CPU_Load_100Hz || Judge_function_delay
+#if Measure_CPU_Load || Judge_function_delay
 	uint32_t currentTimestamp = DWT->CYCCNT;
 	uint32_t EndTimestame = 0;
 #endif
@@ -460,7 +460,7 @@ void TIM7_DAC_IRQHandler(void)
 #endif
   USER_HAL_TIM_7_IRQHandler(&htim7);
 
-#if Measure_CPU_Load_100Hz
+#if Measure_CPU_Load
     EndTimestame =  DWT->CYCCNT;
     Max_100Hz_Cnt = Max_100Hz_Cnt > ( EndTimestame - currentTimestamp ) ? Max_100Hz_Cnt : ( EndTimestame - currentTimestamp );
 #endif
