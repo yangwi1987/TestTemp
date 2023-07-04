@@ -23,10 +23,9 @@
 #define POC UNUSE_FUNCTION
 #define EVT USE_FUNCTION
 
-#define Judge_function_delay USE_FUNCTION
+#define Judge_function_delay UNUSE_FUNCTION
 #define Measure_CPU_Load UNUSE_FUNCTION
 #define Measure_CPU_Load_ADC_Inj UNUSE_FUNCTION
-#define Measure_CPU_Load_100Hz UNUSE_FUNCTION
 #define Measure_CPU_Load_CurrentLoop UNUSE_FUNCTION
 #define Measure_CPU_Load_PLCLoop UNUSE_FUNCTION
 
