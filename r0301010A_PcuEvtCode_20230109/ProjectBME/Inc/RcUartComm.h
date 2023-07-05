@@ -36,18 +36,18 @@ typedef enum RcCommDataId_e
 #define RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD		1500	/* 1500ms = 1.5 sec */
 #define RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT  15				/* 15 = RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD / 100 */
 
-#define RC_COMM_RC_FW_VER_SIZE	20	/* RC firmware version array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RC_SN_SIZE		20	/* RC serial number array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RF_FW_VER_SIZE	20	/* RF firmware version array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RF_SN_SIZE		20	/* RF serial number array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RC_FW_VER_SIZE	3	/* RC firmware version array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RC_SN_SIZE		32	/* RC serial number array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RF_FW_VER_SIZE	3	/* RF firmware version array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RF_SN_SIZE		32	/* RF serial number array size in byte. Todo: clarify the exact nuber with TBS */
 
 #define RC_TEIMOUT_TEST 0
 #define RC_COMM_DMA_USAGE 1
 #define RC_COMM_BYPASS_CRC 0
 
-#define RC_COMM_MSG_DLC_MAX  20
-#define RC_COMM_RX_BUFF_SIZE 40
-#define RC_COMM_TX_BUFF_SIZE 40
+#define RC_COMM_MSG_DLC_MAX  60
+#define RC_COMM_RX_BUFF_SIZE 60
+#define RC_COMM_TX_BUFF_SIZE 60
 #define RC_COMM_HEAD_VALUE 0x03
 #define RC_COMM_END_VALUE 0xFF
 #define RC_COMM_TIMEOUT_THRESHOLD_100MS 11	// 11*100ms = 1100ms
@@ -132,7 +132,13 @@ typedef enum{
 	RC_CMD_ID_RC_COMMAND = 50
 }EnumRCCommCmdID;
 
-
+typedef enum RCConnStatus_e
+{
+	RC_CONN_STATUS_NO_VALID_RC = 0x00,			/* No Valid RC is connected to RF */
+	RC_CONN_STATUS_RC_THROTTLE_LOCKED,			/* One Valid RC is connected and the throttle is locked */
+	RC_CONN_STATUS_RC_THROTTLE_UNLOCKING,		/* One Valid RC is connected and user is unlocking the throttle */
+	RC_CONN_STATUS_RC_THROTTLE_UNLOCKED,		/* One Valid RC is connected and the throttle is unlocked */
+} RCConnStatus_t;
 
 
 void RcComm_Init(StructUartCtrl*p, UART_HandleTypeDef *huart, CRC_HandleTypeDef *pHcrc, STRUCT_CANTxInterface *t, STRUCT_CANRxInterface *r);
@@ -168,10 +174,10 @@ void HAL_UART_txCpltCallback(UART_HandleTypeDef *huart);
 	0,\
 	0,\
 	0,\
-	{0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x01,0x02,0x03,0x04,0x05},/* RCFwVer */ \
-	{0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,0x11,0x12,0x13,0x14,0x15},/* RCSN */ \
-	{0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f,0x21,0x22,0x23,0x24,0x25},/* RFFwVer */ \
-	{0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,0x31,0x32,0x33,0x34,0x35},/* RFSN */ \
+	{0x01,0x02,0x03},/* RCFwVer */ \
+	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},/* RCSN */ \
+	{0x01,0x02,0x03,},/* RFFwVer */ \
+	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},/* RFSN */ \
 	(functypeRcComm_Init)&RcComm_Init,\
 	(functypeRcComm_CalCrc)&RcComm_CalCrc,\
 	(functypeRcComm_StartScan)&RcComm_StartScan,\
