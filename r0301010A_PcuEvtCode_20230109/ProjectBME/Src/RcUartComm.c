@@ -475,13 +475,13 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 	RcInfoQueryRetryEnable = 1;
 	RcInfoQueryCompleteFlag = 0;
 	p->RcHaveConnectedFlag = 0;
-	if(p->VerConfig == 0) // default to VP1.3 UART protocol
+	if(p->VerConfig == 0) // default to VP3 UART protocol
 	{
-		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
+		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandlerVP3;
 	}
 	else
 	{
-		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandlerVP3;
+		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
 	}
 
 #if RC_COMM_DMA_USAGE
