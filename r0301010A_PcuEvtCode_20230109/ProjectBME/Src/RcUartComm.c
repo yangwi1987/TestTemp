@@ -121,7 +121,7 @@ void RcComm_MsgHandler(StructUartCtrl *p, uint8_t *pData)
 		case RC_CMD_ID_RC_COMMAND:
 		{
 
-			if ((*(pData + 6) >= RC_CONN_STATUS_RC_THROTTLE_LOCKED) &&
+			if ((*(pData + 6) == 0x01) &&
 				(*(pData + IDX_RC_COMM_DLC_L) == 0x07) &&
 				(*(pData + IDX_RC_COMM_DLC_H) == 0x00))
 			{
@@ -333,6 +333,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 		{
 			
 			if ((*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) >= RC_CONN_STATUS_RC_THROTTLE_LOCKED) &&
+				(*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) < RC_CONN_STATUS_MAX) &&
 				(*(pData + IDX_RC_COMM_DLC_L) == 0x0C) &&
 				(*(pData + IDX_RC_COMM_DLC_H) == 0x00))
 			{

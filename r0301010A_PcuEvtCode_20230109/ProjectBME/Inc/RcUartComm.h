@@ -138,6 +138,7 @@ typedef enum RCConnStatus_e
 	RC_CONN_STATUS_RC_THROTTLE_LOCKED,			/* One Valid RC is connected and the throttle is locked */
 	RC_CONN_STATUS_RC_THROTTLE_UNLOCKING,		/* One Valid RC is connected and user is unlocking the throttle */
 	RC_CONN_STATUS_RC_THROTTLE_UNLOCKED,		/* One Valid RC is connected and the throttle is unlocked */
+	RC_CONN_STATUS_MAX,							/* Max value of RC_CONN status, recevied value should always < this value*/
 } RCConnStatus_t;
 
 
