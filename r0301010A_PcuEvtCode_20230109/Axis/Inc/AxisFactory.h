@@ -44,6 +44,12 @@ typedef enum
 	MOTOR_STATE_SHUTDOWN_START
 }MotorStateMachine_e;
 
+typedef enum
+{
+	Drive_Stop_Flag,
+	Drive_Start_Flag
+}DriveStateFlag_e;
+
 enum UI_FUNCTION_MODE {
 	UI_FUNCTION_DISABLE = 0,
 	UI_FUNCTION_RD_ENABLE,
@@ -101,6 +107,14 @@ typedef struct
 	float MinFoil;
 }AnalogFoilInfo_t;
 
+typedef struct
+{
+	uint8_t IsUseDriveLockFn;
+	DriveStateFlag_e DriveStateFlag;
+	uint32_t TimeToStopDriving_InPLCLoop;
+	uint32_t TimeToStopDriving_cnt;
+	uint16_t RpmToStartCntDriveLock;
+}DriveLockInfo_t;
 
 typedef union
 {
@@ -148,6 +162,7 @@ typedef struct {
 	PHASE_LOSS_TYPE	PhaseLoss;
 	SpeedInfo_t SpeedInfo;
 	AnalogFoilInfo_t AnalogFoilInfo;
+	DriveLockInfo_t DriveLockInfo;
 	functypeAxis_Init Init;
 	functypeAxis_DoCurrentLoop DoCurrentLoop;
 	functypeAxis_DoPLCLoop DoPLCLoop;
@@ -196,6 +211,7 @@ typedef struct {
 	PHASE_LOSS_DEFAULT,	\
 	SPEED_INFO_DEFAULT,	\
 	ANALOG_FOIL_INFO_DEFAULT, \
+	DRIVE_LOCK_INFO_DERAULT, \
 	(functypeAxis_Init)AxisFactory_Init, \
 	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
 	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \
@@ -210,6 +226,14 @@ typedef struct {
 	0.0f, \
 	0.0f, \
 	0.0f, \
+}
+
+#define DRIVE_LOCK_INFO_DERAULT {\
+	0, /*	IsUseDriveLockFn*/ \
+	Drive_Stop_Flag,  /*DriveStateFlag*/ \
+	0, /*TimeToStopDriving_InPLCLoop*/ \
+	0, /*TimeToStopDriving_cnt*/       \
+	0, /*RpmToStartCntDriveLock*/ \
 }
 
 void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex );
