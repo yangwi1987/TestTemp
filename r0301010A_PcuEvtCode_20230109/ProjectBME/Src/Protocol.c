@@ -181,15 +181,7 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
 
     case CANTXID_BMS_CONTROL_02:
     {
-      if(v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] != 0)
-      {
-         p->BmsCtrl02.LedCtrl.All = BAT_LED_SHOW_ESC_ERROR;
-      }
-      else
-      {
-        p->BmsCtrl02.LedCtrl.All = BAT_LED_SHOW_NO_ERROR;
-      }
-
+      p->BmsCtrl02.LedCtrl.All = v->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD];
       p->BmsCtrl02.EscFrameCnt = EscFrameCnt;
       EscFrameCnt++;
 
@@ -350,9 +342,7 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         p->EscLogInfo7.BmsMainSm = r->BmsReportInfo.MainSm;
         p->EscLogInfo7.BmsPrchSm = r->BmsReportInfo.PrchSM;
         p->EscLogInfo7.BatSoc = r->BmsReportInfo.Soc;
-
-        /*todo: assign BAT LED control code value*/
-        p->EscLogInfo7.BatPackLedCtrl.All = 0;
+        p->EscLogInfo7.BatPackLedCtrl.All = v->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD];
 
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }

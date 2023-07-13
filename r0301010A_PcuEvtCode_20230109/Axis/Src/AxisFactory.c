@@ -734,6 +734,9 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
     }
 
+    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+    	(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
+
     // Update scooter speed for report
     v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
     v->FourQuadCtrl.MotorRPM = v->SpeedInfo.MotorMechSpeedRPM;
