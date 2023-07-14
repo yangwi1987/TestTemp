@@ -32,6 +32,7 @@
 #include "PWM_RC.h"
 #include "RcUartComm.h"
 #include "DiagnosticTroubleCode.h"
+#include "RemainingTime.h"
 
 typedef struct {
 	uint32_t PWMCounter;
