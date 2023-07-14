@@ -34,7 +34,6 @@ uint16_t RcInfoQueryRetryCnt = 0;
 uint8_t RcInfoQueryRetryEnable = 1;
 uint8_t RcInfoQueryCompleteFlag = 0;
 uint8_t RecRcComFlag = 0; // Received RC command flag
-uint16_t AccUARTErrorCnt = 0; //debug
 
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
@@ -593,16 +592,6 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 			RcInfoQueryRetryCnt++;
 		}
 	}
-	// debug
-	if(RecRcComFlag == 0 && AccUARTErrorCnt <65535)
-	{
-		AccUARTErrorCnt++;
-	}
-	else
-	{
-		RecRcComFlag = 0; // auto reset the flag to 0 each 10 ms.
-	}
-	//debug end
 	if(RecRcComFlag == 0 && p->AccUARTErrorCnt <65535)
 	{
 		p->AccUARTErrorCnt++;
