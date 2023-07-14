@@ -291,6 +291,10 @@
 #define DN_STATUS_WORD1				761
 #define DN_STATUS_WORD2				762
 
+#define DN_ACC_UART_ERROR_CNT		765
+#define DN_ACC_CAN_ERROR_CNT		766
+
+
 #define DN_ID_VER_READ				780
 #define DN_INFO_VER_READ			781
 #define DN_FRAME_VER_READ			782
@@ -363,6 +367,7 @@
 
 
 #define FN_PCU_SN_OPERATION			940
+#define FN_PCU_ERR_CNT_RESET		941
 //40~49
 
 #define FN_DATA_BUFFER_0			941

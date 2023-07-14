@@ -294,6 +294,7 @@ typedef struct
 	uint8_t UrgentShutdown;
 	uint8_t ExtPumpStatus;
 	uint8_t ReceivedCANID;
+	uint16_t AccCANErrorCnt;
 	UNION_CtrlIO ExtSignalCmd;
 	UNION_PRCH_CTRL PrchCtrlFB;
 	STRUCT_Authendata RxAuthData[2];
@@ -415,6 +416,7 @@ typedef struct {
 	0,      /* UrgentShutdown */\
 	0,      /* ExtPumpStatus */\
 	0,      /* ReceivedCANID */\
+	0,      /* AccCANErrorCnt */\
 	{0},    /* ExtSignalCmd */\
 	{0},    /* PrchCtrlFB */\
 	{{NULL,0},{NULL,0}},      /* RxAuthData[2] */\
