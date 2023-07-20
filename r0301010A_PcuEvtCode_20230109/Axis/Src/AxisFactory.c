@@ -156,6 +156,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
+        v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
 #if USE_ANALOG_FOIL_SENSOR_FUNC
         v->pCANTxInterface->Debugf[IDX_FOIL_SENSOR_VOLT] = v->pAdcStation->AdcTraOut.Foil;
 #endif
@@ -862,6 +864,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
 void AxisFactory_Do100HzLoop( Axis_t *v )
 {
+	float ACPowerTemp = 0;
+
     v->PwmRc.AlarmDet( &v->PwmRc );
     v->AlarmDetect.Do100HzLoop( &v->AlarmDetect );
     if( v->ServoOn )
@@ -895,6 +899,11 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
     {
         v->TriggerLimpHome = 0;
     }
+
+    /* Calculate AC instantaneous and average Power */
+    ACPowerTemp = 1.5 * (v->MotorControl.CurrentControl.RotorCurrFb.D * v->MotorControl.VoltCmd.VdCmd +
+    		v->MotorControl.CurrentControl.RotorCurrFb.Q * v->MotorControl.VoltCmd.VqCmd);
+    AcPwrInfo._100HzLoop(&AcPwrInfo, ACPowerTemp);
 }
 
 void AxisFactory_Do10HzLoop( Axis_t *v )
