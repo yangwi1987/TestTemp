@@ -192,7 +192,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			p->TxBuff[15] = p->pRxInterface->BmsReportInfo.Soc;
 
 			/*Safety sensor*/
-			p->TxBuff[16] = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
+			p->TxBuff[16] = (uint8_t)!HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
 
 			/*Instant Power*/
 			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_INSTANT_POWER];
@@ -332,7 +332,8 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 		case RC_CMD_ID_RC_COMMAND:
 		{
 			
-			if ((*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) == 0x01) &&
+			if ((*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) >= RC_CONN_STATUS_RC_THROTTLE_LOCKED) &&
+				(*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) < RC_CONN_STATUS_MAX) &&
 				(*(pData + IDX_RC_COMM_DLC_L) == 0x0C) &&
 				(*(pData + IDX_RC_COMM_DLC_H) == 0x00))
 			{
@@ -475,13 +476,13 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 	RcInfoQueryRetryEnable = 1;
 	RcInfoQueryCompleteFlag = 0;
 	p->RcHaveConnectedFlag = 0;
-	if(p->VerConfig == 0) // default to VP1.3 UART protocol
+	if(p->VerConfig == 0) // default to VP3 UART protocol
 	{
-		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
+		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandlerVP3;
 	}
 	else
 	{
-		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandlerVP3;
+		p->MsgHandler = (functypeRcComm_MsgHandler)&RcComm_MsgHandler;
 	}
 
 #if RC_COMM_DMA_USAGE
