@@ -231,10 +231,10 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 					Axis[AxisIndex].VCUServoOnCommand				<< 1 |
 					Axis[AxisIndex].CtrlUiEnable					<< 2 |
 					Axis[AxisIndex].FourQuadCtrl.ServoCmdIn			<< 3 |
-					Axis[AxisIndex].HasAlarm						<< 4 |
+					Axis[AxisIndex].HasCriAlarm						<< 4 |
 					Axis[AxisIndex].pAdcStation->ZeroCalibInjDone	<< 5 |
 					Axis[AxisIndex].PhaseLoss.Enable				<< 6 |
-					Axis[AxisIndex].HasWarning						<< 7 ;
+					Axis[AxisIndex].HasNonCriAlarm					<< 7 ;
 		break;
 
 	case DN_ID_VER_READ:
@@ -1376,7 +1376,7 @@ void Drive_PcuPowerStateMachine( void )
 			}
 
 			// error situation
-			if( Axis[0].HasAlarm == ENABLE )
+			if( Axis[0].HasCriAlarm == ENABLE )
 			{
 				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
 			}
@@ -1391,7 +1391,7 @@ void Drive_PcuPowerStateMachine( void )
 			}
 
 			// error situation
-			if( Axis[0].HasAlarm == ENABLE )
+			if( Axis[0].HasCriAlarm == ENABLE )
 			{
 				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
 			}
@@ -1399,7 +1399,7 @@ void Drive_PcuPowerStateMachine( void )
 
 		case PowerOnOff_ShutdownStart:
 			// normal transition
-			if( Axis[0].HasAlarm == DISABLE )
+			if( Axis[0].HasCriAlarm == DISABLE )
 			{
 				Axis[0].PcuPowerState = PowerOnOff_NormalShutdown;
 				GlobalAlarmDetect_ConfigAlarmSystem(); // disable register alarm
@@ -1417,7 +1417,7 @@ void Drive_PcuPowerStateMachine( void )
 			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Enable )
 			{
 				// If no alarm exists, change state directly.
-				if( Axis[0].HasAlarm == DISABLE )
+				if( Axis[0].HasCriAlarm == DISABLE )
 				{
 					Axis[0].PcuPowerState = PowerOnOff_Ready;
 					GlobalAlarmDetect_ConfigAlarmSystem(); // enable register alarm
@@ -1454,7 +1454,7 @@ void Drive_PcuPowerStateMachine( void )
 	}
 
 	/*update ESCOperationState, Dealer_Test_Mode, Power_Off_ESC TBD*/
-	if( Axis[0].HasAlarm == ENABLE )
+	if( Axis[0].HasCriAlarm == ENABLE )
 	{
         Axis[0].ESCOperationState = Fault_Mode;
 	}
@@ -1516,13 +1516,11 @@ void drive_Init(void)
 		Axis[AxisIndex].Init ( &Axis[AxisIndex], AxisIndex );
 	}
 
-		// AlarmMgr1.init( &AlarmMgr1, &Axis[AxisIndex].HasAlarm, &Axis[AxisIndex].HasWarning, AxisIndex )
 	for( AxisIndex = 0; AxisIndex < MAX_AXIS_NUM; AxisIndex++ )
 	{
-		AlarmMgr1.pHasAlarm[AxisIndex] = &Axis[AxisIndex].HasAlarm;
 		AlarmMgr1.pHasWarning[AxisIndex] = &Axis[AxisIndex].HasWarning;
-		Axis[AxisIndex].RequestResetWarningCNT = RESET_WARNING_IDLE;
-		AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = &Axis[AxisIndex].RequestResetWarningCNT;
+		AlarmMgr1.pHasNonCriAlarm[AxisIndex] = &Axis[AxisIndex].HasNonCriAlarm;
+		AlarmMgr1.pHasCriAlarm[AxisIndex] = &Axis[AxisIndex].HasCriAlarm;
 	}
 
 	// Init Axis1 Motor Stall Table
@@ -1809,7 +1807,7 @@ void drive_DoPLCLoop(void)
 	IntranetCANStation.ServiceCtrlBRP.ServoOnOffState = Axis[0].ServoOn;
 	IntranetCANStation.DoPlcLoop( &IntranetCANStation );
 
-	if ( Axis[0].HasAlarm || Axis[0].HasWarning)
+	if ( Axis[0].HasCriAlarm || Axis[0].HasNonCriAlarm)
 	{
 	    drive_DTC_Pickup_Data_to_Store( &AlarmStack[0], &DTCStation1 );
 	}
@@ -1866,7 +1864,6 @@ void drive_Do100HzLoop(void)
 
 void drive_Do10HzLoop(void)
 {
-	static uint16_t Local10HzCNT = 0;
 	int i;
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
@@ -1874,23 +1871,6 @@ void drive_Do10HzLoop(void)
 
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
-
-	if( DriveParams.PCUParams.DebugParam7 == 1 )
-	{
-		if(Local10HzCNT >= 9)
-		{
-			Local10HzCNT = 0;
-			if( Axis[0].RequestResetWarningCNT == RESET_WARNING_REQUEST &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
-			{
-				Axis[0].RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-				// Do ResetWarnning in HouseKeeping.
-			}
-		}
-		else
-		{
-			Local10HzCNT++;
-		}
-	}
 }
 
 void drive_DoTotalTime(void)
@@ -1924,11 +1904,13 @@ void drive_Do1HzLoop(void)
 	// do nothing
 }
 
-void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
+// old function definition before 3.1.1.11, not necessary now
+/*
+void Drive_ResetNonCriAlarmCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 {
-	v->RequestResetWarningCNT = RESET_WARNING_RESETING;
-	// Reset All warning counter before reset alarm stack and clear hasWarning.
-	// Reset WarningCNT  todo create a new function in alarmDetect
+	v->RequestResetNonCriAlarmCNT = RESET_NonCriAlarm_RESETING;
+	// Reset All NonCriAlarmr before reset alarm stack and clear hasNonCriAlarm.
+	// Reset NonCriAlarmCNT  todo create a new function in alarmDetect
 	v->AlarmDetect.CAN1Timeout.Counter = 0;
 	v->AlarmDetect.FOIL_SENSOR_BREAK.Counter = 0;
 	v->AlarmDetect.FOIL_SENSOR_SHORT.Counter = 0;
@@ -1948,9 +1930,10 @@ void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 
 
 	// Only if PCU is servo off, then PCU can reset warning.
-	pAlarmMgr->ResetAllWarning( pAlarmMgr );
-	v->RequestResetWarningCNT = RESET_WARNING_IDLE;
+	pAlarmMgr->ResetAllNonCriAlarm( pAlarmMgr );
+	v->RequestResetNonCriAlarmCNT = RESET_NonCriAlarm_IDLE;
 }
+*/
 
 void drive_DoHouseKeeping(void)
 {
@@ -2002,15 +1985,6 @@ void drive_DoHouseKeeping(void)
 
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 	RCCommCtrl.MsgDecoder(&RCCommCtrl);
-
-	// If status is servo off, warning exist, and user commands servo on again.
-	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_ALLOW_RESET &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
-	{
-		// Reset All warning counter before reset alarm stack and clear hasWarning.
-		// Reset WarningCNT  todo Create a new function in alarmDetect.
-		// Now Drive simulate Axis to reset local CNT.
-		Drive_ResetWarningCNTandStatus( &Axis[0], &AlarmMgr1 );
-	}
 	
 	//DTC process to ExtFlash
 	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)

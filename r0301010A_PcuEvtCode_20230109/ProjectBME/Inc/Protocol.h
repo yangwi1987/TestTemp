@@ -44,8 +44,8 @@
 #define CANRXID_BMS_TEMP_03           0x602   /* info shows BMS temperature value group3 */
 #define CANRXID_BMS_TEMP_04           0x603   /* info shows BMS temperature value group4 */
 
-#define CAN_TX_ALARM_MASK 0x01
-#define CAN_TX_WARNING_MASK 0x02
+#define CAN_TX_CRI_ALARM_MASK 0x01
+#define CAN_TX_NON_CRI_ALARM_MASK 0x02
 
 
 /*======================================

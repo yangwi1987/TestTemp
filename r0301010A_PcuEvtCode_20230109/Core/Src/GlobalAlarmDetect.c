@@ -78,13 +78,13 @@ void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int Ta
 			{
 				p->Counter++;
 			}
-			if( p->Counter > p->AlarmInfo.ErrorCounter )
+			if( p->Counter > p->AlarmInfo.CriAlarmCounter )
 			{
-				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_ERROR );
+				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_CRITICAL );
 			}
-			else if( p->Counter > p->AlarmInfo.WarningCounter )
+			else if( p->Counter > p->AlarmInfo.NonCriAlarmCounter )
 			{
-				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_WARNING );
+				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_NONCRITICAL );
 			}
 		}
 		else if( p->Counter > 0 )

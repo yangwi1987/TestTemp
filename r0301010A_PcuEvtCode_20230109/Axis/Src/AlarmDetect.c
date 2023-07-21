@@ -32,18 +32,18 @@ static uint16_t AlarmDetect_Accumulation( AlarmDetect_t *v, PROTECT_POLLING_TYPE
 			{
 				p->Counter++;
 			}
-			// error debounce
-			if( p->Counter > p->AlarmInfo.ErrorCounter )
+			// critical debounce
+			if( p->Counter > p->AlarmInfo.CriAlarmCounter )
 			{
-				v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, ALARM_TYPE_ERROR );
-				Abnormal = ALARM_TYPE_ERROR;
+				v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, ALARM_TYPE_CRITICAL );
+				Abnormal = ALARM_TYPE_CRITICAL;
 			}
 
-			// alarm debounce
-			else if( p->Counter > p->AlarmInfo.WarningCounter )
+			// non critical debounce
+			else if( p->Counter > p->AlarmInfo.NonCriAlarmCounter )
 			{
-				v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, ALARM_TYPE_WARNING );
-				Abnormal = ALARM_TYPE_WARNING;
+				v->RegisterAxisAlarm( v, p->AlarmInfo.AlarmID, ALARM_TYPE_NONCRITICAL );
+				Abnormal = ALARM_TYPE_NONCRITICAL;
 			}
 		}
 		else if( p->Counter > 0 )

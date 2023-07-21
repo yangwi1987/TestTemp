@@ -233,7 +233,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
         return;
     }
 
-    int ServoOnEnable = (v->HasAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
+    int ServoOnEnable = (v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
 
     switch( v->ServoOnOffState )
     {
@@ -242,21 +242,8 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             v->BootstrapCounter = 0;
             if( ServoOnEnable && v->pAdcStation->ZeroCalibInjDone )
             {
-                if( v->RequestResetWarningCNT == RESET_WARNING_REQUEST )
-                {
-                    v->RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-                    // Do ResetWarnning in HouseKeeping.
-                }
-
-                if( v->RequestResetWarningCNT == RESET_WARNING_IDLE ) // No warning or warning have been reset
-                {
-                    v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-                    AxisFactory_ConfigAlarmSystem( v );
-
-                    // Disable trigger after warning reset one time during servo on.
-                    // However TN mode change in PLC loop.
-                    v->TriggerLimpHome = 0;
-                }
+				v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+				AxisFactory_ConfigAlarmSystem( v );
             }
             else
             {
@@ -716,20 +703,20 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
 
 
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] = 0;
+    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] = 0;
 
-    if(v->HasAlarm!=0)
+    if(v->HasCriAlarm == 1)
     {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_ALARM_MASK;
+        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] |= CAN_TX_CRI_ALARM_MASK;
     }
 
-    if(v->HasWarning!=0)
+    if(v->HasNonCriAlarm == 1)
     {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
+        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] |= CAN_TX_NON_CRI_ALARM_MASK;
     }
     else
     {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
+        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
     }
 
     // Update scooter speed for report
@@ -880,15 +867,16 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
         v->MotorStall.Reset( &v->MotorStall );
     }
 
+    // todo modify this in to vehicle state machine
     // Trigger limp home mode in 100Hz loop.
     // TN mode change in PLC loop.
-    if(v->HasWarning == 1 /* todo && SOC <20%*/)
+    if(v->HasNonCriAlarm == 1 /* todo && SOC <20%*/)
     {
         v->TriggerLimpHome = 1;
     }
     else
     {
-        v->TriggerLimpHome = 0;
+        //v->TriggerLimpHome = 0;
     }
 }
 
