@@ -294,6 +294,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
                 v->pPwmStation->AxisChannelLock(v->pPwmStation, v->AxisID - 1);
                 AxisFactory_ConfigAlarmSystem(v);
             }
+            v->MotorControl.Sensorless.SensorlessState = SensorlessState_None;
             break;
 
         case MOTOR_STATE_ON:
