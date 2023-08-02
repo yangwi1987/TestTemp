@@ -71,6 +71,57 @@ void UpdateAlarmStack( uint16_t AxisIndex, uint16_t AlarmID )
 	}
 }
 
+// Global register warning
+void RegisterWarning( AlarmMgr_t *v, uint16_t TargetID )
+{
+	if( AlarmMgr1.State == ALARM_MGR_STATE_DISABLE)
+		return;
+
+	if( TargetID > MAX_AXIS_NUM || TargetID < 0 )
+		return;
+
+	int i;
+
+	if( TargetID == TARGET_ID_GLOBAL )
+	{
+		for( i = 0; i < MAX_AXIS_NUM; i++ )
+		{
+			*v->pHasWarning[i] = 1;
+		}
+	}
+	else
+	{
+		int TargetIndex = TargetID - 1;
+		*v->pHasWarning[TargetIndex] = 1;
+	}
+}
+
+// Global reset warning
+void ResetWarning( AlarmMgr_t *v, uint16_t TargetID )
+{
+	if( AlarmMgr1.State == ALARM_MGR_STATE_DISABLE)
+		return;
+
+	if( TargetID > MAX_AXIS_NUM || TargetID < 0 )
+		return;
+
+	int i;
+
+	if( TargetID == TARGET_ID_GLOBAL )
+	{
+		for( i = 0; i < MAX_AXIS_NUM; i++ )
+		{
+			*v->pHasWarning[i] = 0;
+		}
+	}
+	else
+	{
+		int TargetIndex = TargetID - 1;
+		*v->pHasWarning[TargetIndex] = 0;
+	}
+}
+
+// Only register critical or non-critical alarm, which has alarm ID.
 void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t AlarmType )
 {
 	if( AlarmMgr1.State == ALARM_MGR_STATE_DISABLE)
@@ -91,9 +142,9 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 			// On Alarm flag for state machine
 			switch( AlarmType ) //TODO replace "AlarmType" with "SystemTable.AlarmTableInfo[AlarmID].AlarmType", and remove argument "uint16_t AlarmType"
 			{
-				case ALARM_TYPE_WARNING:
-					*v->pHasWarning[i] = 1;
-					break;
+//				case ALARM_TYPE_WARNING:
+//					*v->pHasWarning[i] = 1;
+//					break;
 
 				case ALARM_TYPE_NONCRITICAL:
 					*v->pHasNonCriAlarm[i] = 1;
@@ -102,10 +153,6 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 				case ALARM_TYPE_CRITICAL:
 					*v->pHasCriAlarm[i] = 1;
 					break;
-
-//				case ALARM_TYPE_CRITICAL:
-//				v->CriticalAlarmFlag[i] = 1;
-//				break;
 
 				case ALARM_TYPE_NONE:
 				default:
@@ -120,9 +167,9 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 		// On Alarm flag for state machine
 		switch( AlarmType )
 		{
-			case ALARM_TYPE_WARNING:
-				*v->pHasWarning[TargetIndex] = 1;
-				break;
+//			case ALARM_TYPE_WARNING:
+//				*v->pHasWarning[TargetIndex] = 1;
+//				break;
 
 			case ALARM_TYPE_NONCRITICAL:
 				*v->pHasNonCriAlarm[TargetIndex] = 1;
@@ -140,6 +187,8 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 	}
 }
 
+// Only register critical or non-critical alarm, which has alarm ID.
+// This function is called by RegisterAxisAlarm.
 static void RegisterAxisAlarmStatic( uint16_t AxisID, uint16_t AlarmID, uint16_t AlarmType )
 {
 	if( AlarmMgr1.State == ALARM_MGR_STATE_DISABLE)
@@ -156,9 +205,9 @@ static void RegisterAxisAlarmStatic( uint16_t AxisID, uint16_t AlarmID, uint16_t
 		switch( AlarmType ) //TODO replace "AlarmType" with "SystemTable.AlarmTableInfo[AlarmID].AlarmType", and remove argument "uint16_t AlarmType"
 		{
 
-		case ALARM_TYPE_WARNING:
-			*AlarmMgr1.pHasWarning[AxisIndex] = 1;
-			break;
+//		case ALARM_TYPE_WARNING:
+//			*AlarmMgr1.pHasWarning[AxisIndex] = 1;
+//			break;
 
 		case ALARM_TYPE_NONCRITICAL:
 			*AlarmMgr1.pHasNonCriAlarm[AxisIndex] = 1;
@@ -204,6 +253,7 @@ uint16_t removeZeros(uint16_t arr[], int LengthOfArray)
     return TopIndex;
 }
 
+// Only reset critical and non-critical alarm
 void ResetAllAlarm( AlarmMgr_t *v )
 {
 	// Only if PCU stop register alarm, then PCU can reset alarm.
@@ -222,7 +272,7 @@ void ResetAllAlarm( AlarmMgr_t *v )
 			pAlarmStack->TopIndicator = 0;
 		}
 
-		*v->pHasWarning[j] = 0;
+//		*v->pHasWarning[j] = 0;
 		*v->pHasNonCriAlarm[j] = 0;
 		*v->pHasCriAlarm[j] = 0;
 	}

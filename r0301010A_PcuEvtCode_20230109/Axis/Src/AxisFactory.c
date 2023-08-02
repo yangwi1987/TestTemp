@@ -98,9 +98,9 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[0]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[1]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[2]; //CAP
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]; //MOS2
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
     }
 
     if( v->PcuPowerState == PowerOnOff_Initial )
@@ -865,18 +865,6 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
     else
     {
         v->MotorStall.Reset( &v->MotorStall );
-    }
-
-    // todo modify this in to vehicle state machine
-    // Trigger limp home mode in 100Hz loop.
-    // TN mode change in PLC loop.
-    if(v->HasNonCriAlarm == 1 /* todo && SOC <20%*/)
-    {
-        v->TriggerLimpHome = 1;
-    }
-    else
-    {
-        //v->TriggerLimpHome = 0;
     }
 }
 
