@@ -122,10 +122,10 @@ typedef struct
  =========================================*/
 typedef struct
 {
+  uint8_t Byte00;
   BmsActiveState_t BmsActiveState;       /* todo: confirm with BMS vender to signal definition */
   BmsPreChgState_t PreCHGState;          /* todo: confirm with BMS vender to signal definition */
-  uint8_t BmsFrameCnt;                   /* Vedify if this counter varies with time and range from 0 ~ 255 */ 
-  uint8_t Byte03;
+  uint8_t BmsFrameCnt;                   /* Verify if this counter varies with time and range from 0 ~ 255 */ 
   uint8_t Byte04;
   uint8_t Byte05;
   uint8_t Byte06;
