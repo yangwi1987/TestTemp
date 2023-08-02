@@ -1492,6 +1492,8 @@ void Drive_ESCStateMachine( void )
 			// normal transition
 			if( IsPcuInitReady == PcuInitState_Ready )
 			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
 				ESCMainState = ESCOP_Standby;
 			}
 			break;
@@ -1501,18 +1503,26 @@ void Drive_ESCStateMachine( void )
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_Alarm;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_LimpHome;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_Warning;
 			}
 			else if( Axis[0].ServoOn == 1 ) // normal transitions
 			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
 				ESCMainState = ESCOP_Normal;
 			}
 			else
@@ -1527,18 +1537,26 @@ void Drive_ESCStateMachine( void )
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_Alarm;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_LimpHome;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_Warning;
 			}
 			else if( Axis[0].ServoOn == 0 ) // normal transitions
 			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
 				ESCMainState = ESCOP_Standby;
 			}
 			else
@@ -1553,16 +1571,22 @@ void Drive_ESCStateMachine( void )
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_Alarm;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_LimpHome;
 			}
 
 			// if warning is reset
 			else if( Axis[0].HasWarning == 0 )
 			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
 				if( Axis[0].ServoOn == 1 )
 				{
 					ESCMainState = ESCOP_Normal;
@@ -1584,6 +1608,8 @@ void Drive_ESCStateMachine( void )
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_Alarm;
 			}
 			else
@@ -1604,6 +1630,8 @@ void Drive_ESCStateMachine( void )
 			// error situation
 			if( Axis[0].HasCriAlarm == 0 )
 			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESCOP_LimpHome;
 			}
 			else
@@ -1622,7 +1650,6 @@ void Drive_ESCStateMachine( void )
 
 __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 {
-	// todo set error BMS LED
 	// todo set RC alarm flag
 	// todo clear RC warning/limp flag
 	// todo set DC ramp?
@@ -1630,7 +1657,6 @@ __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 
 __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
 {
-	// todo set error BMS LED
 	// set Axis trigger limp home flag
 	Axis[0].TriggerLimpHome = 1;
 	// todo set RC limp home flag;
@@ -1640,20 +1666,21 @@ __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
 
 __STATIC_FORCEINLINE void EnterVehicleWarningState( void )
 {
-	// todo set error BMS LED
 	// todo set RC warning
 	// todo set DC ramp?
 }
 
 __STATIC_FORCEINLINE void EnterVehicleNormalState( void )
 {
-	// todo clear error BMS LED
+	// set Axis trigger limp home flag
+	Axis[0].TriggerLimpHome = 0;
 	// todo clear RC warning/limp/alarm flag
 }
 
 __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
 {
-	// todo clear error BMS LED
+	// set Axis trigger limp home flag
+	Axis[0].TriggerLimpHome = 0;
 	// todo clear RC warning/limp/alarm flag
 }
 
@@ -1664,7 +1691,7 @@ void Drive_VehicleStateMachine( void )
 		case VehicleState_Initializing:
 
 			// normal transition
-			if( ESCMainState == ESCOP_Standby )
+			if( ESCMainState == ESCOP_Standby /* todo BMS precharge finish*/)
 			{
 				EnterVehicleStandbyState();
 				VehicleMainState = VehicleState_Standby;
@@ -1672,23 +1699,22 @@ void Drive_VehicleStateMachine( void )
 
 			// action
 			// do CAN and RC initial communication at drive_Init
-			// todo clear error BMS LED
 			break;
 
 		case VehicleState_Standby:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm  /*|| todo BMS receive alarm flag*/)
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
 				VehicleMainState = VehicleState_Alarm;
 			}
-			else if( ESCMainState == ESCOP_LimpHome  /*|| todo BMS receive limp flag*/)
+			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
 			{
 				EnterVehicleLimpHomeState();
 				VehicleMainState = VehicleState_LimpHome;
 			}
-			else if( ESCMainState == ESCOP_Warning  /*|| todo BMS receive warning flag*/)
+			else if( ESCMainState == ESCOP_Warning || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
 			{
 				EnterVehicleWarningState();
 				VehicleMainState = VehicleState_Warning;
@@ -1704,7 +1730,6 @@ void Drive_VehicleStateMachine( void )
 			{
 				// keep in the same state, action:
 				// do CAN and RC communication at drive_DoPLC
-				// todo clear error BMS LED
 				// no motor power output
 			}
 			break;
@@ -1712,17 +1737,17 @@ void Drive_VehicleStateMachine( void )
 		case VehicleState_Normal:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm  /*|| todo BMS receive alarm flag*/)
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
 				VehicleMainState = VehicleState_Alarm;
 			}
-			else if( ESCMainState == ESCOP_LimpHome  /*|| todo BMS receive limp flag*/)
+			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
 			{
 				EnterVehicleLimpHomeState();
 				VehicleMainState = VehicleState_LimpHome;
 			}
-			else if( ESCMainState == ESCOP_Warning  /*|| todo BMS receive warning flag*/)
+			else if( ESCMainState == ESCOP_Warning || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
 			{
 				EnterVehicleWarningState();
 				VehicleMainState = VehicleState_Warning;
@@ -1744,23 +1769,23 @@ void Drive_VehicleStateMachine( void )
 		case VehicleState_Warning:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm  /*|| todo BMS receive alarm flag*/)
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
 				VehicleMainState = VehicleState_Alarm;
 			}
-			else if( ESCMainState == ESCOP_LimpHome  /*|| todo BMS receive limp flag*/)
+			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
 			{
 				EnterVehicleLimpHomeState();
 				VehicleMainState = VehicleState_LimpHome;
 			}
 			// recovery paths
-			else if( ESCMainState == ESCOP_Normal )
+			else if( ESCMainState == ESCOP_Normal && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
 			{
 				EnterVehicleNormalState();
 				VehicleMainState = VehicleState_Normal;
 			}
-			else if( ESCMainState == ESCOP_Standby )
+			else if( ESCMainState == ESCOP_Standby && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
 			{
 				EnterVehicleStandbyState();
 				VehicleMainState = VehicleState_Standby;
@@ -1776,7 +1801,7 @@ void Drive_VehicleStateMachine( void )
 		case VehicleState_LimpHome:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm  /*|| todo BMS receive alarm flag*/)
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
 				VehicleMainState = VehicleState_Alarm;
@@ -1793,7 +1818,7 @@ void Drive_VehicleStateMachine( void )
 		case VehicleState_Alarm:
 
 			// error situation
-			if( ESCMainState == ESCOP_LimpHome  /*|| todo BMS reset alarm flag*/)
+			if( ESCMainState != ESCOP_Alarm && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
 			{
 				EnterVehicleLimpHomeState();
 				VehicleMainState = VehicleState_LimpHome;
@@ -2322,7 +2347,7 @@ void Drive_ResetNonCriAlarmCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 {
 	v->RequestResetNonCriAlarmCNT = RESET_NonCriAlarm_RESETING;
 	// Reset All NonCriAlarmr before reset alarm stack and clear hasNonCriAlarm.
-	// Reset NonCriAlarmCNT  todo create a new function in alarmDetect
+	// Reset NonCriAlarmCNT
 	v->AlarmDetect.CAN1Timeout.Counter = 0;
 	v->AlarmDetect.FOIL_SENSOR_BREAK.Counter = 0;
 	v->AlarmDetect.FOIL_SENSOR_SHORT.Counter = 0;

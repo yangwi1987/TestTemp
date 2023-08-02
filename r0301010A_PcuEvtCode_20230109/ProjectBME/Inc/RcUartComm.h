@@ -36,10 +36,10 @@ typedef enum RcCommDataId_e
 #define RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD		1500	/* 1500ms = 1.5 sec */
 #define RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT  15				/* 15 = RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD / 100 */
 
-#define RC_COMM_RC_FW_VER_SIZE	3	/* RC firmware version array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RC_SN_SIZE		32	/* RC serial number array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RF_FW_VER_SIZE	3	/* RF firmware version array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RF_SN_SIZE		32	/* RF serial number array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RC_FW_VER_SIZE	3	/* RC firmware version array size in byte.*/
+#define RC_COMM_RC_SN_SIZE		32	/* RC serial number array size in byte.*/
+#define RC_COMM_RF_FW_VER_SIZE	3	/* RF firmware version array size in byte.*/
+#define RC_COMM_RF_SN_SIZE		32	/* RF serial number array size in byte.*/
 
 #define RC_TEIMOUT_TEST 0
 #define RC_COMM_DMA_USAGE 1

@@ -302,7 +302,6 @@ void ResetAllWarning( AlarmMgr_t *v )
 			}
 		}
 
-		// todo sorting alarm to bottom, fill the warning void.
 		pAlarmStack->TopIndicator = removeZeros(pAlarmStack->NowAlarmID, MAX_NOW_ALARM_SIZE);
 		WarningBitArray = (uint16_t)0x0000;
 		*v->pHasWarning[j] = 0;
@@ -335,7 +334,6 @@ void ResetAllNonCriticalAlarm( AlarmMgr_t *v )
 			}
 		}
 
-		// todo sorting alarm to bottom, fill the NonCriAlarm void.
 		pAlarmStack->TopIndicator = removeZeros(pAlarmStack->NowAlarmID, MAX_NOW_ALARM_SIZE);
 		NonCriAlarmBitArray = (uint16_t)0x0000;
 		*v->pHasNonCriAlarm[j] = 0;
