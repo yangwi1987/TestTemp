@@ -205,7 +205,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			p->TxBuff[20] = lTempI16 >> 8;
 
 			/*Remaining time(min)*/
-			lTempU16 = (uint8_t)(p->pTxInterface->Debugf[IDX_REMAIN_TIME] / 60);
+			lTempU16 = (uint8_t)(p->pTxInterface->Debugf[IDX_REMAIN_TIME]);
 			p->TxBuff[21] = lTempU16 & 0xFF;
 
 			// Error Code
