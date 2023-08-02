@@ -2207,26 +2207,46 @@ void drive_Do100HzLoop(void)
 // Check if "any" component's temperature is higher then minimum temperature in relative derating table.
 static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 {
-	uint8_t IsOverTempFlag;
+	uint8_t IsOverTempFlag = 0;
 	if( *(v->TempNow[MOS_NTC_CENTER]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
-	}
-	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
-	{
-		IsOverTempFlag = 1;
-	}
-	else if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->MosDerating.X.InputMin )
-	{
-		IsOverTempFlag = 1;
-	}
-	else if( *(v->TempNow[CAP_NTC]) > v->CapDerating.X.InputMin )
-	{
-		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= MOS_DERATING;
 	}
 	else
 	{
-		IsOverTempFlag = 0;
+		v->ThermoDeratingSrc &= ~MOS_DERATING;
+	}
+
+	if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= MOS_DERATING;
+	}
+	else
+	{
+		v->ThermoDeratingSrc &= ~MOS_DERATING;
+	}
+
+	if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= MOTOR_DERATING;
+	}
+	else
+	{
+		v->ThermoDeratingSrc &= ~MOTOR_DERATING;
+	}
+
+	if( *(v->TempNow[CAP_NTC]) > v->CapDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= CAP_DERATING;
+	}
+	else
+	{
+		v->ThermoDeratingSrc &= ~CAP_DERATING;
+
 	}
 
 	return IsOverTempFlag;

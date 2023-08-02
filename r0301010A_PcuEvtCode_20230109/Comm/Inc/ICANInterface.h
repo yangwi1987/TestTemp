@@ -363,7 +363,6 @@ typedef struct
 	int16_t IDcBus0P1A;
 	int16_t VoltDcBu0P1V;
 	FoilPos_t FoilPos;
-	uint8_t LimpHomeSrc;
 	uint8_t DeratingSrc;
 	uint8_t ShiftReport;
 	uint8_t _4Quad;
@@ -447,7 +446,6 @@ typedef struct {
 		0, /* IDcBus0P1A */ \
 		0, /* VoltDcBu0P1V */ \
 		FOIL_POS_PADDLE, /*FoilPos*/ \
-		0,	/* LimpHomeSrc*/\
 		0,	/* DeratingSrc*/\
 		0, /* ShiftReport */ \
 		0, /* _4Quad */ \

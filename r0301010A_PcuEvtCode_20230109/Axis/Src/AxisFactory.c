@@ -96,6 +96,36 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 {
     uint16_t i;
 
+	if(v->HasCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_CRI_ALARM_MASK;
+	}
+
+	if(v->HasNonCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_NON_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
+	}
+
+	if(v->HasWarning == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_WARNING_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
+	}
+
+	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
+
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
         v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
@@ -136,6 +166,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
             v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
         }
     }
+
+    v->pCANTxInterface->DeratingSrc = v->ThermoStrategy.ThermoDeratingSrc;
 
     // debug
     v->pCANTxInterface->MotorRpm = (int16_t)v->SpeedInfo.MotorMechSpeedRPM;
@@ -697,39 +729,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
+        //todo power level 10
     }
-
-    v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
-
-    if(v->HasCriAlarm == 1)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_CRI_ALARM_MASK;
-    }
-    else
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_CRI_ALARM_MASK;
-    }
-
-    if(v->HasNonCriAlarm == 1)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_NON_CRI_ALARM_MASK;
-    }
-    else
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
-    }
-
-    if(v->HasWarning == 1)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_WARNING_MASK;
-    }
-    else
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
-    }
-
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
-    	(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
 
     // Update scooter speed for report
     v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
