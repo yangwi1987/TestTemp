@@ -2198,14 +2198,42 @@ void drive_Do100HzLoop(void)
 
 }
 
+// Check if "any" component's temperature is higher then minimum temperature in relative derating table.
+static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
+{
+	uint8_t IsOverTempFlag;
+	if( *(v->TempNow[MOS_NTC_CENTER]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+	}
+	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+	}
+	else if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+	}
+	else if( *(v->TempNow[CAP_NTC]) > v->CapDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+	}
+	else
+	{
+		IsOverTempFlag = 0;
+	}
+
+	return IsOverTempFlag;
+}
+
 void drive_Do10HzLoop(void)
 {
-	int i,j; // Axis index
+	int i; // Axis index
 
-	// auto set and reset warning depending on NTC
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
-		if( *(Axis[i].ThermoStrategy.TempNow[j]) > Axis[i].ThermoStrategy.MosDerating.X.InputMin )
+		// auto set and reset warning depending on NTC
+		if( IsCompTempOverWarningTemp( &Axis[i].ThermoStrategy) )
 		{
 			AlarmMgr1.RegisterWarning( &AlarmMgr1, AXIS_INDEX_TO_AXIS_ID(i) );
 		}
