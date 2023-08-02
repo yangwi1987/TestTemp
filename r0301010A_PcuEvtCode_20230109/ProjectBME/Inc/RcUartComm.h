@@ -92,7 +92,7 @@ typedef struct{
 	functypeRcComm_MsgDecoder MsgDecoder;
 	functypeRcComm_QueryInfoFromRF QueryInfoFromRF;
 	functypeRcComm_10HzLoop _10HzLoop;
-	functypeRcComm_Reset	Reset;
+	functypeRcComm_Reset Reset;
 }StructUartCtrl;
 
 

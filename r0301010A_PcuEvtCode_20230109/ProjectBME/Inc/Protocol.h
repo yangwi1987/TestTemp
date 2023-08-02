@@ -34,6 +34,7 @@
 
 #define CAN_TX_CRI_ALARM_MASK 0x01
 #define CAN_TX_NON_CRI_ALARM_MASK 0x02
+#define CAN_TX_WARNING_MASK 0x04
 
 
 /*======================================
