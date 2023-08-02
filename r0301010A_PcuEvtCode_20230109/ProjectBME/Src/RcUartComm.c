@@ -33,6 +33,7 @@ StructUartCtrl RCCommCtrl = RC_COMM_CTRL_DEFAULT;
 uint16_t RcInfoQueryRetryCnt = 0;
 uint8_t RcInfoQueryRetryEnable = 1;
 uint8_t RcInfoQueryCompleteFlag = 0;
+uint8_t RecRcComFlag = 0; // Received RC command flag
 
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
 #define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
@@ -331,7 +332,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 		}
 		case RC_CMD_ID_RC_COMMAND:
 		{
-			
+			// when RC connected then update throttle and power level
 			if ((*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) >= RC_CONN_STATUS_RC_THROTTLE_LOCKED) &&
 				(*(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS) < RC_CONN_STATUS_MAX) &&
 				(*(pData + IDX_RC_COMM_DLC_L) == 0x0C) &&
@@ -346,6 +347,13 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			else
 			{
 				p->pRxInterface->RcConnStatus = 0;
+			}
+
+			// if DLC is correct, then set receiced RC command flag
+			if ((*(pData + IDX_RC_COMM_DLC_L) == 0x0C) &&
+				(*(pData + IDX_RC_COMM_DLC_H) == 0x00))
+			{
+				RecRcComFlag = 1;
 			}
 			break;
 		}
@@ -583,6 +591,14 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 
 			RcInfoQueryRetryCnt++;
 		}
+	}
+	if(RecRcComFlag == 0 && p->AccUARTErrorCnt <65535)
+	{
+		p->AccUARTErrorCnt++;
+	}
+	else
+	{
+		RecRcComFlag = 0; // auto reset the flag to 0 each 10 ms.
 	}
 
 	if (p->TimeoutCnt < RC_COMM_TIMEOUT_THRESHOLD_100MS)
