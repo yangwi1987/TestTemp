@@ -294,6 +294,7 @@ typedef struct
 	uint8_t UrgentShutdown;
 	uint8_t ExtPumpStatus;
 	uint8_t ReceivedCANID;
+	uint16_t AccCANErrorCnt;
 	UNION_CtrlIO ExtSignalCmd;
 	UNION_PRCH_CTRL PrchCtrlFB;
 	STRUCT_Authendata RxAuthData[2];
@@ -305,6 +306,7 @@ typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
   TX_INTERFACE_DBG_IDX_ALARM_FLAG = 1, // include critical alarm and non-critical alarm
+  TX_INTERFACE_DBG_IDX_LED_CTRL_CMD	= 4,
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
@@ -415,6 +417,7 @@ typedef struct {
 	0,      /* UrgentShutdown */\
 	0,      /* ExtPumpStatus */\
 	0,      /* ReceivedCANID */\
+	0,      /* AccCANErrorCnt */\
 	{0},    /* ExtSignalCmd */\
 	{0},    /* PrchCtrlFB */\
 	{{NULL,0},{NULL,0}},      /* RxAuthData[2] */\

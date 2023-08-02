@@ -162,7 +162,6 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] =  (float)(v->pCANRxInterface->BatCurrentDrainLimit0P1A);
         v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
-        v->pCANTxInterface->DebugU8[1] = v->FourQuadCtrl.FourQuadState;
     }
 
 }
@@ -702,12 +701,13 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
 
-
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] = 0;
-
     if(v->HasCriAlarm == 1)
     {
         v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] |= CAN_TX_CRI_ALARM_MASK;
+    }
+    else
+    {
+        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] &= ~CAN_TX_CRI_ALARM_MASK;
     }
 
     if(v->HasNonCriAlarm == 1)
@@ -718,6 +718,9 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     {
         v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ALARM_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
     }
+
+    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+    	(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
 
     // Update scooter speed for report
     v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;

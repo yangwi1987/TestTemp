@@ -365,7 +365,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{	    3,	  	   51,		  13,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenSurf0p1V},	//P1-32
 				{	    3,	  	   51,		  5,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenSurf0p1V},	//P1-33
 				{	    3,	  	   51,		  36,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenFoil0p1V},	//P1-34
-				{	    3,	  	   51,		  30,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenFoil0p1V},	//P1-35
+				{	    3,	  	   51,		  28,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenFoil0p1V},	//P1-35
 				{		0,			0,			0,			0,		0},	//P1-36
 				{		0,			0,			0,			0,		0},	//P1-37
 				{		0,			0,			0,			0,		0},	//P1-38

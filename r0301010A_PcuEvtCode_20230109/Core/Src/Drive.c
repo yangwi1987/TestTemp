@@ -439,6 +439,12 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 	case DN_TOTAL_OP_TIME:
 		RetValue = (uint16_t)(roundf( (float)TotalTime1.LocalTotalTime * 0.0008333333f )); // in hour
 		break;
+	case DN_ACC_UART_ERROR_CNT :
+		RetValue = RCCommCtrl.AccUARTErrorCnt;
+		break;
+	case DN_ACC_CAN_ERROR_CNT :
+		RetValue = Axis[0].pCANRxInterface->AccCANErrorCnt;
+		break;
 	default :
 		RetValue = 0;
 		break;
@@ -2245,6 +2251,18 @@ void drive_Do10HzLoop(void)
 
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
+
+	// Because ESC does not receive RECEIVED_BAT_ID_1 for 100 ms, CAN1Timeout.Counter will be greater than 10;
+	// Note: CAN1Timeout.Counter increase every 100Hz in AlarmDetect_Do100HzLoop function
+	// If ESC does not receive RECEIVED_BAT_ID_1 for 100 ms(A.K.A. CAN1Timeout.Counter>10),
+	// then AccCANErrorCnt increase.
+	if( Axis[0].AlarmDetect.CAN1Timeout.Counter >= 10)
+	{
+		if(	Axis[0].pCANRxInterface->AccCANErrorCnt <65535 )
+		{
+			Axis[0].pCANRxInterface->AccCANErrorCnt++;
+		}
+	}
 }
 
 void drive_DoTotalTime(void)
@@ -2384,6 +2402,27 @@ void drive_DoHouseKeeping(void)
         	}
         }
 	}
+
+//	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] != 0xFF)
+	{
+		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 1)
+		{
+			RCCommCtrl.AccUARTErrorCnt = 0;
+			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
+		}
+		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
+		{
+			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
+		}
+		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
+		{
+			RCCommCtrl.AccUARTErrorCnt = 0;
+			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
+		}
+	}
+
 }
 
 void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT )
