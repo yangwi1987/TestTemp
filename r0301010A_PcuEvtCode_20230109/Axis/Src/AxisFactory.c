@@ -269,7 +269,11 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
-                    v->ServoOnOffState = v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag ? MOTOR_STATE_WAIT_BOOT : MOTOR_STATE_ON;
+                	if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
+                	{
+                		v->ServoOnOffState = MOTOR_STATE_ON;
+                	}
+
                     if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
                     {
                         v->PhaseLoss.Start = FUNCTION_YES;
