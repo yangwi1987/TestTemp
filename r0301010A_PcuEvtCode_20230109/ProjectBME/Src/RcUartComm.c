@@ -196,17 +196,17 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			p->TxBuff[16] = (uint8_t)!HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
 
 			/*Instant Power*/
-			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_INSTANT_POWER];
+			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_INSTANT_AC_POWER];
 			p->TxBuff[17] = lTempI16 & 0xFF;
 			p->TxBuff[18] = lTempI16 >> 8;
 
 			/*Average Power*/
-			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_AVERAGE_POWER];
+			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_AVERAGE_AC_POWER];
 			p->TxBuff[19] = lTempI16 & 0xFF;
 			p->TxBuff[20] = lTempI16 >> 8;
 
 			/*Remaining time(min)*/
-			lTempU16 = (uint8_t)(p->pTxInterface->Debugf[IDX_REMAIN_TIME] / 60);
+			lTempU16 = (uint8_t)(p->pTxInterface->Debugf[IDX_REMAIN_TIME]);
 			p->TxBuff[21] = lTempU16 & 0xFF;
 
 			// Error Code
@@ -342,11 +342,11 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				p->pRxInterface->PowerLevel = *(pData + RC_CMD_DATA_IDX_PWR_LEVEL);
 				p->TimeoutCnt = 0;
 				p->RcHaveConnectedFlag = 1;
-				p->pRxInterface->RcConnStatus = 1;
+				p->pRxInterface->RcConnStatus = *(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS);
 			}
 			else
 			{
-				p->pRxInterface->RcConnStatus = 0;
+				p->pRxInterface->RcConnStatus = RC_CONN_STATUS_NO_VALID_RC;
 			}
 
 			// if DLC is correct, then set receiced RC command flag

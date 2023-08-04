@@ -70,7 +70,7 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 
     if( ( HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == 0 ) &&
         ( v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE ) &&
-        ( RCCommCtrl.pRxInterface->RcConnStatus == 1 ))
+        ( RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED ))
     {
         v->FourQuadCtrl.ServoCmdIn = ENABLE;
         v->FourQuadCtrl.GearPositionCmd = ENABLE;
@@ -189,6 +189,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
+        v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
 #if USE_ANALOG_FOIL_SENSOR_FUNC
         v->pCANTxInterface->Debugf[IDX_FOIL_SENSOR_VOLT] = v->pAdcStation->AdcTraOut.Foil;
 #endif
@@ -288,7 +290,11 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
-                    v->ServoOnOffState = MOTOR_STATE_ON;
+                	if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
+                	{
+                		v->ServoOnOffState = MOTOR_STATE_ON;
+                	}
+
                     if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
                     {
                         v->PhaseLoss.Start = FUNCTION_YES;
@@ -353,6 +359,12 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
                 AxisFactory_ConfigAlarmSystem( v );
+            }
+            else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
+            {
+            	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+            	v->MotorCtrlMode = FUNCTION_MODE_BOOTSTRAP;
+            	v->MotorControl.Clean( &v->MotorControl );
             }
             break;
 
@@ -542,6 +554,11 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
     v->AnalogFoilInfo.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
     v->AnalogFoilInfo.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
     v->AnalogFoilInfo.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
+
+    //Load TimeToStopDriving_InPLCLoop, convert s to ms
+    v->DriveLockInfo.IsUseDriveLockFn = v->pDriveParams->PCUParams.DebugParam2;
+    v->DriveLockInfo.TimeToStopDriving_InPLCLoop = v->pDriveParams->SystemParams.SecTimeThresholdForDriveLock * 1000;
+    v->DriveLockInfo.RpmToStartCntDriveLock = v->pDriveParams->SystemParams.RpmToStartCntDriveLock;
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )
@@ -860,10 +877,47 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     {
         HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
     }
+
+    //check Drive lock state.
+    if ( v->DriveLockInfo.IsUseDriveLockFn )
+    {
+        if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
+        {
+            if (( RCCommCtrl.pRxInterface->RcConnStatus <= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) && ( v->SpeedInfo.MotorMechSpeedRPMAbs < (float)v->DriveLockInfo.RpmToStartCntDriveLock ))
+            {
+            	if ( v->DriveLockInfo.TimeToStopDriving_cnt >= v->DriveLockInfo.TimeToStopDriving_InPLCLoop )
+            	{
+            		v->DriveLockInfo.DriveStateFlag = Drive_Stop_Flag;
+            		v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+            	}
+            	else
+            	{
+            		v->DriveLockInfo.TimeToStopDriving_cnt++;
+            	}
+            }
+            else
+            {
+            	v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+            }
+        }
+        else
+        {
+        	if ( RCCommCtrl.pRxInterface->RcConnStatus > RC_CONN_STATUS_RC_THROTTLE_LOCKED )
+        	{
+        		v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
+        	}
+        }
+    }
+    else
+    {
+    	v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
+    }
 }
 
 void AxisFactory_Do100HzLoop( Axis_t *v )
 {
+	float ACPowerTemp = 0;
+
     v->PwmRc.AlarmDet( &v->PwmRc );
     v->AlarmDetect.Do100HzLoop( &v->AlarmDetect );
     if( v->ServoOn )
@@ -886,6 +940,11 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
     {
         v->MotorStall.Reset( &v->MotorStall );
     }
+
+    /* Calculate AC instantaneous and average Power */
+    ACPowerTemp = 1.5 * (v->MotorControl.CurrentControl.RotorCurrFb.D * v->MotorControl.VoltCmd.VdCmd +
+    		v->MotorControl.CurrentControl.RotorCurrFb.Q * v->MotorControl.VoltCmd.VqCmd);
+    AcPwrInfo.do100HzLoop(&AcPwrInfo, ACPowerTemp);
 }
 
 void AxisFactory_Do10HzLoop( Axis_t *v )

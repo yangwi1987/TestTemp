@@ -140,8 +140,8 @@ typedef struct {
 	uint16_t ThrottleFullPt[5];	//P1-14
 	uint16_t ThrottleRamp[5];	//P1-19
 	uint16_t Reserved124;	//P1-24
-	uint16_t Reserved125;	//P1-25
-	uint16_t Reserved126;	//P1-26
+	uint16_t SecTimeThresholdForDriveLock;	//P1-25
+	uint16_t RpmToStartCntDriveLock;	//P1-26
 	uint16_t Reserved127;	//P1-27
 	uint16_t Reserved128;	//P1-28
 	uint16_t Reserved129;	//P1-29

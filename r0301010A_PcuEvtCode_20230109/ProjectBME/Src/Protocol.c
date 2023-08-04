@@ -99,7 +99,7 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
       }
 
       v->BmsReportInfo.MaxCellTemp = ((int16_t)p->BmsStatus01.MaxCellTemp - 40);
-
+      v->BmsReportInfo.BatInstPwr = v->BmsReportInfo.Current * v->BmsReportInfo.DcVolt;
 
       v->ReceivedCANID |= RECEIVED_BAT_ID_1;  /* For BMS CAN timeout usage */
 
@@ -318,10 +318,10 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
 
         /*todo: assign true value for signals*/
-        i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_POWER]);
+        i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_AC_POWER]);
         ByteOrderReverse((void*)&p->EscLogInfo6.AvgPwr , (void*)&i16Temp, 2);
         /*todo: assign true value for signals*/
-        i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_POWER]);
+        i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_AC_POWER]);
         ByteOrderReverse((void*)&p->EscLogInfo6.InstPwr , (void*)&i16Temp, 2);
         /*todo: assign true value for signals*/
         u16Temp = (uint16_t)(v->Debugf[IDX_REMAIN_TIME]);

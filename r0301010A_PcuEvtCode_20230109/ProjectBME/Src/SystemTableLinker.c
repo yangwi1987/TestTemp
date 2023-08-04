@@ -355,8 +355,8 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[3]},	//P1-22
 				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[4]},	//P1-23
 				{		0,			0,			0,			0,		0},	//P1-24
-				{		0,			0,			0,			0,		0},	//P1-25
-				{		0,			0,			0,			0,		0},	//P1-26
+				{		0,		65535,		   10,		 0x45,		&DriveParams.SystemParams.SecTimeThresholdForDriveLock},	//P1-25
+				{		0,		 6000,		  100,		 0x45,		&DriveParams.SystemParams.RpmToStartCntDriveLock},	//P1-26
 				{		0,			0,			0,			0,		0},	//P1-27
 				{		0,			0,			0,			0,		0},	//P1-28
 				{		0,			0,			0,			0,		0},	//P1-29
