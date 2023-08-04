@@ -867,31 +867,38 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     }
 
     //check Drive lock state.
-    if (( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag ) && ( v->DriveLockInfo.IsUseDriveLockFn ))
+    if ( v->DriveLockInfo.IsUseDriveLockFn )
     {
-        if (( RCCommCtrl.pRxInterface->RcConnStatus <= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) && ( v->SpeedInfo.MotorMechSpeedRPMAbs < (float)v->DriveLockInfo.RpmToStartCntDriveLock ))
+        if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
         {
-        	if ( v->DriveLockInfo.TimeToStopDriving_cnt >= v->DriveLockInfo.TimeToStopDriving_InPLCLoop )
-        	{
-        		v->DriveLockInfo.DriveStateFlag = Drive_Stop_Flag;
-        		v->DriveLockInfo.TimeToStopDriving_cnt = 0;
-        	}
-        	else
-        	{
-        		v->DriveLockInfo.TimeToStopDriving_cnt++;
-        	}
+            if (( RCCommCtrl.pRxInterface->RcConnStatus <= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) && ( v->SpeedInfo.MotorMechSpeedRPMAbs < (float)v->DriveLockInfo.RpmToStartCntDriveLock ))
+            {
+            	if ( v->DriveLockInfo.TimeToStopDriving_cnt >= v->DriveLockInfo.TimeToStopDriving_InPLCLoop )
+            	{
+            		v->DriveLockInfo.DriveStateFlag = Drive_Stop_Flag;
+            		v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+            	}
+            	else
+            	{
+            		v->DriveLockInfo.TimeToStopDriving_cnt++;
+            	}
+            }
+            else
+            {
+            	v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+            }
         }
         else
         {
-        	v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+        	if ( RCCommCtrl.pRxInterface->RcConnStatus > RC_CONN_STATUS_RC_THROTTLE_LOCKED )
+        	{
+        		v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
+        	}
         }
     }
     else
     {
-    	if (( RCCommCtrl.pRxInterface->RcConnStatus > RC_CONN_STATUS_RC_THROTTLE_LOCKED ) || ( !v->DriveLockInfo.IsUseDriveLockFn ))
-    	{
-    		v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
-    	}
+    	v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
     }
 }
 
