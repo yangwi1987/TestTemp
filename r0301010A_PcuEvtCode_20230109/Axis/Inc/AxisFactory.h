@@ -26,6 +26,7 @@
 #include "SpeedInfo.h"
 #include "ConstantParamAndUseFunction.h"
 #include "RcUartComm.h"
+#include "BMEApp.h"
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);
 typedef void (*functypeAxis_DoCurrentLoop)(void*);

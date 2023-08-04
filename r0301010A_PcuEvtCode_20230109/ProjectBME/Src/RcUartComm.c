@@ -196,12 +196,12 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			p->TxBuff[16] = (uint8_t)!HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
 
 			/*Instant Power*/
-			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_INSTANT_POWER];
+			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_INSTANT_AC_POWER];
 			p->TxBuff[17] = lTempI16 & 0xFF;
 			p->TxBuff[18] = lTempI16 >> 8;
 
 			/*Average Power*/
-			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_AVERAGE_POWER];
+			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_AVERAGE_AC_POWER];
 			p->TxBuff[19] = lTempI16 & 0xFF;
 			p->TxBuff[20] = lTempI16 >> 8;
 

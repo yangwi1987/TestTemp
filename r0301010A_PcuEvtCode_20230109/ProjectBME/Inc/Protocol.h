@@ -309,6 +309,7 @@ typedef struct
   float Current;
   float DcVolt;
   float DCCurrentLimit;
+  float BatInstPwr;							/* Battery instantaneous power= Vbat x Ibat */
 } BmsReportInfo_t;
 
 #define BMS_REPORT_INFO_DEFAULT \
@@ -330,6 +331,7 @@ typedef struct
   0.0f,	/*Current*/				      \
   0.0f,	/*DcVolt*/				      \
   0.0f,	/*DCCurrentLimit*/		  \
+  0.0f,	/*BatInstPwr*/		  \
 }                               \
 
 extern const CanIdConfig_t LscCanIdTableExtra[];
