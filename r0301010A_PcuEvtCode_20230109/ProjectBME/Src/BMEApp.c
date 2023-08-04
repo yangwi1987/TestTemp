@@ -8,10 +8,7 @@
 
 #include "BMEApp.h"
 
-
-
 AcPwrInfo_t AcPwrInfo = AC_POWER_INFO_DEFAULT;
-
 
 void AcPowerInfo_Reset(AcPwrInfo_t *p)
 {
