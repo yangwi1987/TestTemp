@@ -1935,7 +1935,7 @@ void drive_Do1HzLoop(void)
 
 	RemainingTime1.Do1secLoop ( &RemainingTime1, FCC, Related_SoC, Insta_Power, Axis[0].TriggerLimpHome );
 
-	Axis[0].pCANTxInterface->Debugf[IDX_REMAIN_TIME] = RemainingTime1.Remaining_Time_Min;
+	Axis[0].pCANTxInterface->Debugf[IDX_REMAIN_TIME] = (float)RemainingTime1.Remaining_Time_Min;
 }
 
 void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)

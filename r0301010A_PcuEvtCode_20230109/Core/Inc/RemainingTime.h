@@ -11,10 +11,10 @@
 #include "Constant.h"
 #include "string.h"
 
-#define MIN_FULL_CHARGED_CAPACITY 100
-#define MIN_RELATED_SOC           1
-#define MAX_Remaining_Time        255
-#define MIN_power_sum_120Sec_Ws
+#define MIN_FULL_CHARGED_CAPACITY 100   // Uint: Wh
+#define MIN_RELATED_SOC           1     // Uint: %
+#define MAX_REMAINING_TIME       255    // Uint:Min
+#define MIN_POWER_SUM_120SEC_WS   1     // Uint: Ws * 120Sec
 
 #define Power_record_number       120
 
