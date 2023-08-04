@@ -1926,8 +1926,8 @@ void drive_DoTotalTime(void)
 void drive_Do1HzLoop(void)
 {
 	// do remaining time calculation
-	uint16_t FCC = 2419;   //default set do designed capacity
-	uint8_t Related_SoC = Axis[0].pCANRxInterface->BmsReportInfo.Soc;
+	uint16_t FCC = 2419;   //default set do designed capacity    Uint: Wh
+	uint8_t Related_SoC = Axis[0].pCANRxInterface->BmsReportInfo.Soc;    // Uint: %
 	uint16_t Insta_Power = 0;
 	float temp_Insta_Power = Axis[0].pCANRxInterface->BmsReportInfo.DcVolt * Axis[0].pCANRxInterface->BmsReportInfo.Current;
 
