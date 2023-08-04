@@ -34,8 +34,15 @@ void RemainingTime_Do1secLoop ( RemainingTime_t *p, uint16_t FCC, uint8_t Relate
              *   Remaining_Time_Min = (( Remaining_Capacity_100Wh / 100 ) / ( power_sum_120Sec_Ws / 3600 / 120 )) / 60
              *                      = ( Remaining_Capacity_100Wh * 72 ) / power_sum_120Sec_Ws
              */
-            temp_Remaining_Time_Min = ( p->Remaining_Capacity_100Wh * 72 ) / p->power_sum_120Sec_Ws;
-            temp_Remaining_Time_Min = ( temp_Remaining_Time_Min > MAX_Remaining_Time ) ? MAX_Remaining_Time : temp_Remaining_Time_Min ;
+            if ( p->power_sum_120Sec_Ws > 0 )
+            {
+                temp_Remaining_Time_Min = ( p->Remaining_Capacity_100Wh * 72 ) / p->power_sum_120Sec_Ws;
+                temp_Remaining_Time_Min = ( temp_Remaining_Time_Min > MAX_Remaining_Time ) ? MAX_Remaining_Time : temp_Remaining_Time_Min ;
+            }
+            else
+            {
+            	temp_Remaining_Time_Min = MAX_Remaining_Time;
+            }
 
             p->Remaining_Time_Min = (uint8_t)temp_Remaining_Time_Min;
 		}
