@@ -173,7 +173,9 @@ typedef enum
 typedef enum
 {
 	No_Valid_RC_is_connected,
-	Valid_RC_is_connected
+	Valid_RC_and_throttle_is_locked,
+    Valid_RC_and_throttle_is_unlocking,
+	Valid_RC_and_throttle_is_unlocked
 }UdsDIDRCConnectionStatus_e;
 
 typedef enum

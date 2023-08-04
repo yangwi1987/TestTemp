@@ -110,6 +110,9 @@ void Sensorless_Clean( Sensorless_t *p, float EleAngle, float EleSpeed )
 
 	//Angle Init Fixed Cmd Clean
 	p->AngleInit.FixedCmd.Cnt = 0;
+
+	//Sensorless state
+	p->SensorlessState = SensorlessState_None;
 }
 
 void EEMFOnStator_Clean( IPMSensorlessEEMFOnStator_t *p, float EleAngle, float EleSpeed, float Valpha, float Vbeta, float Ialpha, float Ibeta )

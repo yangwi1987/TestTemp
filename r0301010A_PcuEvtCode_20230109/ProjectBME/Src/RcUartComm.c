@@ -342,11 +342,11 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				p->pRxInterface->PowerLevel = *(pData + RC_CMD_DATA_IDX_PWR_LEVEL);
 				p->TimeoutCnt = 0;
 				p->RcHaveConnectedFlag = 1;
-				p->pRxInterface->RcConnStatus = 1;
+				p->pRxInterface->RcConnStatus = *(pData + RC_CMD_DATA_IDX_RC_CONN_STATUS);
 			}
 			else
 			{
-				p->pRxInterface->RcConnStatus = 0;
+				p->pRxInterface->RcConnStatus = RC_CONN_STATUS_NO_VALID_RC;
 			}
 
 			// if DLC is correct, then set receiced RC command flag
