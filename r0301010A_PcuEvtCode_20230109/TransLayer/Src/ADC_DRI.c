@@ -312,6 +312,20 @@ void AdcStation_DoPLCLoop( AdcStation *v )
 #if USE_ANALOG_FOIL_SENSOR_FUNC
 	v->AdcTraOut.Foil 	  = (float)v->RegCh[FOIL_AD].GainValue * (v->AdcDmaData[v->RegCh[FOIL_AD].AdcGroupIndex][v->RegCh[FOIL_AD].AdcRankIndex]);
 #endif
+
+#if 1
+	static float TempFoil[5] = {0};
+	static float TempSumFoil = 0;
+	static uint16_t TempFoil_index = 0;
+
+    //  calculate power consumption during 120 sec
+    TempSumFoil = TempSumFoil - TempFoil[TempFoil_index];
+    TempFoil[TempFoil_index] = v->AdcTraOut.Foil;
+    TempSumFoil = TempSumFoil + TempFoil[TempFoil_index];
+    TempFoil_index = (( TempFoil_index == 4) ? 0 : TempFoil_index + 1 );
+    v->AdcTraOut.Foil 	  = TempSumFoil / 5.0f;
+#endif
+
 	v->AdcTraOut.V13 	  = (float)v->RegCh[P13V_AD].GainValue * (v->AdcDmaData[v->RegCh[P13V_AD].AdcGroupIndex][v->RegCh[P13V_AD].AdcRankIndex]);
 	v->AdcTraOut.HwID1    = (float)v->RegCh[HW_ID1].GainValue  * (v->AdcDmaData[v->RegCh[HW_ID1].AdcGroupIndex][v->RegCh[HW_ID1].AdcRankIndex]);
 	v->AdcTraOut.HwID2    = (float)v->RegCh[HW_ID2].GainValue  * (v->AdcDmaData[v->RegCh[HW_ID2].AdcGroupIndex][v->RegCh[HW_ID2].AdcRankIndex]);
