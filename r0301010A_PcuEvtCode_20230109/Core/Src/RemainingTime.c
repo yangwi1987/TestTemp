@@ -20,7 +20,7 @@ void RemainingTime_Do1secLoop ( RemainingTime_t *p, uint16_t FCC, uint8_t Relate
             p->power_sum_120Sec_Ws = p->power_sum_120Sec_Ws - (uint32_t)p->power_record[p->power_record_index];
             p->power_record[p->power_record_index] = Insta_Power;
             p->power_sum_120Sec_Ws = p->power_sum_120Sec_Ws + (uint32_t)p->power_record[p->power_record_index];
-            p->power_record_index = (( p->power_record_index == ( Power_record_number - 1 )) ? 0 : p->power_record_index + 1 );
+            p->power_record_index = (( p->power_record_index == ( POWER_RECORD_NUMBER - 1 )) ? 0 : p->power_record_index + 1 );
 
 
 

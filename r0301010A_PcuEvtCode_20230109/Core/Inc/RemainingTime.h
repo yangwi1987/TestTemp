@@ -16,7 +16,7 @@
 #define MAX_REMAINING_TIME       255    // Uint:Min
 #define MIN_POWER_SUM_120SEC_WS   1     // Uint: Ws * 120Sec
 
-#define Power_record_number       120
+#define POWER_RECORD_NUMBER       120
 
 
 
@@ -25,7 +25,7 @@ typedef void (*functypeRemainingTime_Do1secLoop)( void*, uint16_t, uint8_t, uint
 typedef struct
 {
 	uint32_t Remaining_Capacity_100Wh;
-	uint16_t power_record[Power_record_number];
+	uint16_t power_record[POWER_RECORD_NUMBER];
 	uint8_t power_record_index;
 	uint8_t Remaining_Time_Min;
 	uint32_t power_sum_120Sec_Ws;
@@ -37,7 +37,7 @@ void RemainingTime_Do1secLoop ( RemainingTime_t *p, uint16_t FCC, uint8_t Relate
 #define REMAININGTIME_DEFAULT  \
 {                              \
 	0, /*Remaining_Capacity_100Wh;*/\
-    {0}, /*power_record[Power_record_number]; */\
+    {0}, /*power_record[POWER_RECORD_NUMBER]; */\
     0, /*power_record_index; */\
 	0, /*Remaining_Time_Min;*/\
     0, /*power_sum_120Sec_Ws*/\
