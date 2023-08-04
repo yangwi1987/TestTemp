@@ -903,7 +903,7 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
     /* Calculate AC instantaneous and average Power */
     ACPowerTemp = 1.5 * (v->MotorControl.CurrentControl.RotorCurrFb.D * v->MotorControl.VoltCmd.VdCmd +
     		v->MotorControl.CurrentControl.RotorCurrFb.Q * v->MotorControl.VoltCmd.VqCmd);
-    AcPwrInfo._100HzLoop(&AcPwrInfo, ACPowerTemp);
+    AcPwrInfo.do100HzLoop(&AcPwrInfo, ACPowerTemp);
 }
 
 void AxisFactory_Do10HzLoop( Axis_t *v )
