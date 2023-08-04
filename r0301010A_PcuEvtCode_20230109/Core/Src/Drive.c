@@ -64,6 +64,10 @@ uint16_t IsUseDigitalFoilSensor = 0;
 IntFlashCtrl_t IntFlashCtrl = INT_FLASH_CTRL_DEFAULT;
 // Declare total time
 TotalTime_t TotalTime1 = TOTAL_TIME_DEFAULT;
+
+// Declare Remaining time
+RemainingTime_t RemainingTime1 = REMAININGTIME_DEFAULT;
+
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
 
 /*For BRP UDS implementation*/
@@ -1939,7 +1943,17 @@ void drive_DoTotalTime(void)
 
 void drive_Do1HzLoop(void)
 {
-	// do nothing
+	// do remaining time calculation
+	uint16_t FCC = 2419;   //default set do designed capacity    Uint: Wh
+	uint8_t Related_SoC = Axis[0].pCANRxInterface->BmsReportInfo.Soc;    // Uint: %
+	uint16_t Insta_Power = 0;
+	float temp_Insta_Power = Axis[0].pCANRxInterface->BmsReportInfo.DcVolt * Axis[0].pCANRxInterface->BmsReportInfo.Current;
+
+	Insta_Power = ( temp_Insta_Power >= 0 ) ? (uint16_t)temp_Insta_Power : 0;
+
+	RemainingTime1.Do1secLoop ( &RemainingTime1, FCC, Related_SoC, Insta_Power, Axis[0].TriggerLimpHome );
+
+	Axis[0].pCANTxInterface->Debugf[IDX_REMAIN_TIME] = (float)RemainingTime1.Remaining_Time_Min;
 }
 
 void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
