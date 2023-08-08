@@ -2230,6 +2230,8 @@ void drive_Do100HzLoop(void)
 	{
 	    IsNotFirstLoop = 1;
 	}
+	Drive_VehicleStateMachine();
+	Drive_ESCStateMachine();
 
 }
 
