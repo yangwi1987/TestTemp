@@ -13,8 +13,6 @@ extern AlarmMgr_t AlarmMgr1;
 		Array = AlarmID >> 4; \
 		Bit = AlarmID & 0x000F; \
 
-static uint16_t NonCriAlarmBitArray = 0; // Indicate the NonCriAlarm index of alarmStack
-
 static void AlarmStack_FlagSet( AlarmStack_t *p, uint16_t AlarmID )
 {
 	uint16_t Array = 0;
@@ -62,10 +60,6 @@ void UpdateAlarmStack( uint16_t AxisIndex, uint16_t AlarmID )
 	else
 	{
 		pAlarmStack->NowAlarmID[pAlarmStack->TopIndicator] = AlarmID;
-		if(SystemTable.AlarmTableInfo[AlarmID].AlarmType == ALARM_TYPE_NONCRITICAL)
-		{
-			NonCriAlarmBitArray |= 1 << pAlarmStack->TopIndicator;
-		}
 		pAlarmStack->TopIndicator++;
 		AlarmStack_FlagSet( pAlarmStack, AlarmID );
 	}
@@ -279,9 +273,9 @@ void ResetAllAlarm( AlarmMgr_t *v )
 }
 
 // old function definition before 3.1.1.11, not necessary now
+/*
 void ResetAllWarning( AlarmMgr_t *v )
 {
-	/*
 	AlarmStack_t *pAlarmStack;
 	int i, j;
 	//v->State = ALARM_MGR_STATE_DISABLE; // can not register alarm while reseting?
@@ -308,12 +302,12 @@ void ResetAllWarning( AlarmMgr_t *v )
 	}
 
 	//v->State = ALARM_MGR_STATE_ENABLE;
-	*/
 }
+*/
 
+/*
 void ResetAllNonCriticalAlarm( AlarmMgr_t *v )
 {
-	/*
 	AlarmStack_t *pAlarmStack;
 	int i, j;
 	//v->State = ALARM_MGR_STATE_DISABLE; // can not register alarm while reseting?
@@ -340,5 +334,5 @@ void ResetAllNonCriticalAlarm( AlarmMgr_t *v )
 	}
 
 	//v->State = ALARM_MGR_STATE_ENABLE;
-	*/
 }
+*/

@@ -52,8 +52,8 @@ void RegisterAlarm( AlarmMgr_t *v, uint16_t TargetID, uint16_t AlarmID, uint16_t
 void RegisterWarning( AlarmMgr_t *v, uint16_t TargetID );
 void ResetAllAlarm( AlarmMgr_t *v );
 void ResetWarning( AlarmMgr_t *v, uint16_t TargetID );
-void ResetAllWarning( AlarmMgr_t *v );
-void ResetAllNonCriticalAlarm( AlarmMgr_t *v );
+//void ResetAllWarning( AlarmMgr_t *v );
+//void ResetAllNonCriticalAlarm( AlarmMgr_t *v );
 void RegisterAxisAlarm( AlarmDetect_t *v, uint16_t AlarmID, uint16_t AlarmType );
 uint16_t AlarmStack_FlagRead( AlarmStack_t *p, uint16_t AlarmID );
 
