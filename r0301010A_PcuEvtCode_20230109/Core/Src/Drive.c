@@ -2244,12 +2244,7 @@ static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
 	}
-	else
-	{
-		v->ThermoDeratingSrc &= ~MOS_DERATING;
-	}
-
-	if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
