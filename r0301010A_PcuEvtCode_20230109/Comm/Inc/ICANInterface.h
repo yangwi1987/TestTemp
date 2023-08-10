@@ -26,8 +26,8 @@ typedef enum {
 } RECEIVED_CAN_ID_ENUM;
 
 typedef enum {
-	PcuShiftP = 0,
-	PcuShiftD,
+	PCU_SHIFT_P = 0,
+	PCU_SHIFT_D,
 } ENUM_SHIFT;
 
 typedef enum {
@@ -37,15 +37,17 @@ typedef enum {
 	FourQ_Regen,
 } ENUM_4QuadStatus;
 
-typedef enum {
-	PcuState_Inital = 0,
-	PcuState_Ready,
-	PcuState_SERVO_ON,
-	PcuState_SERVO_OFF,
-	PcuState_Shutdown_Start,
-	PcuState_Shutdown_Finish,
-	PcuState_Error,
-} ENUM_PcuState;
+typedef enum PcuState_e
+{
+	PCU_STATE_INITIAL = 0,
+	PCU_STATE_READY,
+	PCU_STATE_OUTPUT,
+	PCU_STATE_STANDBY,
+	PCU_STATE_SHUTDOWN_START,
+	PCU_STATE_SHUTDOWN_FINISH,
+	PCU_STATE_POWER_OFF,
+	PCU_STATE_ERROR,
+} PcuState_t;
 
 typedef enum {
 	PcuCmd_Idle = 0,
@@ -58,15 +60,13 @@ typedef enum {
 	ServoOnCmd_ServoOn,
 } ServoOnCmd_e;
 
-typedef enum{
-	PowerOnOff_Initial,
-	PowerOnOff_Ready,
-	PowerOnOff_ShutdownStart,
-	PowerOnOff_NormalShutdown,
-	PowerOnOff_EmergencyShutDown,
-	PowerOnOff_WaitForReset,
-	PowerOnOff_Error,
-}PowerOnOffSeq_e;
+typedef enum PowerStateMachine_e
+{
+	PWR_SM_INITIAL,
+	PWR_SM_POWER_ON,
+	PWR_SM_POWER_OFF,
+	PWR_SM_WAIT_FOR_RESET,
+} PowerStateMachine_t;
 
 /*=========================================
  * Definition of Authendata
@@ -306,7 +306,6 @@ typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
   TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG = 1,
-  TX_INTERFACE_DBG_IDX_LED_CTRL_CMD	= 4,
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
@@ -389,6 +388,7 @@ typedef struct
 	uint8_t ShutDownReq;
 	uint16_t AlarmDivider;
 	UNION_DRIVE_STATE DriveState;
+	BmsCtrlCmd_t BmsCtrlCmd;
 
 } STRUCT_CANTxInterface;
 

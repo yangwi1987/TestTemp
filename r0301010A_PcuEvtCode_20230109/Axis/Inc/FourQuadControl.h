@@ -91,8 +91,8 @@ float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCu
 	0.0f, \
 	1, \
 	0, \
-	PcuShiftP, \
-	PcuShiftP, \
+	PCU_SHIFT_P, \
+	PCU_SHIFT_P, \
 	0, \
 	0, \
 	0, \
