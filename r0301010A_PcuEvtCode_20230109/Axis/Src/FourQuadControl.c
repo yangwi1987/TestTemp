@@ -134,6 +134,16 @@ static void FourQuadControl_DriveTableInit( FourQuadControl *v )
 	}
 	v->DriveFallingRamp = -Para * TimeBase; //Ramp Function Use Absolute Ramp Value
 
+	// Load Limp Transit variable
+	float LimpTransitSec = 1.0f;
+	float MaxPower = 0.0f;
+	ParamMgr_ParaGainHandler( &(DriveParams), &(DriveParams.SystemParams.LimpTransitSec), &LimpTransitSec );
+	for( n = 0 ; n < DRIVE_TABLE_LENGTH ; n++ )
+	{
+		MaxPower = ( MaxPower > v->DriveCurve[n].Para[DRIVE_POWER_MAX] ) ? MaxPower : v->DriveCurve[n].Para[DRIVE_POWER_MAX];
+	}
+	v->LimpTransitRamp = (( MaxPower - v->DriveCurve[0].Para[DRIVE_POWER_MAX] ) / LimpTransitSec ) * TimeBase;
+
 	v->DrivePowerLevelTarget = 1.0f;
 	v->DrivePowerLevelGain = 1.0f;
 	uint16_t ParaError = 0.0f;
@@ -244,7 +254,7 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	{
 		// do nothing
 	}
-	v->DrivePowerCmd = pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
+	v->DrivePowerCmd = ( v->Driving_TNIndex == 0 ) ? Ramp( v->DrivePowerCmd, pTable->Para[DRIVE_POWER_MAX], v->LimpTransitRamp ) : pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
 
 	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
 	float F2 = pTable->Para[DRIVE_PROPULSION_MAX];

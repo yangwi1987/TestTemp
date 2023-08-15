@@ -30,7 +30,7 @@ const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 		/* Row007 */	0xFF,
 		/* Row010 */	0xFF,
 		/* Row011 */	0xFF,
-		/* Row012 */	0x7F,
+		/* Row012 */	0xFF,
 		/* Row013 */	0xF0,
 		/* Row014 */	0xF3,
 		/* Row015 */	0xFF,

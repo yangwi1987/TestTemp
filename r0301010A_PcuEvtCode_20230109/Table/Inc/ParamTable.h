@@ -119,7 +119,7 @@ typedef struct {
 	uint16_t DriveCurve[DRIVE_ALL_PARA_NUM][DRIVE_TABLE_LENGTH];
 	uint16_t DriveRisingRamp;	//P0-85
 	uint16_t DriveFallingRamp;	//P0-86
-	uint16_t Reserved087;	//P0-87
+	uint16_t LimpTransitSec;	//P0-87
 	uint16_t Reserved088;	//P0-88
 	uint16_t Reserved089;	//P0-89
 	uint16_t Reserved090;	//P0-90

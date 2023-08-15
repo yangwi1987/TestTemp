@@ -317,7 +317,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		2768,		32768,		32762,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][4]},	//P0-84
 				{		32768,		62768,		62768,		0x84A,		&DriveParams.SystemParams.DriveRisingRamp},	//P0-85
 				{		2768,		32768,		2768,		0x84A,		&DriveParams.SystemParams.DriveFallingRamp},	//P0-86
-				{		0,			0,			0,			0,		0},	//P0-87
+				{		30,			100,		30,		0x4D,		&DriveParams.SystemParams.LimpTransitSec},	//P0-87
 				{		0,			0,			0,			0,		0},	//P0-88
 				{		0,			0,			0,			0,		0},	//P0-89
 				{		0,			0,			0,			0,		0},	//P0-90
