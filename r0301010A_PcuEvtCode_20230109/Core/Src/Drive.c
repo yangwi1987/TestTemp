@@ -1383,17 +1383,11 @@ void Drive_PcuPowerStateMachine( void )
 			   (Axis[0].pCANRxInterface->BmsReportInfo.PrchSM == BMS_PRECHG_STATE_SUCCESSFUL))
 			{
 				Axis[0].PcuPowerState = PWR_SM_POWER_ON;
-
-				/* ENABLE DC BUS under voltage detection if pre-charge sequence is complete */
-				Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ENABLE;
 			}
 			else if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
 			{
 				/* Receive shutdown request before battery complete pre-charge sequence */
 				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-
-				/* DISABLE DC BUS under voltage detection if POWER-off sequence is start */
-				Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = DISABLE;
 
 				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
 				GlobalAlarmDetect_ConfigAlarmSystem();
@@ -1409,9 +1403,6 @@ void Drive_PcuPowerStateMachine( void )
 				Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
 				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
 
-				/* DISABLE DC BUS under voltage detection if POWER-off sequence is start */
-				Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = DISABLE;
-
 				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
 				GlobalAlarmDetect_ConfigAlarmSystem();
 			}
@@ -1422,11 +1413,11 @@ void Drive_PcuPowerStateMachine( void )
 				 * 2. Receive correct Battery status from BMS via CAN and
 				 * 3. RC and RF is properly connected */
 
-				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == 0 ) &&
+				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
 				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
-				   (RCCommCtrl.pRxInterface->RcConnStatus == RC_CONN_STATUS_RC_THROTTLE_UNLOCKED))
+				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_UNLOCKING))
 				{
 					/* Output substate */
 					Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
@@ -2138,7 +2129,7 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 
 void drive_DoHWOCPIRQ(void)
 {
-	if( Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+	if((Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE) && (AlarmMgr1.State == ALARM_MGR_STATE_ENABLE))
 	{
 		if( PwmStation1.PwmCh[Axis[0].AlarmDetect.AxisID-1].Group->Instance != 0 )
 		{

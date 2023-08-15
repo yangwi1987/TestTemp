@@ -160,20 +160,6 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 
 }
 
-static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
-{
-    // Enable alarm check mechanism when "entering" MOTOR_STATE_WAIT_BOOT (servo on)
-    if( v->ServoOnOffState == MOTOR_STATE_WAIT_BOOT )
-    {
-        v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-    }
-
-    // Disable alarm check mechanism when "entering" MOTOR_STATE_SHUTDOWN_START (servo off)
-    if( v->ServoOnOffState == MOTOR_STATE_SHUTDOWN_START )
-    {
-        v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-    }
-}
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 {
