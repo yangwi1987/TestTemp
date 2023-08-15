@@ -96,11 +96,42 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 {
     uint16_t i;
 
+	if(v->HasCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_CRI_ALARM_MASK;
+	}
+
+	if(v->HasNonCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_NON_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
+	}
+
+	if(v->HasWarning == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_WARNING_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
+	}
+
+// set BMS LED control in Drive_ESCOPVehicleStateMachine
+/*	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
+*/
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[0]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[1]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[2]; //CAP
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]; //MOS2
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
     }
 
     if( v->PcuPowerState == PowerOnOff_Initial )
@@ -136,6 +167,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
             v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
         }
     }
+
+    v->pCANTxInterface->DeratingSrc = v->ThermoStrategy.ThermoDeratingSrc;
 
     // debug
     v->pCANTxInterface->MotorRpm = (int16_t)v->SpeedInfo.MotorMechSpeedRPM;
@@ -234,7 +267,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
         return;
     }
 
-    int ServoOnEnable = (v->HasAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
+    int ServoOnEnable = (v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
 
     switch( v->ServoOnOffState )
     {
@@ -243,21 +276,8 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             v->BootstrapCounter = 0;
             if( ServoOnEnable && v->pAdcStation->ZeroCalibInjDone )
             {
-                if( v->RequestResetWarningCNT == RESET_WARNING_REQUEST )
-                {
-                    v->RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-                    // Do ResetWarnning in HouseKeeping.
-                }
-
-                if( v->RequestResetWarningCNT == RESET_WARNING_IDLE ) // No warning or warning have been reset
-                {
-                    v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-                    AxisFactory_ConfigAlarmSystem( v );
-
-                    // Disable trigger after warning reset one time during servo on.
-                    // However TN mode change in PLC loop.
-                    v->TriggerLimpHome = 0;
-                }
+				v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+				AxisFactory_ConfigAlarmSystem( v );
             }
             else
             {
@@ -723,36 +743,18 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 #endif
     }
 
-    // Rewrite TN to limp home mode (TN0), no matter which kind of foil sensor.
+    // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
+    // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
+    // It makes sure that the rewrite take effect.
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
-    }
-
-    v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
-
-
-    
-    if(v->HasAlarm!=0)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_ALARM_MASK;
+        v->pCANRxInterface->PowerLevel = 10;
     }
     else
     {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_ALARM_MASK;
+    	// In other states, use the original power level and output mode command.
     }
-
-    if(v->HasWarning!=0)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
-    }
-    else
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
-    }
-
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
-    	(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
 
     // Update scooter speed for report
     v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
@@ -937,17 +939,6 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
     else
     {
         v->MotorStall.Reset( &v->MotorStall );
-    }
-
-    // Trigger limp home mode in 100Hz loop.
-    // TN mode change in PLC loop.
-    if(v->HasWarning == 1 /* todo && SOC <20%*/)
-    {
-        v->TriggerLimpHome = 1;
-    }
-    else
-    {
-        v->TriggerLimpHome = 0;
     }
 
     /* Calculate AC instantaneous and average Power */

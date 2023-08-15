@@ -219,12 +219,10 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         ByteOrderReverse((void*)&p->EscLogInfo1.MotorRpmI16, (void*)&i16Temp, 2);
 
         p->EscLogInfo1.EscState = v->PcuStateReport;
-        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_ALARM_MASK)==0) ? 0 : 1;
-        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
-        p->EscLogInfo1.LimpHomeSrc = v->LimpHomeSrc;
+        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_CRI_ALARM_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.LimpHomeFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_NON_CRI_ALARM_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
         p->EscLogInfo1.OutputMode = r->OutputModeCmd;
-
-        /*todo:DeratingSrc is not applied yet */
         p->EscLogInfo1.DeratingSrc = v->DeratingSrc;
       }
       else

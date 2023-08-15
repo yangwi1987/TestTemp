@@ -50,6 +50,26 @@ typedef enum
 	Target_PSB		=3,
 }TargetDefine_e;
 
+typedef enum{
+	VehicleState_Initializing,
+	VehicleState_Standby,
+	VehicleState_Normal,
+	VehicleState_Warning,
+	VehicleState_LimpHome,
+	VehicleState_Alarm,
+	VehicleState_PowerOff,
+}VehicleState_e;
+
+typedef enum{
+	ESCOP_Initializing,
+	ESCOP_Standby,
+	ESCOP_Normal,
+	ESCOP_Warning,
+	ESCOP_LimpHome,
+	ESCOP_Alarm,
+	ESCOP_PowerOff,
+}ESCOPState_e; // ESC operation
+
 // Define the number of different data index
 #define HW_VER_NUM_IDX		7 // PCU hardware version
 #define PART_NUM_IDX		24 // PCU part number

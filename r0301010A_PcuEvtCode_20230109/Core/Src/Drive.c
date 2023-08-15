@@ -69,6 +69,8 @@ TotalTime_t TotalTime1 = TOTAL_TIME_DEFAULT;
 RemainingTime_t RemainingTime1 = REMAININGTIME_DEFAULT;
 
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
+ESCOPState_e ESCMainState = ESCOP_Initializing;
+VehicleState_e VehicleMainState = VehicleState_Initializing;
 
 /*For BRP UDS implementation*/
 
@@ -167,11 +169,11 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_PCU_NTC_0_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[PCU_NTC_0] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] * 10.0f );
 		break;
 
 	case DN_PCU_NTC_1_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[PCU_NTC_1] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] * 10.0f );
 		break;
 
 	case DN_GATE_DRIVE_VOLT:	// 13V VOltage
@@ -191,7 +193,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_PCU_NTC_2_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[PCU_NTC_2] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC] * 10.0f );
 		break;
 
 	case DN_FOIL_VOLTAGE:
@@ -235,10 +237,10 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 					Axis[AxisIndex].VCUServoOnCommand				<< 1 |
 					Axis[AxisIndex].CtrlUiEnable					<< 2 |
 					Axis[AxisIndex].FourQuadCtrl.ServoCmdIn			<< 3 |
-					Axis[AxisIndex].HasAlarm						<< 4 |
+					Axis[AxisIndex].HasCriAlarm						<< 4 |
 					Axis[AxisIndex].pAdcStation->ZeroCalibInjDone	<< 5 |
 					Axis[AxisIndex].PhaseLoss.Enable				<< 6 |
-					Axis[AxisIndex].HasWarning						<< 7 ;
+					Axis[AxisIndex].HasNonCriAlarm					<< 7 ;
 		break;
 
 	case DN_ID_VER_READ:
@@ -756,7 +758,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC00E_ESC_Mosfets_Center_Temperature           :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[0] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] );
         	break;
         }
         case DID_0xC00F_ESC_Mosfets_Center_Temperature_Minimum   :
@@ -771,7 +773,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC011_ESC_Mosfets_Side_Temperature             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[1] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] );
         	break;
         }
         case DID_0xC012_ESC_Mosfets_Side_Temperature_Minimum     :
@@ -786,7 +788,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC014_ESC_Capacitor_Temperature                :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[2] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC] );
         	break;
         }
         case DID_0xC015_ESC_Capacitor_Temperature_Minimum        :
@@ -1343,9 +1345,9 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[0];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[1];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[2];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 )) ? NTC_Break : \
                                                                                       ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) ? NTC_Short : NTC_Normal );
@@ -1386,7 +1388,7 @@ void Drive_PcuPowerStateMachine( void )
 			}
 
 			// error situation
-			if( Axis[0].HasAlarm == ENABLE )
+			if( Axis[0].HasCriAlarm == ENABLE )
 			{
 				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
 			}
@@ -1401,7 +1403,7 @@ void Drive_PcuPowerStateMachine( void )
 			}
 
 			// error situation
-			if( Axis[0].HasAlarm == ENABLE )
+			if( Axis[0].HasCriAlarm == ENABLE )
 			{
 				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
 			}
@@ -1409,7 +1411,7 @@ void Drive_PcuPowerStateMachine( void )
 
 		case PowerOnOff_ShutdownStart:
 			// normal transition
-			if( Axis[0].HasAlarm == DISABLE )
+			if( Axis[0].HasCriAlarm == DISABLE )
 			{
 				Axis[0].PcuPowerState = PowerOnOff_NormalShutdown;
 				GlobalAlarmDetect_ConfigAlarmSystem(); // disable register alarm
@@ -1427,7 +1429,7 @@ void Drive_PcuPowerStateMachine( void )
 			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Enable )
 			{
 				// If no alarm exists, change state directly.
-				if( Axis[0].HasAlarm == DISABLE )
+				if( Axis[0].HasCriAlarm == DISABLE )
 				{
 					Axis[0].PcuPowerState = PowerOnOff_Ready;
 					GlobalAlarmDetect_ConfigAlarmSystem(); // enable register alarm
@@ -1464,7 +1466,7 @@ void Drive_PcuPowerStateMachine( void )
 	}
 
 	/*update ESCOperationState, Dealer_Test_Mode, Power_Off_ESC TBD*/
-	if( Axis[0].HasAlarm == ENABLE )
+	if( Axis[0].HasCriAlarm == ENABLE )
 	{
         Axis[0].ESCOperationState = Fault_Mode;
 	}
@@ -1481,6 +1483,365 @@ void Drive_PcuPowerStateMachine( void )
 	else
 	{
 		Axis[0].ESCOperationState = Standby_ESC;
+	}
+}
+
+// Change ESC operating state according Axis alarm status and servo on status.
+void Drive_ESCStateMachine( void )
+{
+	switch( ESCMainState )
+	{
+		case ESCOP_Initializing:
+
+			// normal transition
+			if( IsPcuInitReady == PcuInitState_Ready )
+			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
+				ESCMainState = ESCOP_Standby;
+			}
+			break;
+
+		case ESCOP_Standby:
+
+			// error situation
+			if( Axis[0].HasCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_Alarm;
+			}
+			else if( Axis[0].HasNonCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_LimpHome;
+			}
+			else if( Axis[0].HasWarning == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_Warning;
+			}
+			else if( Axis[0].ServoOn == 1 ) // normal transitions
+			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
+				ESCMainState = ESCOP_Normal;
+			}
+			else
+			{
+				// keep in the same state
+				// do nothing
+			}
+			break;
+
+		case ESCOP_Normal:
+
+			// error situation
+			if( Axis[0].HasCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_Alarm;
+			}
+			else if( Axis[0].HasNonCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_LimpHome;
+			}
+			else if( Axis[0].HasWarning == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_Warning;
+			}
+			else if( Axis[0].ServoOn == 0 ) // normal transitions
+			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
+				ESCMainState = ESCOP_Standby;
+			}
+			else
+			{
+				// keep in the same state
+				// do DC limit, AC limit, generate Tq from FourQuadCtrl at AxisFactory_Do10HzLoop
+			}
+			break;
+
+		case ESCOP_Warning:
+
+			// error situation
+			if( Axis[0].HasCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_Alarm;
+			}
+			else if( Axis[0].HasNonCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_LimpHome;
+			}
+
+			// if warning is reset
+			else if( Axis[0].HasWarning == 0 )
+			{
+				// clear error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
+				if( Axis[0].ServoOn == 1 )
+				{
+					ESCMainState = ESCOP_Normal;
+				}
+				else
+				{
+					ESCMainState = ESCOP_Standby;
+				}
+			}
+			else
+			{
+				// keep in the same state
+				// do DC limit, AC limit, generate Tq from FourQuadCtrl
+			}
+			break;
+
+		case ESCOP_LimpHome:
+
+			// error situation
+			if( Axis[0].HasCriAlarm == 1 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_Alarm;
+			}
+			else
+			{
+				// keep in the same state
+				// do DC limit, AC limit, generate Tq from FourQuadCtrl
+			}
+
+			/* todo if (ESC is rebooting)
+			{
+				ESCMainState = ESCOP_PowerOff;
+			}
+			*/
+			break;
+
+		case ESCOP_Alarm:
+
+			// error situation
+			if( Axis[0].HasCriAlarm == 0 )
+			{
+				// set error BMS LED
+				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESCOP_LimpHome;
+			}
+			else
+			{
+				// keep in the same state
+				// ESC is servo off due to Axis[0].HasCriAlarm == 0 in AxisFactory_RunMotorStateMachine.
+			}
+			break;
+
+		// abnormal PcuPowerState value
+		case ESCOP_PowerOff:
+		default:
+			break;
+	}
+}
+
+__STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
+{
+	// todo set RC alarm flag
+	// todo clear RC warning/limp flag
+	// todo set DC ramp?
+}
+
+__STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
+{
+	// set Axis trigger limp home flag
+	Axis[0].TriggerLimpHome = 1;
+	// todo set RC limp home flag;
+	// todo clear RC warning
+	// todo set DC ramp?
+}
+
+__STATIC_FORCEINLINE void EnterVehicleWarningState( void )
+{
+	// todo set RC warning
+	// todo set DC ramp?
+}
+
+__STATIC_FORCEINLINE void EnterVehicleNormalState( void )
+{
+	// set Axis trigger limp home flag
+	Axis[0].TriggerLimpHome = 0;
+	// todo clear RC warning/limp/alarm flag
+}
+
+__STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
+{
+	// set Axis trigger limp home flag
+	Axis[0].TriggerLimpHome = 0;
+	// todo clear RC warning/limp/alarm flag
+}
+
+void Drive_VehicleStateMachine( void )
+{
+	switch( VehicleMainState )
+	{
+		case VehicleState_Initializing:
+
+			// normal transition
+			if( ESCMainState == ESCOP_Standby /* todo BMS precharge finish*/)
+			{
+				EnterVehicleStandbyState();
+				VehicleMainState = VehicleState_Standby;
+			}
+
+			// action
+			// do CAN and RC initial communication at drive_Init
+			break;
+
+		case VehicleState_Standby:
+
+			// error situation
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			{
+				EnterVehicleAlarmState();
+				VehicleMainState = VehicleState_Alarm;
+			}
+			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
+			{
+				EnterVehicleLimpHomeState();
+				VehicleMainState = VehicleState_LimpHome;
+			}
+			else if( ESCMainState == ESCOP_Warning || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
+			{
+				EnterVehicleWarningState();
+				VehicleMainState = VehicleState_Warning;
+			}
+
+			// normal transitions
+			else if( ESCMainState == ESCOP_Normal )
+			{
+				EnterVehicleNormalState();
+				VehicleMainState = VehicleState_Normal;
+			}
+			else
+			{
+				// keep in the same state, action:
+				// do CAN and RC communication at drive_DoPLC
+				// no motor power output
+			}
+			break;
+
+		case VehicleState_Normal:
+
+			// error situation
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			{
+				EnterVehicleAlarmState();
+				VehicleMainState = VehicleState_Alarm;
+			}
+			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
+			{
+				EnterVehicleLimpHomeState();
+				VehicleMainState = VehicleState_LimpHome;
+			}
+			else if( ESCMainState == ESCOP_Warning || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
+			{
+				EnterVehicleWarningState();
+				VehicleMainState = VehicleState_Warning;
+			}
+
+			// normal transitions
+			else if( ESCMainState == ESCOP_Standby )
+			{
+				EnterVehicleStandbyState();
+				VehicleMainState = VehicleState_Standby;
+			}
+			else
+			{
+				// keep in the same state, action:
+				// allow full power output depending on driving mode
+			}
+			break;
+
+		case VehicleState_Warning:
+
+			// error situation
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			{
+				EnterVehicleAlarmState();
+				VehicleMainState = VehicleState_Alarm;
+			}
+			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
+			{
+				EnterVehicleLimpHomeState();
+				VehicleMainState = VehicleState_LimpHome;
+			}
+			// recovery paths
+			else if( ESCMainState == ESCOP_Normal && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
+			{
+				EnterVehicleNormalState();
+				VehicleMainState = VehicleState_Normal;
+			}
+			else if( ESCMainState == ESCOP_Standby && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
+			{
+				EnterVehicleStandbyState();
+				VehicleMainState = VehicleState_Standby;
+			}
+			else
+			{
+				// keep in the same state, action:
+				// do DC limit
+				// do AC limit
+			}
+			break;
+
+		case VehicleState_LimpHome:
+
+			// error situation
+			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			{
+				EnterVehicleAlarmState();
+				VehicleMainState = VehicleState_Alarm;
+			}
+			else
+			{
+				// keep in the same state, action:
+				// do DC limit
+				// do AC limit
+				// have triggered limp home while entering limp home state, and limited max power.
+			}
+			break;
+
+		case VehicleState_Alarm:
+
+			// error situation
+			if( ESCMainState != ESCOP_Alarm && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
+			{
+				EnterVehicleLimpHomeState();
+				VehicleMainState = VehicleState_LimpHome;
+			}
+			else
+			{
+				// keep in the same state, action:
+				// do DC limit
+				// do AC limit
+				// if previous state is limphome, then keep TriggerLimpHome flag, or follow the DC limit rule.
+				// if ESC is ESCOP_Alarm, then vehicle have been servo off.
+			}
+			break;
+
+		// abnormal PcuPowerState value
+		case VehicleState_PowerOff:
+		default:
+			break;
+
 	}
 }
 
@@ -1526,13 +1887,11 @@ void drive_Init(void)
 		Axis[AxisIndex].Init ( &Axis[AxisIndex], AxisIndex );
 	}
 
-		// AlarmMgr1.init( &AlarmMgr1, &Axis[AxisIndex].HasAlarm, &Axis[AxisIndex].HasWarning, AxisIndex )
 	for( AxisIndex = 0; AxisIndex < MAX_AXIS_NUM; AxisIndex++ )
 	{
-		AlarmMgr1.pHasAlarm[AxisIndex] = &Axis[AxisIndex].HasAlarm;
 		AlarmMgr1.pHasWarning[AxisIndex] = &Axis[AxisIndex].HasWarning;
-		Axis[AxisIndex].RequestResetWarningCNT = RESET_WARNING_IDLE;
-		AlarmMgr1.pRequestResetWarningCNT[AxisIndex] = &Axis[AxisIndex].RequestResetWarningCNT;
+		AlarmMgr1.pHasNonCriAlarm[AxisIndex] = &Axis[AxisIndex].HasNonCriAlarm;
+		AlarmMgr1.pHasCriAlarm[AxisIndex] = &Axis[AxisIndex].HasCriAlarm;
 	}
 
 	// Init Axis1 Motor Stall Table
@@ -1819,7 +2178,7 @@ void drive_DoPLCLoop(void)
 	IntranetCANStation.ServiceCtrlBRP.ServoOnOffState = Axis[0].ServoOn;
 	IntranetCANStation.DoPlcLoop( &IntranetCANStation );
 
-	if ( Axis[0].HasAlarm || Axis[0].HasWarning)
+	if ( Axis[0].HasCriAlarm || Axis[0].HasNonCriAlarm)
 	{
 	    drive_DTC_Pickup_Data_to_Store( &AlarmStack[0], &DTCStation1 );
 	}
@@ -1845,19 +2204,19 @@ void drive_Do100HzLoop(void)
 	if ( IsNotFirstLoop == 1 )
 	{
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max = \
-            MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[2]);
+            MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[2]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
-			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[0]);
+			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[0]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
-	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[1]);
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[1]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
 
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
 	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
@@ -1871,46 +2230,83 @@ void drive_Do100HzLoop(void)
 	{
 	    IsNotFirstLoop = 1;
 	}
+	Drive_VehicleStateMachine();
+	Drive_ESCStateMachine();
 
+}
+
+// Check if "any" component's temperature is higher then minimum temperature in relative derating table.
+static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
+{
+	uint8_t IsOverTempFlag = 0;
+	if( *(v->TempNow[MOS_NTC_CENTER]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= MOS_DERATING;
+	}
+	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= MOS_DERATING;
+	}
+	else
+	{
+		v->ThermoDeratingSrc &= ~MOS_DERATING;
+	}
+
+	if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->MosDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= MOTOR_DERATING;
+	}
+	else
+	{
+		v->ThermoDeratingSrc &= ~MOTOR_DERATING;
+	}
+
+	if( *(v->TempNow[CAP_NTC]) > v->CapDerating.X.InputMin )
+	{
+		IsOverTempFlag = 1;
+		v->ThermoDeratingSrc |= CAP_DERATING;
+	}
+	else
+	{
+		v->ThermoDeratingSrc &= ~CAP_DERATING;
+
+	}
+
+	return IsOverTempFlag;
 }
 
 void drive_Do10HzLoop(void)
 {
-	static uint16_t Local10HzCNT = 0;
-	int i;
+	int i; // Axis index
+
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
+		// auto set and reset warning depending on NTC
+		if( IsCompTempOverWarningTemp( &Axis[i].ThermoStrategy) )
+		{
+			AlarmMgr1.RegisterWarning( &AlarmMgr1, AXIS_INDEX_TO_AXIS_ID(i) );
+		}
+		else
+		{
+			AlarmMgr1.ResetWarning( &AlarmMgr1, AXIS_INDEX_TO_AXIS_ID(i) );
+		}
 		Axis[i].Do10HzLoop(&Axis[i]);
 
 	}
 	RCCommCtrl._10HzLoop(&RCCommCtrl);
 
 	// Because ESC does not receive RECEIVED_BAT_ID_1 for 100 ms, CAN1Timeout.Counter will be greater than 10;
-	// note: CAN1Timeout.Counter increase every 100Hz in AlarmDetect_Do100HzLoop function
-	// if ESC does not receive RECEIVED_BAT_ID_1 for 100 ms, then AccCANErrorCnt increase.
+	// Note: CAN1Timeout.Counter increase every 100Hz in AlarmDetect_Do100HzLoop function
+	// If ESC does not receive RECEIVED_BAT_ID_1 for 100 ms(A.K.A. CAN1Timeout.Counter>10),
+	// then AccCANErrorCnt increase.
 	if( Axis[0].AlarmDetect.CAN1Timeout.Counter >= 10)
 	{
 		if(	Axis[0].pCANRxInterface->AccCANErrorCnt <65535 )
 		{
 			Axis[0].pCANRxInterface->AccCANErrorCnt++;
-		}
-	}
-
-
-	if( DriveParams.PCUParams.DebugParam7 == 1 )
-	{
-		if(Local10HzCNT >= 9)
-		{
-			Local10HzCNT = 0;
-			if( Axis[0].RequestResetWarningCNT == RESET_WARNING_REQUEST &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
-			{
-				Axis[0].RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-				// Do ResetWarnning in HouseKeeping.
-			}
-		}
-		else
-		{
-			Local10HzCNT++;
 		}
 	}
 }
@@ -1956,11 +2352,13 @@ void drive_Do1HzLoop(void)
 	Axis[0].pCANTxInterface->Debugf[IDX_REMAIN_TIME] = (float)RemainingTime1.Remaining_Time_Min;
 }
 
-void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
+// old function definition before 3.1.1.11, not necessary now
+/*
+void Drive_ResetNonCriAlarmCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 {
-	v->RequestResetWarningCNT = RESET_WARNING_RESETING;
-	// Reset All warning counter before reset alarm stack and clear hasWarning.
-	// Reset WarningCNT  todo create a new function in alarmDetect
+	v->RequestResetNonCriAlarmCNT = RESET_NonCriAlarm_RESETING;
+	// Reset All NonCriAlarmr before reset alarm stack and clear hasNonCriAlarm.
+	// Reset NonCriAlarmCNT
 	v->AlarmDetect.CAN1Timeout.Counter = 0;
 	v->AlarmDetect.FOIL_SENSOR_BREAK.Counter = 0;
 	v->AlarmDetect.FOIL_SENSOR_SHORT.Counter = 0;
@@ -1980,9 +2378,10 @@ void Drive_ResetWarningCNTandStatus(Axis_t *v, AlarmMgr_t *pAlarmMgr)
 
 
 	// Only if PCU is servo off, then PCU can reset warning.
-	pAlarmMgr->ResetAllWarning( pAlarmMgr );
-	v->RequestResetWarningCNT = RESET_WARNING_IDLE;
+	pAlarmMgr->ResetAllNonCriAlarm( pAlarmMgr );
+	v->RequestResetNonCriAlarmCNT = RESET_NonCriAlarm_IDLE;
 }
+*/
 
 void drive_DoHouseKeeping(void)
 {
@@ -2034,15 +2433,6 @@ void drive_DoHouseKeeping(void)
 
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 	RCCommCtrl.MsgDecoder(&RCCommCtrl);
-
-	// If status is servo off, warning exist, and user commands servo on again.
-	if( Axis[0].RequestResetWarningCNT == RESET_WARNING_ALLOW_RESET &&  Axis[0].ServoOn == MOTOR_STATE_OFF)
-	{
-		// Reset All warning counter before reset alarm stack and clear hasWarning.
-		// Reset WarningCNT  todo Create a new function in alarmDetect.
-		// Now Drive simulate Axis to reset local CNT.
-		Drive_ResetWarningCNTandStatus( &Axis[0], &AlarmMgr1 );
-	}
 	
 	//DTC process to ExtFlash
 	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)
