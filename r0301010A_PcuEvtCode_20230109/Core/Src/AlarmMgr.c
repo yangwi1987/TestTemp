@@ -266,7 +266,6 @@ void ResetAllAlarm( AlarmMgr_t *v )
 			pAlarmStack->TopIndicator = 0;
 		}
 
-//		*v->pHasWarning[j] = 0;
 		*v->pHasNonCriAlarm[j] = 0;
 		*v->pHasCriAlarm[j] = 0;
 	}
