@@ -32,8 +32,9 @@
 #define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
 #define CANRXID_BMS_STATUS_02         0x403   /* info shows BMS status */
 
-#define CAN_TX_ALARM_MASK 0x01
-#define CAN_TX_WARNING_MASK 0x02
+#define CAN_TX_CRI_ALARM_MASK 0x01
+#define CAN_TX_NON_CRI_ALARM_MASK 0x02
+#define CAN_TX_WARNING_MASK 0x04
 
 
 /*======================================
@@ -190,9 +191,9 @@ typedef struct
   uint8_t EscState :4;    /* refer to "PcuState_e" defined in "ICANInterface.h" */
   uint8_t WarnFlag :2;    /* 1: warning detected, 0: nothing */
   uint8_t AlarmFlag :2;   /* 1: Alarm detected, 0: nothing */
-  uint8_t OutputMode;     /* 0: limphome mode , 1: Paddle mode, 2: Surf Mode, 3 = Foil mode*/
-  uint8_t LimpHomeSrc;    /* 0: limphome mode is not activated, others: the trigger source of limp home mode, refer to (TBD enum) */
-  uint8_t DeratingSrc;    /* 0: derating is not activated, others: the trigger source of derating, refer to (TBD enum) */
+  uint8_t OutputMode;     /* 0: limpHome mode , 1: Paddle mode, 2: Surf Mode, 3 = Foil mode*/
+  uint8_t LimpHomeFlag;    /* 1: limpHomde detected, 0: nothing */
+  uint8_t DeratingSrc;    /* 0: derating is not activated, bit0: mos derating, bit1: cap derating, bit2: motor derating*/
 } CanTxMsg_EscLogInfo1_t;
 
 typedef struct 
