@@ -1376,91 +1376,86 @@ void Drive_PcuPowerStateMachine( void )
 {
 	switch( Axis[0].PcuPowerState )
 	{
-		case PowerOnOff_Initial:
+		case PWR_SM_INITIAL:
 
-			// normal transition
-			if( IsPcuInitReady == PcuInitState_Ready )
+			/* Wait for
+			 * 1. PCU initial state Ready flag is set and
+			 * 2. BMS report pre-charge completed */
+			if((IsPcuInitReady == PcuInitState_Ready)  &&
+			   (Axis[0].pCANRxInterface->BmsReportInfo.PrchSM == BMS_PRECHG_STATE_SUCCESSFUL))
 			{
-				if(Axis[0].pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE)
-				{
-					Axis[0].PcuPowerState = PowerOnOff_Ready;
-				}
+				Axis[0].PcuPowerState = PWR_SM_POWER_ON;
 			}
-
-			// error situation
-			if( Axis[0].HasCriAlarm == ENABLE )
+			else if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
 			{
-				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
-			}
-			break;
+				/* Receive shutdown request before battery complete pre-charge sequence */
+				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
 
-		case PowerOnOff_Ready:
-
-			// normal transition
-			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown )
-			{
-				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
-			}
-
-			// error situation
-			if( Axis[0].HasCriAlarm == ENABLE )
-			{
-				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
+				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
+				GlobalAlarmDetect_ConfigAlarmSystem();
 			}
 			break;
 
-		case PowerOnOff_ShutdownStart:
-			// normal transition
-			if( Axis[0].HasCriAlarm == DISABLE )
+		case PWR_SM_POWER_ON:
+
+			if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
 			{
-				Axis[0].PcuPowerState = PowerOnOff_NormalShutdown;
-				GlobalAlarmDetect_ConfigAlarmSystem(); // disable register alarm
+				/*Receive turn off command from user , transfer state to power off */ 
+				Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+				Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
+				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
+				
+				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
+				GlobalAlarmDetect_ConfigAlarmSystem();
 			}
-			// error situation
 			else
 			{
-				Axis[0].PcuPowerState = PowerOnOff_EmergencyShutDown;
-			}
-			break;
+				/* Check if ESC can start to output Power if
+				 * 1. Safety sensor is connected (Digital input = low = 0) and
+				 * 2. Receive correct Battery status from BMS via CAN and
+				 * 3. RC and RF is properly connected */
 
-		case PowerOnOff_NormalShutdown:
-
-			// Restart by external command. (Normal transition)
-			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Enable )
-			{
-				// If no alarm exists, change state directly.
-				if( Axis[0].HasCriAlarm == DISABLE )
+				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
+				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
+					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
+					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
+				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_UNLOCKING))
 				{
-					Axis[0].PcuPowerState = PowerOnOff_Ready;
-					GlobalAlarmDetect_ConfigAlarmSystem(); // enable register alarm
+					/* Output substate */
+					Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
+					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
 				}
-				// If alarm exist, wait for jumping function
 				else
 				{
-					Axis[0].PcuPowerState = PowerOnOff_WaitForReset;
+					/* Standby substate */
+					Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
 				}
 			}
-
+			
 			break;
 
-		case PowerOnOff_EmergencyShutDown:
+		case PWR_SM_POWER_OFF:
 
-			// power off after alarm occur
-			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown )
+			/* Send shutdown command to BMS if shutdown request from BMS is received */
+			if(Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown)
 			{
-				Axis[0].PcuPowerState = PowerOnOff_NormalShutdown;
-				GlobalAlarmDetect_ConfigAlarmSystem(); // disable register alarm
+				Axis[0].pCANTxInterface->BmsCtrlCmd.ShutDownReq = ENABLE;
 			}
+
+			/*if SW reboot is requested ,change state to "PWR_SM_WAIT_FOR_RESET" here */
+
 			break;
 
-		case PowerOnOff_WaitForReset:
+		case PWR_SM_WAIT_FOR_RESET:
 			// Do nothing and wait for JumpCtrlFunction.
 			break;
 
-		// abnormal PcuPowerState value
-		case PowerOnOff_Error:
 		default:
-			Axis[0].PcuPowerState = PowerOnOff_Error;
+			// Abnormal PcuPowerState value, put PCU to "servo off" and "P shift", then go to "POWER OFF" state
+			Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
+			Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+			Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
 			break;
 
 	}
@@ -2524,20 +2519,21 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 
 void drive_DoHWOCPIRQ(void)
 {
-	if( Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+	if((Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE) && (AlarmMgr1.State == ALARM_MGR_STATE_ENABLE))
 	{
 		if( PwmStation1.PwmCh[Axis[0].AlarmDetect.AxisID-1].Group->Instance != 0 )
 		{
 			Axis[0].AlarmDetect.RegisterAxisAlarm( &Axis[0].AlarmDetect, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmID, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmType );
 		}
-	}
-	DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed = 1;
-	if ( DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State == DTC_Store_State_None && DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed == TRUE )
-	{
-		DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
-		drive_DTC_Pickup_Freeze_Frame_data( &DTCStation1, DTC_RecordNumber_P1F01_ESC_Over_current );
 
-		DTCStation1.State = DTC_Process_State_Write;
+		DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed = 1;
+
+		if ( DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State == DTC_Store_State_None && DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed == TRUE )
+		{
+			DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
+			drive_DTC_Pickup_Freeze_Frame_data( &DTCStation1, DTC_RecordNumber_P1F01_ESC_Over_current );
+			DTCStation1.State = DTC_Process_State_Write;
+		}
 	}
 }
 
@@ -2579,7 +2575,7 @@ void JumpCtrlFunction( void )
 		DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
 		JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 	}
-	else if( (Axis[0].PcuPowerState == PowerOnOff_WaitForReset) && \
+	else if( (Axis[0].PcuPowerState == PWR_SM_WAIT_FOR_RESET) && \
 			 (Axis[0].ServoOn == MOTOR_STATE_OFF) )
 	{
 		HAL_Delay(100);

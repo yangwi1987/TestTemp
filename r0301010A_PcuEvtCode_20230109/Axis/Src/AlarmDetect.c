@@ -94,13 +94,10 @@ static void AlarmDetect_BufferIcFb( AlarmDetect_t *v, PROTECT_POLLING_TYPE *p, u
 }
 
 static void SetAlarmThreshold(PROTECT_POLLING_TYPE *v, uint16_t index)
-	{
+{
 	// set threshold from external flash (P3-00~P3-xx)
 	// This function sholud be executed after ParamMgr1.Init
-	if (v->AlarmInfo.AlarmEnable == ALARM_ENABLE)
-	{
-		v->AlarmInfo.AlarmThreshold = *(&DriveParams.PCUParams.Reserved300 + index);
-	}
+	v->AlarmInfo.AlarmThreshold = *(&DriveParams.PCUParams.Reserved300 + index);
 }
 
 void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStation,
