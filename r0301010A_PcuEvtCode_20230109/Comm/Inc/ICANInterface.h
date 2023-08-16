@@ -281,7 +281,7 @@ typedef struct{
  =========================================*/
 typedef struct
 {
-	int32_t	BatCurrentDrainLimit0P1A;
+	float	BatCurrentDrainLimit;
 	int32_t	MEPowerOutputLimit0P1W;
 	uint32_t RTCData;
 	uint8_t ThrottleCmd;
@@ -404,7 +404,7 @@ typedef struct {
 } CANProtocol;
 
 #define CANRXINFO_DEFAULT { \
-	10000,  /* BatCurrentDrainLimit0P1A */\
+	1000.0f,  /* BatCurrentDrainLimit */\
 	10000,  /* MEPowerOutputLimit0P1W */\
 	0,      /* RTCData */\
 	0,      /* ThrottleCmd */\
