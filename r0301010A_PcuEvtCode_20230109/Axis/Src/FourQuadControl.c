@@ -240,21 +240,29 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	float PropulseMin = 0.0f;
 	float Smax = pTable->Para[DRIVE_SPEED_MAX] ;
 
-	if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
+	if ( v->Driving_TNIndex == 0 )
 	{
-		v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
-		v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
-	}
-	else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
-	{
-		v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
-		v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
+		v->DrivePowerCmd = Ramp( v->DrivePowerCmd, pTable->Para[DRIVE_POWER_MAX], v->LimpTransitRamp );
 	}
 	else
 	{
-		// do nothing
+		if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
+		{
+			v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
+			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
+		}
+		else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
+		{
+			v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
+			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
+		}
+		else
+		{
+			// do nothing
+		}
+		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
+
 	}
-	v->DrivePowerCmd = ( v->Driving_TNIndex == 0 ) ? Ramp( v->DrivePowerCmd, pTable->Para[DRIVE_POWER_MAX], v->LimpTransitRamp ) : pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
 
 	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
 	float F2 = pTable->Para[DRIVE_PROPULSION_MAX];
