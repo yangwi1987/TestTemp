@@ -83,39 +83,39 @@ void FourQuadControl_Reset( FourQuadControl *v, float DCDrainLimit );
 float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCurr, float VbusReal, float VbusUsed );
 
 #define FOURQUADCONTROL_DEFAULT { \
-		0,         /* InitFailure;                                      */\
-		0,         /* Driving_TNIndex;		// Setting parameter        */\
-		0,         /* Driving_TNIndexPrevious;// Setting parameter      */\
-		0.0f,      /* MotorSpeedRadps;			// input                */\
-		0.0f,      /* MotorRPM;                                         */\
-		0.0f,      /* TmaxSpeed; 				// internal parameter   */\
-		0.0f,      /* MaxDcLimitRecord;			// internal parameter   */\
-		1,         /* FirstEntryFlg;         // internal parameter      */\
-		0,         /* ThrottleReleaseFlg;    // input                   */\
-		PcuShiftP, /* GearPositionState;	    // input                */\
-		PcuShiftP, /* GearPositionCmd;	    // input                    */\
-		0,         /* ServoCmdIn;            // input                   */\
-		0,         /* ServoCmdOut;           // Output                  */\
-		0,         /* FourQuadState;			// Output               */\
-		0.0f,      /* DrivePropulsion;			// Output               */\
-		0.0f,      /* TorqueCommandOut;			// Output               */\
-		0.0f,      /* LimpTransitSec;                                   */\
-		0.0f,      /* DriveRisingRamp;                                  */\
-		0.0f,      /* DriveFallingRamp;                                 */\
-		0.0f,      /* DriveChangeTime;                                  */\
-		0.0f,      /* DCDrainLimit;                                     */\
-		0.0f,      /* DrainRisingRamp;                                  */\
-		0.0f,      /* DrainFallingRamp;                                 */\
-		0.0f,      /* DrivePowerLevelTarget;                            */\
-		0.0f,      /* DrivePowerLevelGain;                              */\
-		0.0f,      /* DrivePowerCmd;                                    */\
-		0.0f,      /* Throttle;                                         */\
-		0.0f,      /* DrivePowerLevelRampUp;                            */\
-		0.0f,      /* DrivePowerLevelRampDown;                          */\
-		{0.0f},    /* DrivePowerLevelRampUpParamA[DRIVE_TABLE_LENGTH];  */\
-		{0.0f},    /* DrivePowerLevelRampUpParamB[DRIVE_TABLE_LENGTH];  */\
-		{0.0f},    /* DrivePowerLevelRampDownParamA[DRIVE_TABLE_LENGTH];*/\
-		{0.0f},    /* DrivePowerLevelRampDownParamB[DRIVE_TABLE_LENGTH];*/\
+    0,         /* InitFailure;                                      */\
+    0,         /* Driving_TNIndex;		// Setting parameter        */\
+    0,         /* Driving_TNIndexPrevious;// Setting parameter      */\
+    0.0f,      /* MotorSpeedRadps;			// input                */\
+    0.0f,      /* MotorRPM;                                         */\
+    0.0f,      /* TmaxSpeed; 				// internal parameter   */\
+    0.0f,      /* MaxDcLimitRecord;			// internal parameter   */\
+    1,         /* FirstEntryFlg;         // internal parameter      */\
+    0,         /* ThrottleReleaseFlg;    // input                   */\
+    PcuShiftP, /* GearPositionState;	    // input                */\
+    PcuShiftP, /* GearPositionCmd;	    // input                    */\
+    0,         /* ServoCmdIn;            // input                   */\
+    0,         /* ServoCmdOut;           // Output                  */\
+    0,         /* FourQuadState;			// Output               */\
+    0.0f,      /* DrivePropulsion;			// Output               */\
+    0.0f,      /* TorqueCommandOut;			// Output               */\
+    0.0f,      /* LimpTransitSec;                                   */\
+    0.0f,      /* DriveRisingRamp;                                  */\
+    0.0f,      /* DriveFallingRamp;                                 */\
+    0.0f,      /* DriveChangeTime;                                  */\
+    0.0f,      /* DCDrainLimit;                                     */\
+    0.0f,      /* DrainRisingRamp;                                  */\
+    0.0f,      /* DrainFallingRamp;                                 */\
+    0.0f,      /* DrivePowerLevelTarget;                            */\
+    0.0f,      /* DrivePowerLevelGain;                              */\
+    0.0f,      /* DrivePowerCmd;                                    */\
+    0.0f,      /* Throttle;                                         */\
+    0.0f,      /* DrivePowerLevelRampUp;                            */\
+    0.0f,      /* DrivePowerLevelRampDown;                          */\
+    {0.0f},    /* DrivePowerLevelRampUpParamA[DRIVE_TABLE_LENGTH];  */\
+    {0.0f},    /* DrivePowerLevelRampUpParamB[DRIVE_TABLE_LENGTH];  */\
+    {0.0f},    /* DrivePowerLevelRampDownParamA[DRIVE_TABLE_LENGTH];*/\
+    {0.0f},    /* DrivePowerLevelRampDownParamB[DRIVE_TABLE_LENGTH];*/\
 	BACK_ROLL_TABLE_DEFAULT, \
 	{DRIVE_TABLE_DEFAULT}, \
 	(functypeFourQuadControl_Init)FourQuadControl_Init, \

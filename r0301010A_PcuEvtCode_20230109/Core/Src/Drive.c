@@ -69,8 +69,8 @@ TotalTime_t TotalTime1 = TOTAL_TIME_DEFAULT;
 RemainingTime_t RemainingTime1 = REMAININGTIME_DEFAULT;
 
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
-ESCOPState_e ESCMainState = ESCOP_Initializing;
-VehicleState_e VehicleMainState = VehicleState_Initializing;
+ESC_OP_STATE_e ESCMainState = ESC_OP_INITIALIZING;
+VEHICLE_STATE_e VehicleMainState = VEHICLE_STATE_INITIALIZING;
 
 /*For BRP UDS implementation*/
 
@@ -1376,91 +1376,86 @@ void Drive_PcuPowerStateMachine( void )
 {
 	switch( Axis[0].PcuPowerState )
 	{
-		case PowerOnOff_Initial:
+		case PWR_SM_INITIAL:
 
-			// normal transition
-			if( IsPcuInitReady == PcuInitState_Ready )
+			/* Wait for
+			 * 1. PCU initial state Ready flag is set and
+			 * 2. BMS report pre-charge completed */
+			if((IsPcuInitReady == PcuInitState_Ready)  &&
+			   (Axis[0].pCANRxInterface->BmsReportInfo.PrchSM == BMS_PRECHG_STATE_SUCCESSFUL))
 			{
-				if(Axis[0].pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE)
-				{
-					Axis[0].PcuPowerState = PowerOnOff_Ready;
-				}
+				Axis[0].PcuPowerState = PWR_SM_POWER_ON;
 			}
-
-			// error situation
-			if( Axis[0].HasCriAlarm == ENABLE )
+			else if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
 			{
-				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
-			}
-			break;
+				/* Receive shutdown request before battery complete pre-charge sequence */
+				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
 
-		case PowerOnOff_Ready:
-
-			// normal transition
-			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown )
-			{
-				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
-			}
-
-			// error situation
-			if( Axis[0].HasCriAlarm == ENABLE )
-			{
-				Axis[0].PcuPowerState = PowerOnOff_ShutdownStart;
+				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
+				GlobalAlarmDetect_ConfigAlarmSystem();
 			}
 			break;
 
-		case PowerOnOff_ShutdownStart:
-			// normal transition
-			if( Axis[0].HasCriAlarm == DISABLE )
+		case PWR_SM_POWER_ON:
+
+			if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
 			{
-				Axis[0].PcuPowerState = PowerOnOff_NormalShutdown;
-				GlobalAlarmDetect_ConfigAlarmSystem(); // disable register alarm
+				/*Receive turn off command from user , transfer state to power off */ 
+				Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+				Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
+				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
+				
+				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
+				GlobalAlarmDetect_ConfigAlarmSystem();
 			}
-			// error situation
 			else
 			{
-				Axis[0].PcuPowerState = PowerOnOff_EmergencyShutDown;
-			}
-			break;
+				/* Check if ESC can start to output Power if
+				 * 1. Safety sensor is connected (Digital input = low = 0) and
+				 * 2. Receive correct Battery status from BMS via CAN and
+				 * 3. RC and RF is properly connected */
 
-		case PowerOnOff_NormalShutdown:
-
-			// Restart by external command. (Normal transition)
-			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Enable )
-			{
-				// If no alarm exists, change state directly.
-				if( Axis[0].HasCriAlarm == DISABLE )
+				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
+				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
+					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
+					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
+				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_UNLOCKING))
 				{
-					Axis[0].PcuPowerState = PowerOnOff_Ready;
-					GlobalAlarmDetect_ConfigAlarmSystem(); // enable register alarm
+					/* Output substate */
+					Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
+					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
 				}
-				// If alarm exist, wait for jumping function
 				else
 				{
-					Axis[0].PcuPowerState = PowerOnOff_WaitForReset;
+					/* Standby substate */
+					Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
 				}
 			}
-
+			
 			break;
 
-		case PowerOnOff_EmergencyShutDown:
+		case PWR_SM_POWER_OFF:
 
-			// power off after alarm occur
-			if( Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown )
+			/* Send shutdown command to BMS if shutdown request from BMS is received */
+			if(Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown)
 			{
-				Axis[0].PcuPowerState = PowerOnOff_NormalShutdown;
-				GlobalAlarmDetect_ConfigAlarmSystem(); // disable register alarm
+				Axis[0].pCANTxInterface->BmsCtrlCmd.ShutDownReq = ENABLE;
 			}
+
+			/*if SW reboot is requested ,change state to "PWR_SM_WAIT_FOR_RESET" here */
+
 			break;
 
-		case PowerOnOff_WaitForReset:
+		case PWR_SM_WAIT_FOR_RESET:
 			// Do nothing and wait for JumpCtrlFunction.
 			break;
 
-		// abnormal PcuPowerState value
-		case PowerOnOff_Error:
 		default:
-			Axis[0].PcuPowerState = PowerOnOff_Error;
+			// Abnormal PcuPowerState value, put PCU to "servo off" and "P shift", then go to "POWER OFF" state
+			Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
+			Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+			Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
 			break;
 
 	}
@@ -1491,43 +1486,43 @@ void Drive_ESCStateMachine( void )
 {
 	switch( ESCMainState )
 	{
-		case ESCOP_Initializing:
+		case ESC_OP_INITIALIZING:
 
 			// normal transition
 			if( IsPcuInitReady == PcuInitState_Ready )
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
-				ESCMainState = ESCOP_Standby;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
+				ESCMainState = ESC_OP_STANDBY;
 			}
 			break;
 
-		case ESCOP_Standby:
+		case ESC_OP_STANDBY:
 
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_Alarm;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_LimpHome;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_Warning;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 1 ) // normal transitions
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
-				ESCMainState = ESCOP_Normal;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
+				ESCMainState = ESC_OP_NORMAL;
 			}
 			else
 			{
@@ -1536,32 +1531,32 @@ void Drive_ESCStateMachine( void )
 			}
 			break;
 
-		case ESCOP_Normal:
+		case ESC_OP_NORMAL:
 
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_Alarm;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_LimpHome;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_Warning;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 0 ) // normal transitions
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
-				ESCMainState = ESCOP_Standby;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
+				ESCMainState = ESC_OP_STANDBY;
 			}
 			else
 			{
@@ -1570,34 +1565,34 @@ void Drive_ESCStateMachine( void )
 			}
 			break;
 
-		case ESCOP_Warning:
+		case ESC_OP_WARNING:
 
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_Alarm;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_LimpHome;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_LIMPHOME;
 			}
 
 			// if warning is reset
 			else if( Axis[0].HasWarning == 0 )
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_NO_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				if( Axis[0].ServoOn == 1 )
 				{
-					ESCMainState = ESCOP_Normal;
+					ESCMainState = ESC_OP_NORMAL;
 				}
 				else
 				{
-					ESCMainState = ESCOP_Standby;
+					ESCMainState = ESC_OP_STANDBY;
 				}
 			}
 			else
@@ -1607,14 +1602,14 @@ void Drive_ESCStateMachine( void )
 			}
 			break;
 
-		case ESCOP_LimpHome:
+		case ESC_OP_LIMPHOME:
 
 			// error situation
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_Alarm;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_ALARM;
 			}
 			else
 			{
@@ -1629,14 +1624,14 @@ void Drive_ESCStateMachine( void )
 			*/
 			break;
 
-		case ESCOP_Alarm:
+		case ESC_OP_ALARM:
 
 			// error situation
 			if( Axis[0].HasCriAlarm == 0 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] = BAT_LED_SHOW_ESC_ERROR;
-				ESCMainState = ESCOP_LimpHome;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else
 			{
@@ -1646,7 +1641,7 @@ void Drive_ESCStateMachine( void )
 			break;
 
 		// abnormal PcuPowerState value
-		case ESCOP_PowerOff:
+		case ESC_OP_POWER_OFF:
 		default:
 			break;
 	}
@@ -1692,43 +1687,43 @@ void Drive_VehicleStateMachine( void )
 {
 	switch( VehicleMainState )
 	{
-		case VehicleState_Initializing:
+		case VEHICLE_STATE_INITIALIZING:
 
 			// normal transition
-			if( ESCMainState == ESCOP_Standby /* todo BMS precharge finish*/)
+			if( ESCMainState == ESC_OP_STANDBY /* todo BMS precharge finish*/)
 			{
 				EnterVehicleStandbyState();
-				VehicleMainState = VehicleState_Standby;
+				VehicleMainState = VEHICLE_STATE_STANDBY;
 			}
 
 			// action
 			// do CAN and RC initial communication at drive_Init
 			break;
 
-		case VehicleState_Standby:
+		case VEHICLE_STATE_STANDBY:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
-				VehicleMainState = VehicleState_Alarm;
+				VehicleMainState = VEHICLE_STATE_ALARM;
 			}
-			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
+			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
 			{
 				EnterVehicleLimpHomeState();
-				VehicleMainState = VehicleState_LimpHome;
+				VehicleMainState = VEHICLE_STATE_LIMPHOME;
 			}
-			else if( ESCMainState == ESCOP_Warning || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
+			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
 			{
 				EnterVehicleWarningState();
-				VehicleMainState = VehicleState_Warning;
+				VehicleMainState = VEHICLE_STATE_WARNING;
 			}
 
 			// normal transitions
-			else if( ESCMainState == ESCOP_Normal )
+			else if( ESCMainState == ESC_OP_NORMAL )
 			{
 				EnterVehicleNormalState();
-				VehicleMainState = VehicleState_Normal;
+				VehicleMainState = VEHICLE_STATE_NORMAL;
 			}
 			else
 			{
@@ -1738,30 +1733,30 @@ void Drive_VehicleStateMachine( void )
 			}
 			break;
 
-		case VehicleState_Normal:
+		case VEHICLE_STATE_NORMAL:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
-				VehicleMainState = VehicleState_Alarm;
+				VehicleMainState = VEHICLE_STATE_ALARM;
 			}
-			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
+			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
 			{
 				EnterVehicleLimpHomeState();
-				VehicleMainState = VehicleState_LimpHome;
+				VehicleMainState = VEHICLE_STATE_LIMPHOME;
 			}
-			else if( ESCMainState == ESCOP_Warning || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
+			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
 			{
 				EnterVehicleWarningState();
-				VehicleMainState = VehicleState_Warning;
+				VehicleMainState = VEHICLE_STATE_WARNING;
 			}
 
 			// normal transitions
-			else if( ESCMainState == ESCOP_Standby )
+			else if( ESCMainState == ESC_OP_STANDBY )
 			{
 				EnterVehicleStandbyState();
-				VehicleMainState = VehicleState_Standby;
+				VehicleMainState = VEHICLE_STATE_STANDBY;
 			}
 			else
 			{
@@ -1770,29 +1765,29 @@ void Drive_VehicleStateMachine( void )
 			}
 			break;
 
-		case VehicleState_Warning:
+		case VEHICLE_STATE_WARNING:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
-				VehicleMainState = VehicleState_Alarm;
+				VehicleMainState = VEHICLE_STATE_ALARM;
 			}
-			else if( ESCMainState == ESCOP_LimpHome || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
+			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
 			{
 				EnterVehicleLimpHomeState();
-				VehicleMainState = VehicleState_LimpHome;
+				VehicleMainState = VEHICLE_STATE_LIMPHOME;
 			}
 			// recovery paths
-			else if( ESCMainState == ESCOP_Normal && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
+			else if( ESCMainState == ESC_OP_NORMAL && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
 			{
 				EnterVehicleNormalState();
-				VehicleMainState = VehicleState_Normal;
+				VehicleMainState = VEHICLE_STATE_NORMAL;
 			}
-			else if( ESCMainState == ESCOP_Standby && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
+			else if( ESCMainState == ESC_OP_STANDBY && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
 			{
 				EnterVehicleStandbyState();
-				VehicleMainState = VehicleState_Standby;
+				VehicleMainState = VEHICLE_STATE_STANDBY;
 			}
 			else
 			{
@@ -1802,13 +1797,13 @@ void Drive_VehicleStateMachine( void )
 			}
 			break;
 
-		case VehicleState_LimpHome:
+		case VEHICLE_STATE_LIMPHOME:
 
 			// error situation
-			if( ESCMainState == ESCOP_Alarm || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
+			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
-				VehicleMainState = VehicleState_Alarm;
+				VehicleMainState = VEHICLE_STATE_ALARM;
 			}
 			else
 			{
@@ -1819,13 +1814,13 @@ void Drive_VehicleStateMachine( void )
 			}
 			break;
 
-		case VehicleState_Alarm:
+		case VEHICLE_STATE_ALARM:
 
 			// error situation
-			if( ESCMainState != ESCOP_Alarm && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
+			if( ESCMainState != ESC_OP_ALARM && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
 			{
 				EnterVehicleLimpHomeState();
-				VehicleMainState = VehicleState_LimpHome;
+				VehicleMainState = VEHICLE_STATE_LIMPHOME;
 			}
 			else
 			{
@@ -1838,7 +1833,7 @@ void Drive_VehicleStateMachine( void )
 			break;
 
 		// abnormal PcuPowerState value
-		case VehicleState_PowerOff:
+		case VEHICLE_STATE_POWER_OFF:
 		default:
 			break;
 
@@ -2524,20 +2519,21 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 
 void drive_DoHWOCPIRQ(void)
 {
-	if( Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+	if((Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE) && (AlarmMgr1.State == ALARM_MGR_STATE_ENABLE))
 	{
 		if( PwmStation1.PwmCh[Axis[0].AlarmDetect.AxisID-1].Group->Instance != 0 )
 		{
 			Axis[0].AlarmDetect.RegisterAxisAlarm( &Axis[0].AlarmDetect, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmID, Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmType );
 		}
-	}
-	DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed = 1;
-	if ( DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State == DTC_Store_State_None && DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed == TRUE )
-	{
-		DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
-		drive_DTC_Pickup_Freeze_Frame_data( &DTCStation1, DTC_RecordNumber_P1F01_ESC_Over_current );
 
-		DTCStation1.State = DTC_Process_State_Write;
+		DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed = 1;
+
+		if ( DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State == DTC_Store_State_None && DTCStation1.StatusOfDTC_Realtime[DTC_RecordNumber_P1F01_ESC_Over_current].Test_Failed == TRUE )
+		{
+			DTCStation1.DTCStorePackge[DTC_RecordNumber_P1F01_ESC_Over_current].DTC_Store_State = DTC_Store_State_Confirmed_and_wait_for_Store;
+			drive_DTC_Pickup_Freeze_Frame_data( &DTCStation1, DTC_RecordNumber_P1F01_ESC_Over_current );
+			DTCStation1.State = DTC_Process_State_Write;
+		}
 	}
 }
 
@@ -2579,7 +2575,7 @@ void JumpCtrlFunction( void )
 		DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
 		JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 	}
-	else if( (Axis[0].PcuPowerState == PowerOnOff_WaitForReset) && \
+	else if( (Axis[0].PcuPowerState == PWR_SM_WAIT_FOR_RESET) && \
 			 (Axis[0].ServoOn == MOTOR_STATE_OFF) )
 	{
 		HAL_Delay(100);

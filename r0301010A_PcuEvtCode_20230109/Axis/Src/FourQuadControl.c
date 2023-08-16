@@ -331,19 +331,19 @@ void FourQuadControl_Switch( FourQuadControl *v )
 	int16_t MotorRPMTmp = (int16_t)( v->MotorRPM );
 
 	//Switch Control
-	if( v->GearPositionState == PcuShiftP )
+	if( v->GearPositionState == PCU_SHIFT_P )
 	{
-		v->ServoCmdOut = 0;
+		v->ServoCmdOut = DISABLE;
 		v->FourQuadState = FourQuadState_None;
 
-		if( v->GearPositionCmd == PcuShiftD && v->ThrottleReleaseFlg == 1 )
+		if( v->GearPositionCmd == PCU_SHIFT_D && v->ThrottleReleaseFlg == 1 )
 		{
-			v->GearPositionState = PcuShiftD;
+			v->GearPositionState = PCU_SHIFT_D;
 		}
 	}
-	else if( v->GearPositionState == PcuShiftD )
+	else if( v->GearPositionState == PCU_SHIFT_D )
 	{
-		v->ServoCmdOut = 1;
+		v->ServoCmdOut = ENABLE;
 
 		if( v->FirstEntryFlg == 1 && v->ThrottleReleaseFlg == 0 )
 		{
@@ -360,14 +360,14 @@ void FourQuadControl_Switch( FourQuadControl *v )
 			v->FirstEntryFlg = 0;
 		}
 
-		if( v->GearPositionCmd == PcuShiftP )
+		if( v->GearPositionCmd == PCU_SHIFT_P )
 		{
-			v->GearPositionState = PcuShiftP;
+			v->GearPositionState = PCU_SHIFT_P;
 			v->FirstEntryFlg = 1;
 		}
 	}
 
-	v->ServoCmdOut = ( v->ServoCmdIn == 0 )? 0 : v->ServoCmdOut;
+	v->ServoCmdOut = ( v->ServoCmdIn == DISABLE )? DISABLE : v->ServoCmdOut;
 }
 
 void FourQuadControl_Calc( FourQuadControl *v )

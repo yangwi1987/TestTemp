@@ -51,24 +51,24 @@ typedef enum
 }TargetDefine_e;
 
 typedef enum{
-	VehicleState_Initializing,
-	VehicleState_Standby,
-	VehicleState_Normal,
-	VehicleState_Warning,
-	VehicleState_LimpHome,
-	VehicleState_Alarm,
-	VehicleState_PowerOff,
-}VehicleState_e;
+	VEHICLE_STATE_INITIALIZING,
+	VEHICLE_STATE_STANDBY,
+	VEHICLE_STATE_NORMAL,
+	VEHICLE_STATE_WARNING,
+	VEHICLE_STATE_LIMPHOME,
+	VEHICLE_STATE_ALARM,
+	VEHICLE_STATE_POWER_OFF,
+}VEHICLE_STATE_e;
 
 typedef enum{
-	ESCOP_Initializing,
-	ESCOP_Standby,
-	ESCOP_Normal,
-	ESCOP_Warning,
-	ESCOP_LimpHome,
-	ESCOP_Alarm,
-	ESCOP_PowerOff,
-}ESCOPState_e; // ESC operation
+	ESC_OP_INITIALIZING,
+	ESC_OP_STANDBY,
+	ESC_OP_NORMAL,
+	ESC_OP_WARNING,
+	ESC_OP_LIMPHOME,
+	ESC_OP_ALARM,
+	ESC_OP_POWER_OFF,
+}ESC_OP_STATE_e; // ESC operation
 
 // Define the number of different data index
 #define HW_VER_NUM_IDX		7 // PCU hardware version
