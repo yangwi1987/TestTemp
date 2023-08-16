@@ -70,7 +70,8 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 
     if( ( HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == 0 ) &&
         ( v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE ) &&
-        ( RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED ))
+        ( RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) &&
+		( v->pCANRxInterface->BmsReportInfo.DCCurrentLimit > 0))
     {
         v->FourQuadCtrl.ServoCmdIn = ENABLE;
         v->FourQuadCtrl.GearPositionCmd = ENABLE;
@@ -161,7 +162,7 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 #if USE_ANALOG_FOIL_SENSOR_FUNC
         v->pCANTxInterface->Debugf[IDX_FOIL_SENSOR_VOLT] = v->pAdcStation->AdcTraOut.Foil;
 #endif
-        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] =  (float)(v->pCANRxInterface->BatCurrentDrainLimit0P1A);
+        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] =  (float)(v->pCANRxInterface->BmsReportInfo.DCCurrentLimit);
         v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
     }
@@ -837,7 +838,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
 
             v->TorqCommandGenerator.DcCurrLimit = \
-                v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, (float)((v->pCANRxInterface->BatCurrentDrainLimit0P1A) * 0.1f), \
+                v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, (float)(v->pCANRxInterface->BmsReportInfo.DCCurrentLimit), \
                 v->MotorControl.TorqueToIdq.VbusReal, v->MotorControl.TorqueToIdq.VbusUsed );
 
             v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl, v->ThrotMapping.PercentageOut );
@@ -861,7 +862,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         {
             //do nothing
         }
-        v->FourQuadCtrl.Reset( &v->FourQuadCtrl, (((float)(v->pCANRxInterface->BatCurrentDrainLimit0P1A)) * 0.1f) );
+        v->FourQuadCtrl.Reset( &v->FourQuadCtrl, (float)( v->pCANRxInterface->BmsReportInfo.DCCurrentLimit ));
         v->ThrotMapping.TnSelectEmpty = v->ThrotMapping.TnSelect;
         v->ThrotMapping.TnSelectHalf = v->ThrotMapping.TnSelect;
         v->ThrotMapping.TnSelectFull = v->ThrotMapping.TnSelect;
