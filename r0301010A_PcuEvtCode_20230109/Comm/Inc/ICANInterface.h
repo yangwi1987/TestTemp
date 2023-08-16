@@ -305,7 +305,7 @@ typedef struct
 typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
-  TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG = 1,
+  TX_INTERFACE_DBG_IDX_ERROR_FLAG = 1, // include critical alarm, non-critical alarm, and warning
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
@@ -362,7 +362,6 @@ typedef struct
 	int16_t IDcBus0P1A;
 	int16_t VoltDcBu0P1V;
 	FoilPos_t FoilPos;
-	uint8_t LimpHomeSrc;
 	uint8_t DeratingSrc;
 	uint8_t ShiftReport;
 	uint8_t _4Quad;
@@ -447,7 +446,6 @@ typedef struct {
 		0, /* IDcBus0P1A */ \
 		0, /* VoltDcBu0P1V */ \
 		FOIL_POS_PADDLE, /*FoilPos*/ \
-		0,	/* LimpHomeSrc*/\
 		0,	/* DeratingSrc*/\
 		0, /* ShiftReport */ \
 		0, /* _4Quad */ \
