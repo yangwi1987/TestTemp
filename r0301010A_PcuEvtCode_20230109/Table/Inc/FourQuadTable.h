@@ -10,7 +10,7 @@
 
 #include "Table_Type_Define.h"
 
-#define DRIVE_TABLE_LENGTH				4
+#define DRIVE_TABLE_LENGTH				5
 #define REGEN_TABLE_LENGTH				5
 #define THROTTLE_TABLE_LENGTH			3
 
