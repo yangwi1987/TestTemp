@@ -191,7 +191,7 @@ typedef struct {
 	0.0f,   /*ThrottleGain*/ \
 	0,      /*ThrottleGainState;*/ \
 	0,      /*DcBusGainState;   */ \
-	PowerOnOff_Initial,    /*PcuPowerState;       */\
+	PWR_SM_INITIAL,    /*PcuPowerState;       */\
 	{0},                   /*    FoilState;       */\
 	0,	                   /* TriggerLimpHome;    */\
 	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\
