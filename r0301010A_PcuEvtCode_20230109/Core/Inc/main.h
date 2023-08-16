@@ -155,6 +155,9 @@ enum E_TargetID {
 	TARGET_ID_AXIS2
 };
 
+
+#define SAFETY_SENSOR_SIGNAL_CONNECTED  GPIO_PIN_RESET
+#define SAFETY_SENSOR_SIGNAL_DISCONNECTED  GPIO_PIN_SET
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
