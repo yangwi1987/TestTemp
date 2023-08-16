@@ -7,17 +7,24 @@
 
 #include "UdsSecurityAccess.h"
 
+//uint8_t keymul[2][8]= {
+//		{0x3D, 0x02, 0x83, 0xEE, 0xCB, 0xF4, 0x89, 0x71},
+//		{0x31, 0xB2, 0x54, 0xE2, 0x25, 0x8D, 0x89, 0xB6}
+//};
+////									0			1			2			3			4			5			6			7
+//uint32_t SecurityAccessMask[8]= { 	0, 			0x1030, 	0x1030, 	0x0809,		0x0809, 	0x02D670ED, 0x0505A0A0, 0xAA005500 };
+
 uint8_t keymul[2][8]= {
-		{0x3D, 0x02, 0x83, 0xEE, 0xCB, 0xF4, 0x89, 0x71},
-		{0x31, 0xB2, 0x54, 0xE2, 0x25, 0x8D, 0x89, 0xB6}
+		{0xDA, 0x24, 0x17, 0xA8, 0x0E, 0x39, 0x0B, 0x49},
+		{0xAC, 0x0A, 0x78, 0x37, 0x7A, 0xEA, 0xDA, 0xCF}
 };
-//									0			1			2			3			4			5			6			7
-uint32_t SecurityAccessMask[8]= { 	0, 			0x1030, 	0x1030, 	0x0809,		0x0809, 	0x02D670ED, 0x0505A0A0, 0xAA005500 };
+//										0			1			2			3			4			5			6			7
+uint32_t SecurityAccessMask[8]= { 	0, 			0x0920, 	0x0920, 	0x0828,		0x0828, 	0x02D670ED, 0x0505A0A0, 0xAA005500 };
 
 void UdsSecurityAccess_Init ( UdsSecurityAccessCtrl_t *p )
 {
 	p->SecureLvReq = 0;
-	p->SecureLvNow = 5;
+	p->SecureLvNow = DEFAULT_SECURITY_LEVEL;
 	p->SecureState = UDS_SECURE_STATE_IDLE;
 	p->SecureResult = UDS_SECURE_RESULT_IDLE;
 	p->Seed = 0;
@@ -34,14 +41,15 @@ void UdsSecurityAccess_Clear ( UdsSecurityAccessCtrl_t *p )
 	p->SubFuncIn = 0;
 }
 
-void UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOut )
+uint8_t UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOut )
 {
 	uint32_t SeedTemp = 0;
+	uint8_t  ResultTemp = UDS_SECURE_RESULT_IDLE;
 	//todo use random value or use timer counter value
 	if ( p->SecureLvNow != p->SecureLvReq )
 	{
 		//new security level request is received, return specified Seed to client
-		srand(htim20.Instance->CNT);
+		srand(HAL_GetTick());
 		p->Seed = rand();
 		if( (p->SecureLvReq== 1)|
 			(p->SecureLvReq== 2)|
@@ -49,9 +57,14 @@ void UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOut )
 			(p->SecureLvReq== 4) )
 		{
 			p->Seed&= 0x0000FFFF;
-		} else;
-		p->MuskBlock.All= SecurityAccessMask[ p->SecureLvReq ];
-		p->keymulSel.All= p->Seed;
+		}
+		else
+		{
+			//new security level required is unlocked before, return all "0" seed to client
+			SeedTemp = 0;
+			ResultTemp =  UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL;
+		}
+		p->keymulSel= p->Seed;
 		p->KeyMulCal( p );
 		SeedTemp = p->Seed;
 		ByteSwap ( &SeedTemp, UDS_SECURE_SEED_SIZE );
@@ -62,24 +75,26 @@ void UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOut )
 		SeedTemp = 0;
 	}
 	memcpy ( pDataOut, (uint8_t*)&SeedTemp, UDS_SECURE_SEED_SIZE );
+
+	return ResultTemp;
 }
 
 void UdsSecurityAccess_KeymulCal( UdsSecurityAccessCtrl_t *p )
 {
 	IndexSelect_u Idx;
-	if( (p->SecureLvReq == 1)|(p->SecureLvReq == 2) ) {
-		Idx.Byte.bit0= 0x00000001&( p->keymulSel.Byte.HalfByte1& p->MuskBlock.Byte.HalfByte1 );
-		Idx.Byte.bit1= 0x00000001&( ( p->keymulSel.Byte.HalfByte1& p->MuskBlock.Byte.HalfByte1)>> 1 );
-		Idx.Byte.bit2= 0x00000001&( p->keymulSel.Byte.HalfByte3& p->MuskBlock.Byte.HalfByte3 );
-		Idx.Byte.reserved= 0;
-		p->Keymul= keymul[0][Idx.All];
-	} else if( (p->SecureLvReq == 3)|(p->SecureLvReq == 4) ) {
-		Idx.Byte.bit0= 0x00000001&( ( p->keymulSel.Byte.HalfByte0& p->MuskBlock.Byte.HalfByte0) );
-		Idx.Byte.bit1= 0x00000001&( ( p->keymulSel.Byte.HalfByte0& p->MuskBlock.Byte.HalfByte0)>> 3 );
-		Idx.Byte.bit2= 0x00000001&( ( p->keymulSel.Byte.HalfByte2& p->MuskBlock.Byte.HalfByte2)>> 3 );
-		Idx.Byte.reserved= 0;
-		p->Keymul= keymul[1][Idx.All];
-	} else;
+    if( (p->SecureLvReq == 1)|(p->SecureLvReq == 2) ) {
+    	Idx.Byte.bit0= 0x00000001&( p->keymulSel >> 5 );
+    	Idx.Byte.bit1= 0x00000001&( p->keymulSel >> 8 );
+    	Idx.Byte.bit2= 0x00000001&( p->keymulSel >> 11 );
+    	Idx.Byte.reserved= 0;
+    	p->Keymul= keymul[0][Idx.All];
+    } else if( (p->SecureLvReq == 3)|(p->SecureLvReq == 4) ) {
+    	Idx.Byte.bit0= 0x00000001&( p->keymulSel >> 3 );
+    	Idx.Byte.bit1= 0x00000001&( p->keymulSel >> 5 );
+    	Idx.Byte.bit2= 0x00000001&( p->keymulSel >> 11 );
+    	Idx.Byte.reserved= 0;
+    	p->Keymul= keymul[1][Idx.All];
+    } else;
 }
 
 
@@ -87,12 +102,8 @@ uint8_t UdsSecurityAccess_KeySend ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataIn
 {
 	uint32_t KeyReceived;
 	uint32_t KeyExpected;
-	uint32_t SeedTemp;
 	uint32_t InverseSeed= 0;
-//	uint32_t Mask;
-	memcpy ( (uint8_t*)&KeyReceived, pDataIn, UDS_SECURE_SEED_SIZE );
-	ByteSwap ( &KeyReceived, UDS_SECURE_SEED_SIZE );
-	SeedTemp = p->Seed;
+	KeyReceived = ( *pDataIn << 8 )  + *( pDataIn + 1 );
 	switch ( p->SecureLvReq )
 	{
 		case 1:
@@ -123,7 +134,15 @@ uint8_t UdsSecurityAccess_KeySend ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataIn
 	}
 	else
 	{
-		return UDS_SECURE_RESULT_FAIL_WRONG_KEY;
+		if ( ++(p->FalseAccessCNT) >= FALSE_ACCESS_EXCEED_LIMIT_NUMBER )
+		{
+			p->IsFalseAccessExceedLimit = 1;
+			return UDS_SECURE_RESULT_FAIL_FALSE_ACCESS_EXCEED_LIMIT;
+		}
+		else
+		{
+		    return UDS_SECURE_RESULT_FAIL_WRONG_KEY;
+		}
 	}
 }
 
@@ -138,9 +157,8 @@ uint8_t UdsSecurityAccess_SubFuncExecute ( UdsSecurityAccessCtrl_t *p, uint8_t *
 	{
 		p->SecureState = UDS_SECURE_STATE_GET_REQUEST_SEED;
 		p->SecureLvReq = ((p->SubFuncIn + 1) >> 1);
-		UdsSecurityAccess_SeedReq ( p, pDataOut );
-		p->SecureState = UDS_SECURE_STATE_SEND_SEED;
-		p->SecureResult = UDS_SECURE_RESULT_IDLE;
+		p->SecureResult = UdsSecurityAccess_SeedReq ( p, pDataOut );
+		p->SecureState = ( p->SecureResult == UDS_SECURE_RESULT_IDLE ) ? UDS_SECURE_STATE_SEND_SEED : UDS_SECURE_STATE_CHECKED;
 		p->TimeoutCnt = 0;
 	}
 	else	//even value ,it's a "Send Key" sub-function

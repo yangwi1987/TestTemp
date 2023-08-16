@@ -2582,6 +2582,14 @@ void JumpCtrlFunction( void )
 		 JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 	 }
 	else;
+
+	if ( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 )
+	{
+
+		HAL_Delay(100);
+		 JumpCode_ApplicationToBootloader( APP_IN_START_ADDRESS );
+
+	}
 }
 
 void JumpCode_ApplicationToBootloader( uint32_t BootAddress )

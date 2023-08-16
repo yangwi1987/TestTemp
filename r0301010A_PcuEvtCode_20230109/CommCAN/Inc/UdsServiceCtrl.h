@@ -25,10 +25,11 @@
 #define FALSE 0
 #define NONE 0
 
-#define FalseAccessExceedLimitDelayTime_ms  10 * 60 * 1000 // 10 minutes
-#define P2_Server_max              150       // Resolition: 1ms
-#define P2_Star_Server_max         505       // Resolition: 10ms
-#define P2_Star_Server_max_in_ms P2_Star_Server_max * 10
+#define FALSE_ACCESS_EXCEED_LIMIT_DELAY_TIME_MS 10 * 60 * 1000 // 10 minutes
+#define P2_SERVER_MAX              150       // Resolition: 1ms
+#define P2_STAR_SERVER_MAX         505       // Resolition: 10ms
+#define P2_STAR_SERVER_MAX_MS P2_STAR_SERVER_MAX * 10
+
 /*
  * Enum define for BRP UDS ===========================================================================================================================================================================================
  */
@@ -142,6 +143,8 @@ typedef enum
 	NRC_WrongBlockSequenceCounter = 0x73,
 	NRC_VoltageTooHigh = 0x92,
 	NRC_VoltageTooLow = 0x93,
+	NRC_exceededNumberOfAttempts = 0x36,
+	NRC_requiredTimeDelayNotExpired = 0x37,
 }EnumUdsNRC;
 
 typedef enum
