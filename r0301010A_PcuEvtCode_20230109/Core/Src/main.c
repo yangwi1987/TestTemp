@@ -112,14 +112,7 @@ static void MX_UART5_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t TestArr1[7] = {
-		0x07, 0x00, 0x32, 0x00, 0x00, 0x01, 0x02,
-};
 
-uint8_t TestArr2[8] ={
-		0,0,0,0,0,0,0,0
-};
-uint32_t CRCTestResult = 0;
 /* USER CODE END 0 */
 
 /**
@@ -182,12 +175,6 @@ int main(void)
 //  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_1 );
 //  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_2 );
   __enable_irq();
-
-//  for(uint8_t x = 0; x < 7; x++){
-//	  TestArr2[x] = TestArr1[x];
-//  }
-//  uwCRCValue = HAL_CRC_Calculate(&hcrc,(uint32_t*)TestArr1,7);
-  CRCTestResult = RCCommCtrl.CalCrc(&RCCommCtrl,TestArr1,7);
 
   /* USER CODE END 2 */
 
