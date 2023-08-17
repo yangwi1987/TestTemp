@@ -162,16 +162,6 @@ typedef enum
 
 typedef enum
 {
-	Authority_EndUser = 0,
-	Authority_VehicleDealer = 1,
-	Authority_VehicleMf = 2,
-	Authority_LscMf = 5,
-	Authority_LscFAE = 6,
-	Authority_LscRd = 7,
-}EnumAuthority;
-
-typedef enum
-{
 	Security_Level_0,
 	Security_Level_1,
 	Security_Level_2,
@@ -416,6 +406,8 @@ typedef struct
 	UdsSecurityAccessCtrl_t *pSecurityCtrl;
 	ParamMgr_t 			*pParamMgr;
 	uint8_t			EnableAutoSend;
+	uint8_t         SessionCNTEnable;
+	uint32_t        SessionCNT;
 	funcTypeUdsServiceCtrl_Init				Init;
 	funcTypeUdsServiceCtrl_ServiceHandler	ServiceHandler;
 	funcTypeUdsServiceCtrl_NegativeRspReq   NegativeRspReq;
@@ -430,6 +422,8 @@ typedef struct
 	NetworkCtrl_t_default,		\
 	DataTransferCtrl_Default,	\
 	PERIODIC_UPDATE_DEFAULT,	\
+	0,							\
+	0,							\
 	0,							\
 	0,							\
 	0,							\

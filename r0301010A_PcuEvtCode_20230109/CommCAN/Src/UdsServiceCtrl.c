@@ -207,6 +207,7 @@ void UdsServiceCtrl_ServiceHandler( NetWorkService_t *p ,NetworkCtrl_t *v  )
 	if( v->Rx.Status == Rx_Complete)
 	{
 		v->Rx.Status = Rx_Reading;
+		p->SessionCNT = 0;
 		lSID = v->Rx.Data[0];
 		switch (lSID)
 		{
@@ -447,24 +448,31 @@ void UdsServiceCtrl_SessionControl( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 	{
 	case Session_0x01_Default:
 		p->pParamMgr->Session = Session_0x01_Default;
+		p->SessionCNTEnable = 0;
+		p->SessionCNT = 0;
 		break;
 	case Session_0x02_Programming:
 		p->pParamMgr->Session = Session_0x02_Programming;
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		p->pParamMgr->Session = Session_0x03_ExtendedDiagnostic;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		p->pParamMgr->Session = Session_0x04_SafetySystemDiagnostic;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		p->pParamMgr->Session = Session_0x40_VehicleManufacturerSpecific;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		p->pParamMgr->Session = Session_0x60_SystemSupplierSpecific;
+		p->SessionCNTEnable = 1;
 		break;
 	default:
 		p->pParamMgr->Session = Session_0x01_Default;
+		p->SessionCNTEnable = 0;
 		break;
 	}
 
@@ -794,6 +802,21 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 	if( v->EnableAutoSend == 1 )
 	{
 		UdsServiceCtrl_SendDataPeriodicallyNoSwap( v, &v->NetWork.Tx, v->PeriodUpdateCtrl.ParamId);
+	}
+
+	if ( v->SessionCNTEnable )
+	{
+		if ( v->SessionCNT >= P2_STAR_SERVER_MAX_MS )
+		{
+			v->pParamMgr->Session = Session_0x01_Default;
+		    v->SessionCNTEnable = 0;
+		    v->SessionCNT = 0;
+		    v->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		}
+		else
+		{
+			v->SessionCNT++;
+		}
 	}
 
 	if ( v->ServiceCtrlBRP.BRPSessionCNTEnable )
