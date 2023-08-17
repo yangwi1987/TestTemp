@@ -92,8 +92,8 @@ float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCu
     0.0f,      /* MaxDcLimitRecord;			// internal parameter   */\
     1,         /* FirstEntryFlg;         // internal parameter      */\
     0,         /* ThrottleReleaseFlg;    // input                   */\
-    PcuShiftP, /* GearPositionState;	    // input                */\
-    PcuShiftP, /* GearPositionCmd;	    // input                    */\
+    PCU_SHIFT_P, /* GearPositionState;	    // input                */\
+    PCU_SHIFT_P, /* GearPositionCmd;	    // input                    */\
     0,         /* ServoCmdIn;            // input                   */\
     0,         /* ServoCmdOut;           // Output                  */\
     0,         /* FourQuadState;			// Output               */\
