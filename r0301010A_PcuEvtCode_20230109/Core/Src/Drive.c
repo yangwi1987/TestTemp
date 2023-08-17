@@ -1421,6 +1421,7 @@ void Drive_PcuPowerStateMachine( void )
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
 				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED)&&
 				   (Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0))
+
 				{
 					/* Output substate */
 					Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
