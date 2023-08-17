@@ -480,53 +480,55 @@ void UdsServiceCtrl_SessionControl( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 
 void UdsServiceCtrl_SecurityAccess( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx)
 {
-	p->pSecurityCtrl->SubFuncIn = pRx->Data[1];
-	p->pSecurityCtrl->SubFuncCheck ( p->pSecurityCtrl, &pRx->Data[2], &pTx->Data[2] );
-
 	if ( p->pSecurityCtrl->IsFalseAccessExceedLimit == TRUE )
 	{
 		p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_requiredTimeDelayNotExpired );
 	}
-	else if ( p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_SEND_SEED )
-	{
-		pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-		pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
-		pTx->LengthTotal = 2 + UDS_SECURE_SEED_SIZE;
-		pTx->Status = Tx_Request;
-		p->pSecurityCtrl->SecureState = UDS_SECURE_STATE_WAIT_KEY;
-	}
-	else if ( (p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_CHECKED) && (p->pSecurityCtrl->SecureResult == UDS_SECURE_RESULT_SUCCESS) )
-	{
-		pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-		pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
-		pTx->LengthTotal = 2;
-		pTx->Status = Tx_Request;
-	}
 	else
 	{
-		switch ( p->pSecurityCtrl->SecureResult )
-		{
-			case UDS_SECURE_RESULT_FAIL_WRONG_SEQ:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_RequestSequenceError );
-				break;
-			case UDS_SECURE_RESULT_FAIL_WRONG_KEY:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_InvalidKey );
-				break;
-			case UDS_SECURE_RESULT_FAIL_SUB_FUNCTION_VALUE_MISMATCH:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
-				break;
-			case UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_SubFunctionNotSupported );
-				break;
-    		case UDS_SECURE_RESULT_FAIL_FALSE_ACCESS_EXCEED_LIMIT:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_exceededNumberOfAttempts );
-    			break;
-			default:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
-				break;
-		}
-	}
+	    p->pSecurityCtrl->SubFuncIn = pRx->Data[1];
+	    p->pSecurityCtrl->SubFuncCheck ( p->pSecurityCtrl, &pRx->Data[2], &pTx->Data[2] );
 
+	    if ( p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_SEND_SEED )
+	    {
+	    	pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	    	pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
+	    	pTx->LengthTotal = 2 + UDS_SECURE_SEED_SIZE;
+	    	pTx->Status = Tx_Request;
+	    	p->pSecurityCtrl->SecureState = UDS_SECURE_STATE_WAIT_KEY;
+	    }
+	    else if ( (p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_CHECKED) && (p->pSecurityCtrl->SecureResult == UDS_SECURE_RESULT_SUCCESS) )
+	    {
+	    	pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	    	pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
+	    	pTx->LengthTotal = 2;
+	    	pTx->Status = Tx_Request;
+	    }
+	    else
+	    {
+	    	switch ( p->pSecurityCtrl->SecureResult )
+	    	{
+	    		case UDS_SECURE_RESULT_FAIL_WRONG_SEQ:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_RequestSequenceError );
+	    			break;
+	    		case UDS_SECURE_RESULT_FAIL_WRONG_KEY:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_InvalidKey );
+	    			break;
+	    		case UDS_SECURE_RESULT_FAIL_SUB_FUNCTION_VALUE_MISMATCH:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
+	    			break;
+	    		case UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_SubFunctionNotSupported );
+	    			break;
+        		case UDS_SECURE_RESULT_FAIL_FALSE_ACCESS_EXCEED_LIMIT:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_exceededNumberOfAttempts );
+        			break;
+	    		default:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
+	    			break;
+	    	}
+	    }
+	}
 }
 
 void UdsServiceCtrl_ECUReset(NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx)
