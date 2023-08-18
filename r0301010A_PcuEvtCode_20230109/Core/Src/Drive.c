@@ -2583,7 +2583,7 @@ void JumpCtrlFunction( void )
 	 }
 	else;
 
-	if ( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 )
+	if (( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || ( IntranetCANStation.ECUSoftResetEnable == 1 ))
 	{
 
 		HAL_Delay(100);

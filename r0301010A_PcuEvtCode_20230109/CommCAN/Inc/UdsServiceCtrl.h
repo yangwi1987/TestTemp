@@ -408,6 +408,7 @@ typedef struct
 	uint8_t			EnableAutoSend;
 	uint8_t         SessionCNTEnable;
 	uint32_t        SessionCNT;
+	uint8_t     ECUSoftResetEnable;
 	funcTypeUdsServiceCtrl_Init				Init;
 	funcTypeUdsServiceCtrl_ServiceHandler	ServiceHandler;
 	funcTypeUdsServiceCtrl_NegativeRspReq   NegativeRspReq;
@@ -424,9 +425,10 @@ typedef struct
 	PERIODIC_UPDATE_DEFAULT,	\
 	0,							\
 	0,							\
-	0,							\
-	0,							\
-	0,							\
+	0,							/*	EnableAutoSend  */\
+	0,							/*  SessionCNTEnable*/\
+	0,							/*  SessionCNT;    */  \
+	0,							/*ECUSoftResetEnable;*/  \
 	(funcTypeUdsServiceCtrl_Init)UdsServiceCtrl_Init,\
 	(funcTypeUdsServiceCtrl_ServiceHandler)UdsServiceCtrl_ServiceHandler,\
 	(funcTypeUdsServiceCtrl_NegativeRspReq)UdsServiceCtrl_NegativeRspReq,\
