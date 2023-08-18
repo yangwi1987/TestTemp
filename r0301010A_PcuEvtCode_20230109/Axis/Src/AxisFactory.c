@@ -82,7 +82,7 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 		v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
         v->pCANRxInterface->BmsReportInfo.PrchSM = BMS_PRECHG_STATE_SUCCESSFUL;
         v->pCANRxInterface->BmsReportInfo.MainSm = BMS_ACTIVE_STATE_DISCHARGE;
-        v->pCANRxInterface->BatCurrentDrainLimit = 1000.0f;
+        v->pCANRxInterface->BatCurrentDrainLimit = DEFAULT_DC_LIMIT;
 	}
 
     v->ThrotMapping.TnSelect = v->pCANRxInterface->OutputModeCmd;

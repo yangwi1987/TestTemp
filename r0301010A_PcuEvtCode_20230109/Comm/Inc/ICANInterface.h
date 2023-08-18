@@ -17,6 +17,7 @@
 
 #define TX_ID_NUM	10
 #define REPORT_ALARM_DIVIDER 10
+#define DEFAULT_DC_LIMIT 1000.0f
 
 typedef enum {
 	RECEIVED_VCU_ID_1 = (uint8_t)1,
@@ -403,7 +404,7 @@ typedef struct {
 } CANProtocol;
 
 #define CANRXINFO_DEFAULT { \
-	1000.0f,  /* BatCurrentDrainLimit */\
+	DEFAULT_DC_LIMIT,  /* BatCurrentDrainLimit */\
 	10000,  /* MEPowerOutputLimit0P1W */\
 	0,      /* RTCData */\
 	0,      /* ThrottleCmd */\
