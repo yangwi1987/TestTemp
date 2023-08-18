@@ -111,7 +111,10 @@ EnumUdsBRPNRC UdsServiceCtrl_ReadDataRegionF( NetWorkService_t *p, LinkLayerCtrl
 			pPt = (uint8_t*)&HWVerNumber;
 			DIDDataLength = HW_VER_NUM_IDX;
 			break;
-
+		case 0x186:	// Active Diagnostic Session
+			pPt = (uint8_t*)&(p->pParamMgr->Session);
+			DIDDataLength = 1;
+			break;
 		case 0x187:	// Part Number Read
 			pPt = (uint8_t*)&BomNumber;
 			DIDDataLength = PART_NUM_IDX;
