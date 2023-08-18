@@ -10,13 +10,49 @@
 #define ABS(x)  ((x) >= 0 ? (x) : -(x))
 #define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
 #define MIN3(a,b,c)  (((( a > b ) ? b : a) > c ) ? c : ( a > b ? b : a ))
+#define MOS_DERATING_TABLE_NUN 12
+#define WINDING_DERATING_TABLE_NUN 8
+
+static int16_t ModifiedWindingDeratingTable[WINDING_DERATING_TABLE_NUN] = {0};
+static int16_t ModifiedMosDeratingTable[MOS_DERATING_TABLE_NUN] = {0};
 
 void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TYPE *pWindingInit, const LUT_INIT_PARA_INT16_1DIM_TYPE *pMosInit, const LUT_INIT_PARA_INT16_1DIM_TYPE *pCapInit, AdcStation *pAdcStation )
 {
+	uint16_t i = 0;
+	uint16_t TempFirstY = 0; // first Y value in the original table
+
+	uint16_t ParaXMinOffsetWind = DriveParams.SystemParams.Reserved190;
+	float ParaYscaleW = DriveParams.SystemParams.Reserved191 * 0.01f;
+	uint16_t ParaXMinOffsetMOS = DriveParams.SystemParams.Reserved192;
+	float ParaYscaleM = DriveParams.SystemParams.Reserved193 * 0.01f;
+
+	 ParaXMinOffsetWind = 10;
+	 ParaYscaleW = 2.3f;
+	 ParaXMinOffsetMOS = 20;
+	 ParaYscaleM = 2.4f;
+
 	// Init Derating parameters
 	v->WindingLimit = v->WindingDerating.Init( &v->WindingDerating, pWindingInit );
 	v->MosDerating.Init( &v->MosDerating, pMosInit );
 	v->CapDerating.Init( &v->CapDerating, pCapInit );
+
+	// Modify Winding derating table by parameters
+	v->WindingDerating.X.InputMin = v->WindingDerating.X.InputMin - ParaXMinOffsetWind;
+	TempFirstY = v->WindingDerating.pTableStart[0];
+	for(i = 0; i<WINDING_DERATING_TABLE_NUN; i++)
+	{
+		ModifiedWindingDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->WindingDerating.pTableStart[i] - TempFirstY) * ParaYscaleW );
+	}
+ 	v->WindingDerating.pTableStart = &ModifiedWindingDeratingTable[0];
+
+	// Modify MOS derating table by parameters
+	v->MosDerating.X.InputMin = v->MosDerating.X.InputMin - ParaXMinOffsetMOS;
+	TempFirstY = v->MosDerating.pTableStart[0];
+	for(i = 0; i<MOS_DERATING_TABLE_NUN; i++)
+	{
+		ModifiedMosDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->MosDerating.pTableStart[i] - TempFirstY) * ParaYscaleM );
+	}
+	v->MosDerating.pTableStart = &ModifiedMosDeratingTable[0];
 
 	// Put Default settings
 	v->MaxCurrPeak = MAX_AC_PHASE_CURRENT;
