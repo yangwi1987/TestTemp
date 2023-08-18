@@ -141,6 +141,7 @@ typedef enum
 	NRC_TransferDataSuspended = 0x71,
 	NRC_generalProgrammingFailure = 0x72,
 	NRC_WrongBlockSequenceCounter = 0x73,
+	NRC_serviceNotSupportedInActiveSession = 0x7F,
 	NRC_VoltageTooHigh = 0x92,
 	NRC_VoltageTooLow = 0x93,
 	NRC_exceededNumberOfAttempts = 0x36,

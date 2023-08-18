@@ -226,7 +226,14 @@ void UdsServiceCtrl_ServiceHandler( NetWorkService_t *p ,NetworkCtrl_t *v  )
 			}
 			case SID_SECURITY_ACCESS :
 			{
-				UdsServiceCtrl_SecurityAccess( p, &v->Rx, &v->Tx );
+    	    	if ( p->pParamMgr->Session != Session_0x01_Default )
+    	    	{
+    				UdsServiceCtrl_SecurityAccess( p, &v->Rx, &v->Tx );
+    	    	}
+    	    	else
+    	    	{
+    	    		p->NegativeRspReq( &v->Tx, v->Rx.Data[0], NRC_serviceNotSupportedInActiveSession );
+    	    	}
 				break;
 			}
 			case SID_COMMUNICATION_CTRL:
