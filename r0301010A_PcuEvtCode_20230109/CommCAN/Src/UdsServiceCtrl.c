@@ -551,12 +551,18 @@ void UdsServiceCtrl_SecurityAccess( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 
 void UdsServiceCtrl_ECUReset(NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx)
 {
-	p->ECUSoftResetEnable = 1;
-
-	pTx->Data[0] = pRx->Data[0]+POSITIVE_RESPONSE_OFFSET;
-	pTx->Data[1] = pRx->Data[1];
-	pTx->LengthTotal = 2;
-	pTx->Status = Tx_Request;
+	if ( p->ServoOnOffState == 1)
+	{
+		p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
+	}
+	else
+	{
+		p->ECUSoftResetEnable = 1;
+		pTx->Data[0] = pRx->Data[0]+POSITIVE_RESPONSE_OFFSET;
+		pTx->Data[1] = pRx->Data[1];
+		pTx->LengthTotal = 2;
+		pTx->Status = Tx_Request;
+	}
 }
 
 void UdsServiceCtrl_CommunicationCtrl(LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ExtranetCANStation_t *pOp)
