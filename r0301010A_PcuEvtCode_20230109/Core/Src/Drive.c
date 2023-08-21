@@ -93,6 +93,15 @@ uint32_t VersionAddressArray[5] =
 };
 
 /*
+ * 13V measure special
+ */
+#define RECORD_13V_NUMBER 18000
+float Record_13V[RECORD_13V_NUMBER] = {0};
+uint16_t Record_13V_cnt = 0;
+uint8_t Record_13V_flag = 0;
+static uint16_t i_record_13v = 0;
+
+/*
  * Boot-loader function declare
  */
 pfunction Jump2app;		//Jump Code Pointer Function type declare
@@ -448,6 +457,29 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 	case DN_ACC_CAN_ERROR_CNT :
 		RetValue = Axis[0].pCANRxInterface->AccCANErrorCnt;
+		break;
+	case DN_ACC_UVP13V_ERROR_CNT :
+		RetValue = Axis[0].AlarmDetect.UVP_13V.Counter;
+		break;
+	case DN_V_13V_RECORD :
+		if (( Record_13V_flag == 0 ) && ( DriveParams.PCUParams.Start_report_13V == 1 ))
+		{
+			if ( i_record_13v < RECORD_13V_NUMBER )
+			{
+		        RetValue = (uint32_t)(Record_13V[i_record_13v]*100.0f);
+		        i_record_13v++;
+			}
+		    else
+		    {
+		    	DriveParams.PCUParams.Start_report_13V = 0;
+				RetValue = 0;
+		    }
+		}
+		else
+		{
+			i_record_13v = 0;
+			RetValue = 0;
+		}
 		break;
 	default :
 		RetValue = 0;
@@ -2117,6 +2149,45 @@ void drive_DoPLCLoop(void)
 {
 	int i;
 	AdcStation1.DoPLCLoop( &AdcStation1 );
+
+	/*
+	 * 13V measure special
+	 */
+	if ( DriveParams.PCUParams.Start_record_13V == 1)
+	{
+		Record_13V_flag = 1;
+	}
+	else
+	{
+		Record_13V_flag = 0;
+	}
+	if ( Record_13V_flag == 1)
+	{
+		if ( Record_13V_cnt == 0 )
+		{
+			memset(&(Record_13V[0]), 0, sizeof(uint16_t)*RECORD_13V_NUMBER);
+		    Record_13V[0] = AdcStation1.AdcTraOut.V13;
+		    Record_13V_cnt = 1;
+		}
+		else if ( Record_13V_cnt < RECORD_13V_NUMBER )
+		{
+		    Record_13V[Record_13V_cnt] = AdcStation1.AdcTraOut.V13;
+		    Record_13V_cnt++;
+		}
+		else
+		{
+			DriveParams.PCUParams.Start_record_13V = 0;
+			Record_13V_flag = 0;
+			Record_13V_cnt = 0;
+		}
+	}
+	else
+	{
+
+	}
+	/*
+	 *
+	 */
 
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )

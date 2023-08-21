@@ -247,10 +247,10 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		4095,		0,		0x45,		&DriveParams.PCUParams.DcBusCalibValue[1]},	//P2-91
 				{		0,		0,		0,		0,		0},	//P2-92
 				{		0,		0,		0,		0,		0},	//P2-93
-				{		0,		0,		0,		0,		0},	//P2-94
-				{		0,		0,		0,		0,		0},	//P2-95
-				{		0,		0,		0,		0,		0},	//P2-96
-				{		0,		0,		0,		0,		0},	//P2-97
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.Reset_UVP13V_Cnt},	//P2-94
+				{		0,		65535,		10,		0x45,		&DriveParams.PCUParams.UVP13V_debounce_ms},	//P2-95
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.Start_record_13V},	//P2-96
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.Start_report_13V},	//P2-97
 				{		0,		0,		0,		0,		0},	//P2-98
 				{		0,		0,		0,		0,		0},	//P2-99
 				// Min "1" to avoid read 0, because SW ver 3.E.1.2 save external flash all 0 in P3-00~P3-99 while ctrl board manufacturing.

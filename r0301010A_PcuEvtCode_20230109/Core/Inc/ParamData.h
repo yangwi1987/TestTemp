@@ -294,6 +294,8 @@
 #define DN_ACC_UART_ERROR_CNT		765
 #define DN_ACC_CAN_ERROR_CNT		766
 
+#define DN_ACC_UVP13V_ERROR_CNT		770
+#define DN_V_13V_RECORD     		771
 
 #define DN_ID_VER_READ				780
 #define DN_INFO_VER_READ			781

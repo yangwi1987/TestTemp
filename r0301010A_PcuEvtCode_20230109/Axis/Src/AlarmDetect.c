@@ -244,8 +244,46 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	if( v->AxisID == 1 )
 	{
 		AlarmDetect_Accumulation( v, &v->UVP_Bus, (int16_t)v->pAdcStation->AdcTraOut.BatVdc );
-		AlarmDetect_Accumulation( v, &v->UVP_13V, (int16_t)v->pAdcStation->AdcTraOut.V13 );
+//		AlarmDetect_Accumulation( v, &v->UVP_13V, (int16_t)v->pAdcStation->AdcTraOut.V13 );
+		/*
+		 * Independant 13V UV
+		 */
+		uint16_t Trigger = 0;
 
+		v->UVP_13V.AlarmInfo.CriAlarmCounter = DriveParams.PCUParams.UVP13V_debounce_ms;
+		if ( DriveParams.PCUParams.Reset_UVP13V_Cnt == 1 )
+		{
+		    v->UVP_13V.Counter = 0;
+		    DriveParams.PCUParams.Reset_UVP13V_Cnt = 0;
+		}
+
+		if( v->UVP_13V.AlarmInfo.AlarmEnable == ALARM_ENABLE )
+		{
+			if( v->UVP_13V.AlarmInfo.AlarmMode == TRIG_MODE_LOW )
+			{
+				Trigger = (int16_t)v->pAdcStation->AdcTraOut.V13 < v->UVP_13V.AlarmInfo.AlarmThreshold;
+			}
+			else
+			{
+				Trigger = (int16_t)v->pAdcStation->AdcTraOut.V13 > v->UVP_13V.AlarmInfo.AlarmThreshold;
+			}
+
+			if( Trigger )
+			{
+				if( v->UVP_13V.Counter < 65535 )
+				{
+					v->UVP_13V.Counter++;
+				}
+				// critical debounce
+				if( v->UVP_13V.Counter > v->UVP_13V.AlarmInfo.CriAlarmCounter )
+				{
+					v->RegisterAxisAlarm( v, v->UVP_13V.AlarmInfo.AlarmID, ALARM_TYPE_CRITICAL );
+				}
+			}
+		}
+		/*
+		 *
+		 */
 		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_CENTER].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_CENTER].AdcRankIndex] );
 		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_CENTER);
 		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_1, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_SIDE].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_SIDE].AdcRankIndex] );
