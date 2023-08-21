@@ -551,7 +551,7 @@ void UdsServiceCtrl_SecurityAccess( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 
 void UdsServiceCtrl_ECUReset(NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx)
 {
-	if ( p->ServoOnOffState == 1)
+	if ( p->ServiceCtrlBRP.ServoOnOffState == 1)
 	{
 		p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
 	}
