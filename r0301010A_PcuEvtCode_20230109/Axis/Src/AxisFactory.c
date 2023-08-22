@@ -61,27 +61,25 @@ void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
 
 void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 {
-
-#if (BME & EVT)
-
-    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0){
-        v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS = ENABLE;
-    }
-
-    if( ( HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == 0 ) &&
-        ( v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE ) &&
-        ( RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED ))
-    {
-        v->FourQuadCtrl.ServoCmdIn = ENABLE;
-        v->FourQuadCtrl.GearPositionCmd = ENABLE;
-    }
-    else
-    {
-        v->FourQuadCtrl.ServoCmdIn = DISABLE;
-        v->FourQuadCtrl.GearPositionCmd = DISABLE;
-    }
-
-#endif
+	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 1)
+	{
+		/* check if BMS send shutdown request */
+		if(v->pCANRxInterface->BmsReportInfo.BmsShutdownRequest == 1)
+		{
+			v->pCANRxInterface->PcuStateCmd = PcuCmd_Shutdown;
+		}
+		else
+		{
+			v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
+		}
+	}
+	else
+	{
+		// BMS communication is not available, put pseudo value to BMS main and prch state 
+		v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
+        v->pCANRxInterface->BmsReportInfo.PrchSM = BMS_PRECHG_STATE_SUCCESSFUL;
+        v->pCANRxInterface->BmsReportInfo.MainSm = BMS_ACTIVE_STATE_DISCHARGE;
+	}
 
     v->ThrotMapping.TnSelect = v->pCANRxInterface->OutputModeCmd;
     if( ( v->pCANRxInterface->ReceivedCANID & RECEIVED_BAT_ID_1 ) == RECEIVED_BAT_ID_1)
@@ -96,39 +94,64 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 {
     uint16_t i;
 
+	if(v->HasCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_CRI_ALARM_MASK;
+	}
+
+	if(v->HasNonCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_NON_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
+	}
+
+	if(v->HasWarning == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_WARNING_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
+	}
+
+// set BMS LED control in Drive_ESCOPVehicleStateMachine
+/*	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
+*/
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[0]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[1]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[2]; //CAP
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]; //MOS2
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
     }
 
-    if( v->PcuPowerState == PowerOnOff_Initial )
+    if( v->PcuPowerState == PWR_SM_INITIAL )
     {
-        v->pCANTxInterface->PcuStateReport = PcuState_Inital;
+        v->pCANTxInterface->PcuStateReport = PCU_STATE_INITIAL;
     }
-    else if( v->PcuPowerState == PowerOnOff_Ready )
+    else if( v->PcuPowerState == PWR_SM_POWER_ON )
     {
-        if (v->FourQuadCtrl.ServoCmdOut == 1 ){
-            v->pCANTxInterface->PcuStateReport = PcuState_SERVO_ON;
+        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
+            v->pCANTxInterface->PcuStateReport = PCU_STATE_OUTPUT;
         }else{
-            v->pCANTxInterface->PcuStateReport = PcuState_SERVO_OFF;
+            v->pCANTxInterface->PcuStateReport = PCU_STATE_STANDBY;
         }
     }
-    else if( v->PcuPowerState == PowerOnOff_ShutdownStart )
+    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
     {
-        v->pCANTxInterface->PcuStateReport = PcuState_Shutdown_Start;
+        v->pCANTxInterface->PcuStateReport = PCU_STATE_POWER_OFF;
     }
-    else if( (v->PcuPowerState == PowerOnOff_EmergencyShutDown) || \
-                (v->PcuPowerState == PowerOnOff_NormalShutdown) || \
-                (v->PcuPowerState == PowerOnOff_WaitForReset) )
-    {
-        v->pCANTxInterface->PcuStateReport = PcuState_Shutdown_Finish;
-    }
-    else /* if( v->PcuPowerState == PowerOnOff_Error) */
+    else 
     {
         // undefined value, register error
-        v->pCANTxInterface->PcuStateReport = PcuState_Error;
+        v->pCANTxInterface->PcuStateReport = PCU_STATE_ERROR;
     }
 
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
@@ -136,6 +159,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
             v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
         }
     }
+
+    v->pCANTxInterface->DeratingSrc = v->ThermoStrategy.ThermoDeratingSrc;
 
     // debug
     v->pCANTxInterface->MotorRpm = (int16_t)v->SpeedInfo.MotorMechSpeedRPM;
@@ -168,57 +193,24 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 
 }
 
-static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
-{
-    // Enable alarm check mechanism when "entering" MOTOR_STATE_WAIT_BOOT (servo on)
-    if( v->ServoOnOffState == MOTOR_STATE_WAIT_BOOT )
-    {
-        v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-    }
-
-    // Disable alarm check mechanism when "entering" MOTOR_STATE_SHUTDOWN_START (servo off)
-    if( v->ServoOnOffState == MOTOR_STATE_SHUTDOWN_START )
-    {
-        v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-    }
-}
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 {
-    switch(v->pCANTxInterface->PcuStateReport)
+    switch(v->PcuPowerState)
     {
-        case PcuState_Inital:
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            break;
-        }
-        case PcuState_Ready :
+        case PWR_SM_POWER_ON:
         {
             v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
             break;
         }
-        case PcuState_SERVO_ON :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PcuState_SERVO_OFF :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PcuState_Shutdown_Start :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PcuState_Shutdown_Finish :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
+        case PWR_SM_INITIAL :
+        case PWR_SM_POWER_OFF :
+        case PWR_SM_WAIT_FOR_RESET :
         default :
         {
+            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
             break;
         }
     }
@@ -234,7 +226,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
         return;
     }
 
-    int ServoOnEnable = (v->HasAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
+    int ServoOnEnable = (v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
 
     switch( v->ServoOnOffState )
     {
@@ -243,21 +235,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             v->BootstrapCounter = 0;
             if( ServoOnEnable && v->pAdcStation->ZeroCalibInjDone )
             {
-                if( v->RequestResetWarningCNT == RESET_WARNING_REQUEST )
-                {
-                    v->RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-                    // Do ResetWarnning in HouseKeeping.
-                }
-
-                if( v->RequestResetWarningCNT == RESET_WARNING_IDLE ) // No warning or warning have been reset
-                {
-                    v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-                    AxisFactory_ConfigAlarmSystem( v );
-
-                    // Disable trigger after warning reset one time during servo on.
-                    // However TN mode change in PLC loop.
-                    v->TriggerLimpHome = 0;
-                }
+				v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
             }
             else
             {
@@ -297,7 +275,6 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
                 v->pPwmStation->AxisChannelLock(v->pPwmStation, v->AxisID - 1);
-                AxisFactory_ConfigAlarmSystem(v);
             }
             break;
 
@@ -338,7 +315,6 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             if( !ServoOnEnable )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
-                AxisFactory_ConfigAlarmSystem( v );
             }
             else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
             {
@@ -723,36 +699,18 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 #endif
     }
 
-    // Rewrite TN to limp home mode (TN0), no matter which kind of foil sensor.
+    // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
+    // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
+    // It makes sure that the rewrite take effect.
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
-    }
-
-    v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
-
-
-    
-    if(v->HasAlarm!=0)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_ALARM_MASK;
+        v->pCANRxInterface->PowerLevel = 10;
     }
     else
     {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_ALARM_MASK;
+    	// In other states, use the original power level and output mode command.
     }
-
-    if(v->HasWarning!=0)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
-    }
-    else
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
-    }
-
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
-    	(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
 
     // Update scooter speed for report
     v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
@@ -937,17 +895,6 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
     else
     {
         v->MotorStall.Reset( &v->MotorStall );
-    }
-
-    // Trigger limp home mode in 100Hz loop.
-    // TN mode change in PLC loop.
-    if(v->HasWarning == 1 /* todo && SOC <20%*/)
-    {
-        v->TriggerLimpHome = 1;
-    }
-    else
-    {
-        v->TriggerLimpHome = 0;
     }
 
     /* Calculate AC instantaneous and average Power */

@@ -130,9 +130,9 @@ typedef struct {
 	uint16_t ESCOperationState;
 	int16_t ServoOn;
 	int16_t ServoOnOffState;
-	uint16_t HasWarning;
-	uint16_t HasAlarm;
-	uint16_t RequestResetWarningCNT;
+	uint16_t HasWarning; // 0: no warning, 1: warning exist
+	uint16_t HasNonCriAlarm; // 0: no non-critical alarm, 1: non-critical alarm exist
+	uint16_t HasCriAlarm; // 0: no critical alarm, 1: critical alarm exist
 	int16_t BootstrapCounter;
 	int16_t BootstrapMaxCounter;
 	int16_t BoostrapTimeMs;
@@ -180,8 +180,8 @@ typedef struct {
 	0,      /*ServoOn;            */ \
 	0,      /*ServoOnOffState;    */ \
 	0,      /* HasWarning;        */ \
-	0,      /* HasAlarm;          */ \
-	0,      /* RequestResetWarningCNT; */ \
+	0,      /* HasNonCriAlarm;          */ \
+	0,      /* HasCriAlarm;          */ \
 	0,      /*BootstrapCounter;   */ \
 	100,	/*BootstrapMaxCounter;*/ \
 	10,     /*BoostrapTimeMs;     */ \
@@ -191,7 +191,7 @@ typedef struct {
 	0.0f,   /*ThrottleGain*/ \
 	0,      /*ThrottleGainState;*/ \
 	0,      /*DcBusGainState;   */ \
-	PowerOnOff_Initial,    /*PcuPowerState;       */\
+	PWR_SM_INITIAL,    /*PcuPowerState;       */\
 	{0},                   /*    FoilState;       */\
 	0,	                   /* TriggerLimpHome;    */\
 	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\

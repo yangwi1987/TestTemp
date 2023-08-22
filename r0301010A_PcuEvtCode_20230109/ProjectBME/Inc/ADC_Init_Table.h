@@ -50,9 +50,9 @@ enum AdcRegGroupEnum {
 
 /* WARNING: DO NOT CHANGE THE ORDER*/
 enum AdcThermoNameEnum {
-	PCU_NTC_0 = 0,
-	PCU_NTC_1,
-	PCU_NTC_2,
+	MOS_NTC_CENTER = 0,
+	MOS_NTC_SIDE,
+	CAP_NTC,
 	PCU_NTC_3,
 	PCU_NTC_4,
 	MOTOR_NTC_0_A0,

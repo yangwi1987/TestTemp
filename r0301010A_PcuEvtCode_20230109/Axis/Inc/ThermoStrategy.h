@@ -14,6 +14,9 @@
 
 #define		MIN_AC_PHASE_CURRENT				(0.0f)
 #define		MAX_AC_PHASE_CURRENT				(260.0f)
+#define		MOS_DERATING						0x01
+#define		CAP_DERATING						0x02
+#define		MOTOR_DERATING						0x04
 
 typedef void ( *functypeThermoStrategy_Init )( void *, const void*, const void*, const void*, void* );
 typedef void ( *functypeThermoStrategy_Calc )( void * );
@@ -27,6 +30,7 @@ typedef struct {
 	float ACCurrentLimit;
 	float ACCurrentLimitOut;
 	float *TempNow[NTC_NONE];
+	uint8_t ThermoDeratingSrc; // thermo derating source
 	LUT_INT16_1DIM_TYPE WindingDerating;
 	LUT_INT16_1DIM_TYPE MosDerating;
 	LUT_INT16_1DIM_TYPE CapDerating;
@@ -45,6 +49,7 @@ void ThermoStrategy_Calc( ThermoStrategy_t *v );
 	MAX_AC_PHASE_CURRENT, /* ACCurrentLimit */ \
 	MAX_AC_PHASE_CURRENT, /* ACCurrentLimitOut */ \
 	{0}, /* *TempNow[NTC_NONE] */ \
+	0, /* ThermoDeratingSrc */ \
 	LUT_INT16_1DIM_DEFAULT,	\
 	LUT_INT16_1DIM_DEFAULT,	\
 	LUT_INT16_1DIM_DEFAULT,	\

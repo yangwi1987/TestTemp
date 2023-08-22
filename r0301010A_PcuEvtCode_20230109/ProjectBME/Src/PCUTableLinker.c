@@ -66,9 +66,9 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		{
 				// PCU Thermal
 				//Name			ZeroFlagEnable,		TableIdx,		Channel Enable,	Adc Group,			Adc Rank
-				{PCU_NTC_0,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_2			},	// MOS NTC Center
-				{PCU_NTC_1,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_3			},	// MOS NTC Side
-				{PCU_NTC_2,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_2,				RANK_1			},	// CAP NTC
+				{MOS_NTC_CENTER,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_2			},	// MOS NTC Center
+				{MOS_NTC_SIDE,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_3			},	// MOS NTC Side
+				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_2,				RANK_1			},	// CAP NTC
 				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
@@ -247,10 +247,10 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		4095,		0,		0x45,		&DriveParams.PCUParams.DcBusCalibValue[1]},	//P2-91
 				{		0,		0,		0,		0,		0},	//P2-92
 				{		0,		0,		0,		0,		0},	//P2-93
-				{		0,		0,		0,		0,		0},	//P2-94
-				{		0,		0,		0,		0,		0},	//P2-95
-				{		0,		0,		0,		0,		0},	//P2-96
-				{		0,		0,		0,		0,		0},	//P2-97
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.Reset_UVP13V_Cnt},	//P2-94
+				{		0,		65535,		10,		0x45,		&DriveParams.PCUParams.UVP13V_debounce_ms},	//P2-95
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.Start_record_13V},	//P2-96
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.Start_report_13V},	//P2-97
 				{		0,		0,		0,		0,		0},	//P2-98
 				{		0,		0,		0,		0,		0},	//P2-99
 				// Min "1" to avoid read 0, because SW ver 3.E.1.2 save external flash all 0 in P3-00~P3-99 while ctrl board manufacturing.

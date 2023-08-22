@@ -75,19 +75,19 @@ enum E_ALARM_TRIGGER_MODE {
 
 enum E_ALARMMGR_TYPE {
 	ALARM_TYPE_NONE,
-	ALARM_TYPE_WARNING,
-	ALARM_TYPE_ERROR,
-	ALARM_TYPE_CRITICAL
+	ALARM_TYPE_WARNING, // original derating
+	ALARM_TYPE_NONCRITICAL, // non-critical alarm,
+	ALARM_TYPE_CRITICAL // critical alarm
 };
 
 typedef struct {
-	uint16_t AlarmID:8;			// Alarm ID
+	uint16_t AlarmID:8;			// Alarm ID (non-critical alarm and critical alarm)
 	uint16_t AlarmEnable:1;		// Whether Enable
 	uint16_t AlarmType:6;		// Default Alarm Type
 	uint16_t AlarmMode:1;		// Default Alarm Mode, 0 = Increasing, 1 = Decreasing
 	uint16_t AlarmThreshold;	// Counter increase threshold
-	uint16_t ErrorCounter:8;	// trigger error
-	uint16_t WarningCounter:8;	// trigger warning
+	uint16_t CriAlarmCounter:8;	// trigger critical alarm
+	uint16_t NonCriAlarmCounter:8;	// trigger non-critical alarm
 } AlarmTableInfo_t;
 
 #define ALARMTABLEINFO_DEFAULT { \

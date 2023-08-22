@@ -112,35 +112,6 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
       v->BmsReportInfo.PrchSM = p->BmsStatus02.PreCHGState;
       v->BmsReportInfo.BmsFrameCnt = p->BmsStatus02.BmsFrameCnt;
 
-      if(t->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 1)
-      {
-        //BMS communication is available, check BMS precharge state
-
-    	switch (v->BmsReportInfo.MainSm)
-    	{
-    		case BMS_ACTIVE_STATE_STANDBY :
-    		case BMS_ACTIVE_STATE_DISCHARGE :
-				if(v->BmsReportInfo.PrchSM == BMS_PRECHG_STATE_SUCCESSFUL)
-				{
-				  v->PrchCtrlFB.bit.BypassMOS = ENABLE;
-				}
-				else
-				{
-				  v->PrchCtrlFB.bit.BypassMOS = DISABLE;
-				}
-				break;
-
-    		default:
-    			v->PrchCtrlFB.bit.BypassMOS = DISABLE;
-    			break;
-    	}
-      }
-      else
-      {
-        // BMS communication is not available, bypass the BMS prch state check mechanism
-        v->PrchCtrlFB.bit.BypassMOS = ENABLE;
-      }
-
       break;
     }
 
@@ -173,15 +144,18 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
   {
     case CANTXID_BMS_CONTROL_01:
     {
-      p->BmsCtrl01.ShutdownRequest = BMS_CTRL_NO_REQ;
+      p->BmsCtrl01.ShutdownRequest = v->BmsCtrlCmd.ShutDownReq;
+
+      /* These two signals are not available now, put dummy value */
       p->BmsCtrl01.ConnectionRequest = BMS_CTRL_NO_REQ;
       p->BmsCtrl01.DisconnectionRequest = BMS_CTRL_NO_REQ;
+
       break;
     }
 
     case CANTXID_BMS_CONTROL_02:
     {
-      p->BmsCtrl02.LedCtrl.All = v->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD];
+      p->BmsCtrl02.LedCtrl.All = v->BmsCtrlCmd.LedCtrlCmd.All;
       p->BmsCtrl02.EscFrameCnt = EscFrameCnt;
       EscFrameCnt++;
 
@@ -219,12 +193,10 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         ByteOrderReverse((void*)&p->EscLogInfo1.MotorRpmI16, (void*)&i16Temp, 2);
 
         p->EscLogInfo1.EscState = v->PcuStateReport;
-        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_ALARM_MASK)==0) ? 0 : 1;
-        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
-        p->EscLogInfo1.LimpHomeSrc = v->LimpHomeSrc;
+        p->EscLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_CRI_ALARM_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.LimpHomeFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_NON_CRI_ALARM_MASK)==0) ? 0 : 1;
+        p->EscLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
         p->EscLogInfo1.OutputMode = r->OutputModeCmd;
-
-        /*todo:DeratingSrc is not applied yet */
         p->EscLogInfo1.DeratingSrc = v->DeratingSrc;
       }
       else
@@ -342,7 +314,7 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
         p->EscLogInfo7.BmsMainSm = r->BmsReportInfo.MainSm;
         p->EscLogInfo7.BmsPrchSm = r->BmsReportInfo.PrchSM;
         p->EscLogInfo7.BatSoc = r->BmsReportInfo.Soc;
-        p->EscLogInfo7.BatPackLedCtrl.All = v->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD];
+        p->EscLogInfo7.BatPackLedCtrl.All = v->BmsCtrlCmd.LedCtrlCmd.All;
 
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
@@ -360,5 +332,7 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
   }
   return lStatus;
 }
+
+
 
 #endif

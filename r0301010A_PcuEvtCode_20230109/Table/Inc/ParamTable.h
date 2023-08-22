@@ -119,7 +119,7 @@ typedef struct {
 	uint16_t DriveCurve[DRIVE_ALL_PARA_NUM][DRIVE_TABLE_LENGTH];
 	uint16_t DriveRisingRamp;	//P0-85
 	uint16_t DriveFallingRamp;	//P0-86
-	uint16_t Reserved087;	//P0-87
+	uint16_t LimpTransitSec;	//P0-87
 	uint16_t Reserved088;	//P0-88
 	uint16_t Reserved089;	//P0-89
 	uint16_t Reserved090;	//P0-90
@@ -286,10 +286,10 @@ typedef struct {
 	uint16_t DcBusCalibValue[2];	//P2-90~ 91
 	uint16_t Reserved292;	//P2-92
 	uint16_t Reserved293;	//P2-93
-	uint16_t Reserved294;	//P2-94
-	uint16_t Reserved295;	//P2-95
-	uint16_t Reserved296;	//P2-96
-	uint16_t Reserved297;	//P2-97
+	uint16_t Reset_UVP13V_Cnt;	//P2-94
+	uint16_t UVP13V_debounce_ms;	//P2-95
+	uint16_t Start_record_13V;	//P2-96
+	uint16_t Start_report_13V;	//P2-97
 	uint16_t Reserved298;	//P2-98
 	uint16_t Reserved299;	//P2-99
 	uint16_t Reserved300;	//P3-00
