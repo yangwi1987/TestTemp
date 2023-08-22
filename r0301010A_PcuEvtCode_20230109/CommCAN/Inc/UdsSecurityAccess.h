@@ -12,10 +12,11 @@
 #include "string.h"
 #include "stdlib.h"
 #include "CANDrive.h"
-#define UDS_SECURE_SEED_SIZE 4
-#define UDS_SECURE_TIMEOUT_THRESHOLD_MS	60000 //60sec
 
-extern TIM_HandleTypeDef htim20;
+#define UDS_SECURE_SEED_SIZE 2
+#define UDS_SECURE_TIMEOUT_THRESHOLD_MS	60000 //60sec
+#define FALSE_ACCESS_EXCEED_LIMIT_NUMBER 3 // 3 times
+#define DEFAULT_SECURITY_LEVEL  5
 
 typedef void (*funcTypeUdsSecurityAccess_Init) ( void* );
 typedef void (*funcTypeUdsSecurityAccess_Clear) ( void* );
@@ -41,7 +42,8 @@ typedef enum
 	UDS_SECURE_RESULT_FAIL_WRONG_KEY,
 	UDS_SECURE_RESULT_FAIL_WRONG_SEQ,
 	UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL,
-	UDS_SECURE_RESULT_FAIL_TIMEOUT
+	UDS_SECURE_RESULT_FAIL_TIMEOUT,
+	UDS_SECURE_RESULT_FAIL_FALSE_ACCESS_EXCEED_LIMIT
 } UdsSecureResult_e;
 
 typedef struct{
@@ -56,29 +58,10 @@ typedef union{
 	BitFields_t Byte;
 }IndexSelect_u;
 
-typedef struct {
-	uint32_t HalfByte0: 4;
-	uint32_t HalfByte1: 4;
-	uint32_t HalfByte2: 4;
-	uint32_t HalfByte3: 4;
-	uint32_t HalfByte4: 4;
-	uint32_t HalfByte5: 4;
-	uint32_t HalfByte6: 4;
-	uint32_t HalfByte7: 4;
-} ByteBlock_t;
-
-typedef union {
-	uint32_t All;
-	ByteBlock_t Byte;
-}keymul_u;
-
-typedef union {
-	uint32_t All;
-	ByteBlock_t Byte;
-}MuskBlock_u;
-
 typedef struct
 {
+	uint8_t IsFalseAccessExceedLimit;
+	uint8_t FalseAccessCNT;
 	uint8_t SubFuncIn;
 	uint8_t SecureLvReq;
 	uint8_t SecureLvNow;
@@ -87,8 +70,7 @@ typedef struct
 	uint8_t Keymul;
 	uint16_t TimeoutCnt;
 	uint32_t Seed;
-	keymul_u keymulSel;
-	MuskBlock_u MuskBlock;
+	uint16_t keymulSel;
 	funcTypeUdsSecurityAccess_Init Init;
 	funcTypeUdsSecurityAccess_SubFunctExcute SubFuncCheck;
 	funcTypeUdsSecurityAccess_DoPlcLoop DoPlcLoop;
@@ -98,7 +80,7 @@ typedef struct
 
 void UdsSecurityAccess_Init ( UdsSecurityAccessCtrl_t *p );
 void UdsSecurityAccess_Clear ( UdsSecurityAccessCtrl_t *p );
-void UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOut );
+uint8_t UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOut );
 void UdsSecurityAccess_KeymulCal( UdsSecurityAccessCtrl_t *p );
 uint8_t UdsSecurityAccess_KeySend ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataIn );
 uint8_t UdsSecurityAccess_SubFuncExecute ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataIn, uint8_t *pDataOut );
@@ -106,7 +88,17 @@ uint8_t UdsSecurityAccess_DoPlcLoop ( UdsSecurityAccessCtrl_t *p );
 
 #define UDS_SECURITY_ACCESS_CTRL_DEFAULT \
 {\
-	0,0,5,0,0,0,0,0,{0},{0},\
+	0,    /*IsFalseAccessExceedLimit*/\
+	0,    /*FalseAccessCNT*/\
+	0,    /*SubFuncIn*/\
+	0,    /*SecureLvReq*/\
+	DEFAULT_SECURITY_LEVEL,    /*SecureLvNow*/\
+	0,    /*SecureState*/\
+	0,    /*SecureResult*/\
+	0,    /*Keymul*/\
+	0,    /*TimeoutCnt*/\
+	0,    /*Seed*/\
+	0,  /*keymulSel*/\
 	(funcTypeUdsSecurityAccess_Init)UdsSecurityAccess_Init,\
 	(funcTypeUdsSecurityAccess_SubFunctExcute)UdsSecurityAccess_SubFuncExecute,\
 	(funcTypeUdsSecurityAccess_DoPlcLoop)UdsSecurityAccess_DoPlcLoop,\

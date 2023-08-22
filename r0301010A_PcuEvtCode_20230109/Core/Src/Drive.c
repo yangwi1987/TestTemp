@@ -2132,7 +2132,7 @@ void drive_DoPLCLoop(void)
 	case Session_0x01_Default:
 		break;
 	case Session_0x02_Programming:
-		if( PcuAuthorityCtrl.SecureLvNow > Authority_VehicleDealer )
+		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_1 )
 		{
 			BootAppTrig = BOOT_ENA;
 		}
@@ -2486,7 +2486,7 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 		*Setup = PcuAuthorityCtrl.SecureLvNow;
 	}
 
-	if( ( *Setup > Authority_EndUser ) && ( *Ena > 0 ) )
+	if( ( *Setup > Security_Level_0 ) && ( *Ena > 0 ) )
 	{
 		if( *Ena == 1) // Reset the System Table
 		{
@@ -2568,7 +2568,7 @@ void JumpCtrlFunction( void )
 		}
 	}
 	else if( ( DriveFnRegs[ FN_PCU_RESET_OPERATION - FN_BASE ] == BOOT_ENA ) &&	\
-			 ( PcuAuthorityCtrl.SecureLvNow > Authority_VehicleDealer ) &&				\
+			 ( PcuAuthorityCtrl.SecureLvNow > Security_Level_1 ) &&				\
 			 ( Axis[0].ServoOn == MOTOR_STATE_OFF ) )
 	{
 		HAL_Delay(100);
@@ -2582,6 +2582,14 @@ void JumpCtrlFunction( void )
 		 JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 	 }
 	else;
+
+	if (( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || ( IntranetCANStation.ECUSoftResetEnable == 1 ))
+	{
+
+		HAL_Delay(100);
+		 JumpCode_ApplicationToBootloader( APP_IN_START_ADDRESS );
+
+	}
 }
 
 void JumpCode_ApplicationToBootloader( uint32_t BootAddress )

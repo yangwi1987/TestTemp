@@ -140,6 +140,7 @@ extern void drive_DoHWOCPIRQ(void);
  * Version Read #define
  */
 #define APP_START_ADDRESS			0x08040000
+#define APP_IN_START_ADDRESS        0x08040200
 #define SYS_TAB_START_ADDRESS		0x08008800
 #define PCU_TAB_START_ADDRESS		0x0800A800
 #define MOT_1_TAB_START_ADDRESS		0x0800C800
