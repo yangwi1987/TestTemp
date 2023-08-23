@@ -26,13 +26,6 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 	uint16_t ParaXMinOffsetMOS = DriveParams.SystemParams.Reserved192;
 	float ParaYscaleM = DriveParams.SystemParams.Reserved193 * 0.01f;
 
-	/* debug
-	 ParaXMinOffsetWind = 10;
-	 ParaYscaleW = 2.3f;
-	 ParaXMinOffsetMOS = 20;
-	 ParaYscaleM = 2.4f;
-	 */
-
 	// Init Derating parameters
 	v->WindingLimit = v->WindingDerating.Init( &v->WindingDerating, pWindingInit );
 	v->MosDerating.Init( &v->MosDerating, pMosInit );
@@ -84,33 +77,8 @@ void ThermoStrategy_Calc( ThermoStrategy_t *v )
 		MaxMosTemp = *(v->TempNow[MOS_NTC_SIDE]);
 	}
 
-	// debug start
-	static float deWindTemp=153.0f;
-	static float deMosTemp=29.0f;
-	static float deWindTempArr[300]={0.0f};
-	static float deMosTempArr[300]={0.0f};
-	static float deWindCurArr[300]={0.0f};
-	static float deMosTCurArr[300]={0.0f};
-	static uint32_t index = 0;
-
-	v->WindingLimit = v->WindingDerating.Calc(&v->WindingDerating, deWindTemp);
-	v->MOSACLimit = v->MosDerating.Calc(&v->MosDerating, deMosTemp);
-	deWindTempArr[index] = deWindTemp;
-	deWindCurArr[index] = v->WindingLimit;
-	deMosTempArr[index] = deMosTemp;
-	deMosTCurArr[index] = v->MOSACLimit;
-
-
-	if(deWindTemp < 165.0f) {deWindTemp = deWindTemp + 0.1f;}
-	else
-	{
-		deWindTemp = 165.0f;
-	}
-	if(deMosTemp < 191.0f) {deMosTemp = deMosTemp + 0.1f;}
-	index ++;
-	// debug end
-//	v->WindingLimit = v->WindingDerating.Calc(&v->WindingDerating,*(v->TempNow[MOTOR_NTC_0_A0]));
-//	v->MOSACLimit = v->MosDerating.Calc(&v->MosDerating, MaxMosTemp);
+	v->WindingLimit = v->WindingDerating.Calc(&v->WindingDerating,*(v->TempNow[MOTOR_NTC_0_A0]));
+	v->MOSACLimit = v->MosDerating.Calc(&v->MosDerating, MaxMosTemp);
 	//v->CapLimit = v->CapDerating.Calc( &v->CapDerating, *(v->TempNow[PCU_NTC_2]) );
 	v->CapLimit = v->MaxCurrPeak;
 	ACCurrLimitTarget = MIN3(v->WindingLimit, v->MOSACLimit, v->CapLimit);
