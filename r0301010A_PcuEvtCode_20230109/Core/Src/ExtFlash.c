@@ -43,8 +43,8 @@ const uint8_t ParaReadEnableTable1p4[PAGE_NUM][ROW_NUM] =
 		/* Row024 */	0x00,
 		/* Row025 */	0x00,
 		/* Row026 */	0x00,
-		/* Row027 */	0x00,
-		/* Row030 */	0x00	},
+		/* Row027 */	0xC0,
+		/* Row030 */	0x03	},
 
 	/* page2 PcuParamTable P2-00 ~ P3-99 , P3-00 ~ P3-99 are alarm threshold*/
 	{	/* Row000 */	0x00,

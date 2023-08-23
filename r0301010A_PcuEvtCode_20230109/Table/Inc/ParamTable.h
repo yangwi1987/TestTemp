@@ -205,10 +205,10 @@ typedef struct {
 	uint16_t Reserved187;	//P1-87
 	uint16_t Reserved188;	//P1-88
 	uint16_t Reserved189;	//P1-89
-	uint16_t Reserved190;	//P1-90
-	uint16_t Reserved191;	//P1-91
-	uint16_t Reserved192;	//P1-92
-	uint16_t Reserved193;	//P1-93
+	uint16_t MotorDeratingTempOffset;	//P1-90
+	uint16_t MotorDeratingScale;	//P1-91
+	uint16_t MosDeratingTempOffset;	//P1-92
+	uint16_t MOSDeratingScale;	//P1-93
 	uint16_t Reserved194;	//P1-94
 	uint16_t Reserved195;	//P1-95
 	uint16_t Reserved196;	//P1-96

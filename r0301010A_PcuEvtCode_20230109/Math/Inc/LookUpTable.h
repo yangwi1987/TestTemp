@@ -25,22 +25,22 @@ typedef float (*pInt16Table1DimCalc)( void *, float );
 typedef uint16_t (*pInt16Table2DimInit)( void *, const void * );
 typedef float (*pInt16Table2DimCalc)( void *, float, float );
 
-
+// Information of X axis in the look up table
 typedef struct
 {
-	float InputMin;
+	float InputMin; // min X value
 	uint16_t Index1;
 	uint16_t Index2;
 	float Mod;
 	uint16_t MaxIndex;
-	float DevideInput;
+	float DevideInput; // reciprocal of the interval of X points
 } LOOK_UP_TABLE_TYPE;
 
 typedef struct
 {
 	LOOK_UP_TABLE_TYPE X;
 	const int16_t *pTableStart;
-	float Scale;
+	float Scale; // the multiplier of Y value after look up table
 	pInt16Table1DimInit Init;
 	pInt16Table1DimCalc Calc;
 } LUT_INT16_1DIM_TYPE;
@@ -57,10 +57,10 @@ typedef struct
 
 typedef struct
 {
-	int16_t Length;
-	float Interval;
-	float Min;
-	float Scale;
+	int16_t Length; // number of X
+	float Interval; // interval of X points
+	float Min; // min X value
+	float Scale;  // the multiplier of Y value after look up table
 	const int16_t *pTableStart;
 } LUT_INIT_PARA_INT16_1DIM_TYPE;
 

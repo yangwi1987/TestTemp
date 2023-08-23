@@ -19,12 +19,9 @@ static int16_t ModifiedMosDeratingTable[MOS_DERATING_TABLE_NUN] = {0};
 void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TYPE *pWindingInit, const LUT_INIT_PARA_INT16_1DIM_TYPE *pMosInit, const LUT_INIT_PARA_INT16_1DIM_TYPE *pCapInit, AdcStation *pAdcStation )
 {
 	uint16_t i = 0;
-	uint16_t TempFirstY = 0; // first Y value in the original table
-
-	uint16_t ParaXMinOffsetWind = DriveParams.SystemParams.Reserved190;
-	float ParaYscaleW = DriveParams.SystemParams.Reserved191 * 0.01f;
-	uint16_t ParaXMinOffsetMOS = DriveParams.SystemParams.Reserved192;
-	float ParaYscaleM = DriveParams.SystemParams.Reserved193 * 0.01f;
+	int16_t TempFirstY = 0; // first Y value in the original table
+	int16_t XOffset = 0; // offset value from parameter
+	float YScale = 0.0f; // scale from parameter
 
 	// Init Derating parameters
 	v->WindingLimit = v->WindingDerating.Init( &v->WindingDerating, pWindingInit );
@@ -32,20 +29,24 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 	v->CapDerating.Init( &v->CapDerating, pCapInit );
 
 	// Modify Winding derating table by parameters
-	v->WindingDerating.X.InputMin = v->WindingDerating.X.InputMin + ParaXMinOffsetWind;
+	XOffset = DriveParams.SystemParams.MotorDeratingTempOffset - 32768;
+	YScale = DriveParams.SystemParams.MotorDeratingScale * 0.01f;
 	TempFirstY = v->WindingDerating.pTableStart[0];
+	v->WindingDerating.X.InputMin = v->WindingDerating.X.InputMin + XOffset;
 	for(i = 0; i<WINDING_DERATING_TABLE_NUN; i++)
 	{
-		ModifiedWindingDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->WindingDerating.pTableStart[i] - TempFirstY) * ParaYscaleW );
+		ModifiedWindingDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->WindingDerating.pTableStart[i] - TempFirstY) * YScale );
 	}
  	v->WindingDerating.pTableStart = &ModifiedWindingDeratingTable[0];
 
 	// Modify MOS derating table by parameters
-	v->MosDerating.X.InputMin = v->MosDerating.X.InputMin + ParaXMinOffsetMOS;
+	XOffset = DriveParams.SystemParams.MosDeratingTempOffset - 32768;
+	YScale = DriveParams.SystemParams.MOSDeratingScale * 0.01f;
 	TempFirstY = v->MosDerating.pTableStart[0];
+	v->MosDerating.X.InputMin = v->MosDerating.X.InputMin + XOffset;
 	for(i = 0; i<MOS_DERATING_TABLE_NUN; i++)
 	{
-		ModifiedMosDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->MosDerating.pTableStart[i] - TempFirstY) * ParaYscaleM );
+		ModifiedMosDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->MosDerating.pTableStart[i] - TempFirstY) * YScale );
 	}
 	v->MosDerating.pTableStart = &ModifiedMosDeratingTable[0];
 
