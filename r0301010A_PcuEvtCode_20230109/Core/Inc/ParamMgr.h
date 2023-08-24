@@ -72,7 +72,7 @@ extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float
 #define PARAM_MGR_DEFAULT { \
 	0, \
 	Session_0x01_Default, \
-	Authority_LscMf, /* Authority */ \
+	DEFAULT_SECURITY_LEVEL, /* Authority */ \
 	0, /* pFlashParaReadEnableTable */ \
 	0, /* pParamTable */\
 	(functypeParamMgr_Init)ParamMgr_Init, \

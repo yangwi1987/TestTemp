@@ -26,6 +26,7 @@
 #include "SpeedInfo.h"
 #include "ConstantParamAndUseFunction.h"
 #include "RcUartComm.h"
+#include "BMEApp.h"
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);
 typedef void (*functypeAxis_DoCurrentLoop)(void*);
@@ -43,6 +44,12 @@ typedef enum
 	MOTOR_STATE_WAIT_BOOT,
 	MOTOR_STATE_SHUTDOWN_START
 }MotorStateMachine_e;
+
+typedef enum
+{
+	Drive_Stop_Flag,
+	Drive_Start_Flag
+}DriveStateFlag_e;
 
 enum UI_FUNCTION_MODE {
 	UI_FUNCTION_DISABLE = 0,
@@ -101,6 +108,14 @@ typedef struct
 	float MinFoil;
 }AnalogFoilInfo_t;
 
+typedef struct
+{
+	uint8_t IsUseDriveLockFn;
+	DriveStateFlag_e DriveStateFlag;
+	uint32_t TimeToStopDriving_InPLCLoop;
+	uint32_t TimeToStopDriving_cnt;
+	uint16_t RpmToStartCntDriveLock;
+}DriveLockInfo_t;
 
 typedef union
 {
@@ -115,9 +130,9 @@ typedef struct {
 	uint16_t ESCOperationState;
 	int16_t ServoOn;
 	int16_t ServoOnOffState;
-	uint16_t HasWarning;
-	uint16_t HasAlarm;
-	uint16_t RequestResetWarningCNT;
+	uint16_t HasWarning; // 0: no warning, 1: warning exist
+	uint16_t HasNonCriAlarm; // 0: no non-critical alarm, 1: non-critical alarm exist
+	uint16_t HasCriAlarm; // 0: no critical alarm, 1: critical alarm exist
 	int16_t BootstrapCounter;
 	int16_t BootstrapMaxCounter;
 	int16_t BoostrapTimeMs;
@@ -148,6 +163,7 @@ typedef struct {
 	PHASE_LOSS_TYPE	PhaseLoss;
 	SpeedInfo_t SpeedInfo;
 	AnalogFoilInfo_t AnalogFoilInfo;
+	DriveLockInfo_t DriveLockInfo;
 	functypeAxis_Init Init;
 	functypeAxis_DoCurrentLoop DoCurrentLoop;
 	functypeAxis_DoPLCLoop DoPLCLoop;
@@ -164,8 +180,8 @@ typedef struct {
 	0,      /*ServoOn;            */ \
 	0,      /*ServoOnOffState;    */ \
 	0,      /* HasWarning;        */ \
-	0,      /* HasAlarm;          */ \
-	0,      /* RequestResetWarningCNT; */ \
+	0,      /* HasNonCriAlarm;          */ \
+	0,      /* HasCriAlarm;          */ \
 	0,      /*BootstrapCounter;   */ \
 	100,	/*BootstrapMaxCounter;*/ \
 	10,     /*BoostrapTimeMs;     */ \
@@ -175,7 +191,7 @@ typedef struct {
 	0.0f,   /*ThrottleGain*/ \
 	0,      /*ThrottleGainState;*/ \
 	0,      /*DcBusGainState;   */ \
-	PowerOnOff_Initial,    /*PcuPowerState;       */\
+	PWR_SM_INITIAL,    /*PcuPowerState;       */\
 	{0},                   /*    FoilState;       */\
 	0,	                   /* TriggerLimpHome;    */\
 	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\
@@ -196,6 +212,7 @@ typedef struct {
 	PHASE_LOSS_DEFAULT,	\
 	SPEED_INFO_DEFAULT,	\
 	ANALOG_FOIL_INFO_DEFAULT, \
+	DRIVE_LOCK_INFO_DERAULT, \
 	(functypeAxis_Init)AxisFactory_Init, \
 	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
 	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \
@@ -210,6 +227,14 @@ typedef struct {
 	0.0f, \
 	0.0f, \
 	0.0f, \
+}
+
+#define DRIVE_LOCK_INFO_DERAULT {\
+	0, /*	IsUseDriveLockFn*/ \
+	Drive_Stop_Flag,  /*DriveStateFlag*/ \
+	0, /*TimeToStopDriving_InPLCLoop*/ \
+	0, /*TimeToStopDriving_cnt*/       \
+	0, /*RpmToStartCntDriveLock*/ \
 }
 
 void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex );

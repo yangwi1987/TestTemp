@@ -78,13 +78,13 @@ void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int Ta
 			{
 				p->Counter++;
 			}
-			if( p->Counter > p->AlarmInfo.ErrorCounter )
+			if( p->Counter > p->AlarmInfo.CriAlarmCounter )
 			{
-				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_ERROR );
+				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_CRITICAL );
 			}
-			else if( p->Counter > p->AlarmInfo.WarningCounter )
+			else if( p->Counter > p->AlarmInfo.NonCriAlarmCounter )
 			{
-				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_WARNING );
+				AlarmMgr1.RegisterAlarm( &AlarmMgr1, TargetID, p->AlarmInfo.AlarmID, ALARM_TYPE_NONCRITICAL );
 			}
 		}
 		else if( p->Counter > 0 )
@@ -96,14 +96,14 @@ void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int Ta
 
 void GlobalAlarmDetect_ConfigAlarmSystem( void )
 {
-	// Enable alarm registering mechanism when "entering" PowerOnOff_Ready (power on)
-	if( Axis[0].PcuPowerState == PowerOnOff_Ready )
+	// Enable alarm registering mechanism when "entering" PWR_SM_POWER_ON
+	if( Axis[0].PcuPowerState == PWR_SM_POWER_ON )
 	{
 		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 	}
 
-	// Disable alarm registering mechanism when "entering" PowerOnOff_NormalShutdown (power off)
-	if( Axis[0].PcuPowerState == PowerOnOff_NormalShutdown )
+	// Disable alarm registering mechanism when "entering" PWR_SM_POWER_OFF
+	if( Axis[0].PcuPowerState == PWR_SM_POWER_OFF )
 	{
 		AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
 	}

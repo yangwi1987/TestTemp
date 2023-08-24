@@ -32,6 +32,7 @@
 #include "PWM_RC.h"
 #include "RcUartComm.h"
 #include "DiagnosticTroubleCode.h"
+#include "RemainingTime.h"
 
 typedef struct {
 	uint32_t PWMCounter;
@@ -48,6 +49,26 @@ typedef enum
 	Target_RAM		=2,
 	Target_PSB		=3,
 }TargetDefine_e;
+
+typedef enum{
+	VEHICLE_STATE_INITIALIZING,
+	VEHICLE_STATE_STANDBY,
+	VEHICLE_STATE_NORMAL,
+	VEHICLE_STATE_WARNING,
+	VEHICLE_STATE_LIMPHOME,
+	VEHICLE_STATE_ALARM,
+	VEHICLE_STATE_POWER_OFF,
+}VEHICLE_STATE_e;
+
+typedef enum{
+	ESC_OP_INITIALIZING,
+	ESC_OP_STANDBY,
+	ESC_OP_NORMAL,
+	ESC_OP_WARNING,
+	ESC_OP_LIMPHOME,
+	ESC_OP_ALARM,
+	ESC_OP_POWER_OFF,
+}ESC_OP_STATE_e; // ESC operation
 
 // Define the number of different data index
 #define HW_VER_NUM_IDX		7 // PCU hardware version
@@ -119,6 +140,7 @@ extern void drive_DoHWOCPIRQ(void);
  * Version Read #define
  */
 #define APP_START_ADDRESS			0x08040000
+#define APP_IN_START_ADDRESS        0x08040200
 #define SYS_TAB_START_ADDRESS		0x08008800
 #define PCU_TAB_START_ADDRESS		0x0800A800
 #define MOT_1_TAB_START_ADDRESS		0x0800C800

@@ -61,27 +61,29 @@ void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
 
 void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 {
+	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 1)
+	{
+		/* check if BMS send shutdown request */
+		if(v->pCANRxInterface->BmsReportInfo.BmsShutdownRequest == 1)
+		{
+			v->pCANRxInterface->PcuStateCmd = PcuCmd_Shutdown;
+		}
+		else
+		{
+			v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
+		}
 
-#if (BME & EVT)
-
-    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0){
-        v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS = ENABLE;
-    }
-
-    if( ( HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == 0 ) &&
-        ( v->pCANRxInterface->PrchCtrlFB.bit.BypassMOS == ENABLE ) &&
-        ( RCCommCtrl.pRxInterface->RcConnStatus == 1 ))
-    {
-        v->FourQuadCtrl.ServoCmdIn = ENABLE;
-        v->FourQuadCtrl.GearPositionCmd = ENABLE;
-    }
-    else
-    {
-        v->FourQuadCtrl.ServoCmdIn = DISABLE;
-        v->FourQuadCtrl.GearPositionCmd = DISABLE;
-    }
-
-#endif
+		// Load DC Current Limit from BMS communication, or use default value.
+		v->pCANRxInterface->BatCurrentDrainLimit = v->pCANRxInterface->BmsReportInfo.DCCurrentLimit;
+	}
+	else
+	{
+		// BMS communication is not available, put pseudo value to BMS main and prch state 
+		v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
+        v->pCANRxInterface->BmsReportInfo.PrchSM = BMS_PRECHG_STATE_SUCCESSFUL;
+        v->pCANRxInterface->BmsReportInfo.MainSm = BMS_ACTIVE_STATE_DISCHARGE;
+        v->pCANRxInterface->BatCurrentDrainLimit = DEFAULT_DC_LIMIT;
+	}
 
     v->ThrotMapping.TnSelect = v->pCANRxInterface->OutputModeCmd;
     if( ( v->pCANRxInterface->ReceivedCANID & RECEIVED_BAT_ID_1 ) == RECEIVED_BAT_ID_1)
@@ -96,39 +98,64 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 {
     uint16_t i;
 
+	if(v->HasCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_CRI_ALARM_MASK;
+	}
+
+	if(v->HasNonCriAlarm == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_NON_CRI_ALARM_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_NON_CRI_ALARM_MASK;
+	}
+
+	if(v->HasWarning == 1)
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] |= CAN_TX_WARNING_MASK;
+	}
+	else
+	{
+		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
+	}
+
+// set BMS LED control in Drive_ESCOPVehicleStateMachine
+/*	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
+*/
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[0]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[1]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[2]; //CAP
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]; //MOS2
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
     }
 
-    if( v->PcuPowerState == PowerOnOff_Initial )
+    if( v->PcuPowerState == PWR_SM_INITIAL )
     {
-        v->pCANTxInterface->PcuStateReport = PcuState_Inital;
+        v->pCANTxInterface->PcuStateReport = PCU_STATE_INITIAL;
     }
-    else if( v->PcuPowerState == PowerOnOff_Ready )
+    else if( v->PcuPowerState == PWR_SM_POWER_ON )
     {
-        if (v->FourQuadCtrl.ServoCmdOut == 1 ){
-            v->pCANTxInterface->PcuStateReport = PcuState_SERVO_ON;
+        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
+            v->pCANTxInterface->PcuStateReport = PCU_STATE_OUTPUT;
         }else{
-            v->pCANTxInterface->PcuStateReport = PcuState_SERVO_OFF;
+            v->pCANTxInterface->PcuStateReport = PCU_STATE_STANDBY;
         }
     }
-    else if( v->PcuPowerState == PowerOnOff_ShutdownStart )
+    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
     {
-        v->pCANTxInterface->PcuStateReport = PcuState_Shutdown_Start;
+        v->pCANTxInterface->PcuStateReport = PCU_STATE_POWER_OFF;
     }
-    else if( (v->PcuPowerState == PowerOnOff_EmergencyShutDown) || \
-                (v->PcuPowerState == PowerOnOff_NormalShutdown) || \
-                (v->PcuPowerState == PowerOnOff_WaitForReset) )
-    {
-        v->pCANTxInterface->PcuStateReport = PcuState_Shutdown_Finish;
-    }
-    else /* if( v->PcuPowerState == PowerOnOff_Error) */
+    else 
     {
         // undefined value, register error
-        v->pCANTxInterface->PcuStateReport = PcuState_Error;
+        v->pCANTxInterface->PcuStateReport = PCU_STATE_ERROR;
     }
 
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
@@ -136,6 +163,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
             v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
         }
     }
+
+    v->pCANTxInterface->DeratingSrc = v->ThermoStrategy.ThermoDeratingSrc;
 
     // debug
     v->pCANTxInterface->MotorRpm = (int16_t)v->SpeedInfo.MotorMechSpeedRPM;
@@ -156,68 +185,36 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
+        v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
 #if USE_ANALOG_FOIL_SENSOR_FUNC
         v->pCANTxInterface->Debugf[IDX_FOIL_SENSOR_VOLT] = v->pAdcStation->AdcTraOut.Foil;
 #endif
-        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] =  (float)(v->pCANRxInterface->BatCurrentDrainLimit0P1A);
+        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
         v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
-        v->pCANTxInterface->DebugU8[1] = v->FourQuadCtrl.FourQuadState;
     }
 
 }
 
-static void AxisFactory_ConfigAlarmSystem( Axis_t *v )
-{
-    // Enable alarm check mechanism when "entering" MOTOR_STATE_WAIT_BOOT (servo on)
-    if( v->ServoOnOffState == MOTOR_STATE_WAIT_BOOT )
-    {
-        v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-    }
-
-    // Disable alarm check mechanism when "entering" MOTOR_STATE_SHUTDOWN_START (servo off)
-    if( v->ServoOnOffState == MOTOR_STATE_SHUTDOWN_START )
-    {
-        v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-    }
-}
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 {
-    switch(v->pCANTxInterface->PcuStateReport)
+    switch(v->PcuPowerState)
     {
-        case PcuState_Inital:
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            break;
-        }
-        case PcuState_Ready :
+        case PWR_SM_POWER_ON:
         {
             v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
             break;
         }
-        case PcuState_SERVO_ON :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PcuState_SERVO_OFF :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PcuState_Shutdown_Start :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PcuState_Shutdown_Finish :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
+        case PWR_SM_INITIAL :
+        case PWR_SM_POWER_OFF :
+        case PWR_SM_WAIT_FOR_RESET :
         default :
         {
+            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
             break;
         }
     }
@@ -233,7 +230,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
         return;
     }
 
-    int ServoOnEnable = (v->HasAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
+    int ServoOnEnable = (v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
 
     switch( v->ServoOnOffState )
     {
@@ -242,21 +239,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             v->BootstrapCounter = 0;
             if( ServoOnEnable && v->pAdcStation->ZeroCalibInjDone )
             {
-                if( v->RequestResetWarningCNT == RESET_WARNING_REQUEST )
-                {
-                    v->RequestResetWarningCNT = RESET_WARNING_ALLOW_RESET; // Start to reset warning.
-                    // Do ResetWarnning in HouseKeeping.
-                }
-
-                if( v->RequestResetWarningCNT == RESET_WARNING_IDLE ) // No warning or warning have been reset
-                {
-                    v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-                    AxisFactory_ConfigAlarmSystem( v );
-
-                    // Disable trigger after warning reset one time during servo on.
-                    // However TN mode change in PLC loop.
-                    v->TriggerLimpHome = 0;
-                }
+				v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
             }
             else
             {
@@ -269,7 +252,11 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
-                    v->ServoOnOffState = MOTOR_STATE_ON;
+                	if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
+                	{
+                		v->ServoOnOffState = MOTOR_STATE_ON;
+                	}
+
                     if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
                     {
                         v->PhaseLoss.Start = FUNCTION_YES;
@@ -292,7 +279,6 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
                 v->pPwmStation->AxisChannelLock(v->pPwmStation, v->AxisID - 1);
-                AxisFactory_ConfigAlarmSystem(v);
             }
             break;
 
@@ -333,7 +319,12 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             if( !ServoOnEnable )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
-                AxisFactory_ConfigAlarmSystem( v );
+            }
+            else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
+            {
+            	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+            	v->MotorCtrlMode = FUNCTION_MODE_BOOTSTRAP;
+            	v->MotorControl.Clean( &v->MotorControl );
             }
             break;
 
@@ -523,6 +514,11 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
     v->AnalogFoilInfo.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
     v->AnalogFoilInfo.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
     v->AnalogFoilInfo.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
+
+    //Load TimeToStopDriving_InPLCLoop, convert s to ms
+    v->DriveLockInfo.IsUseDriveLockFn = v->pDriveParams->PCUParams.DebugParam2;
+    v->DriveLockInfo.TimeToStopDriving_InPLCLoop = v->pDriveParams->SystemParams.SecTimeThresholdForDriveLock * 1000;
+    v->DriveLockInfo.RpmToStartCntDriveLock = v->pDriveParams->SystemParams.RpmToStartCntDriveLock;
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )
@@ -707,29 +703,17 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 #endif
     }
 
-    // Rewrite TN to limp home mode (TN0), no matter which kind of foil sensor.
+    // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
+    // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
+    // It makes sure that the rewrite take effect.
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
-    }
-
-    v->pCANTxInterface->LimpHomeSrc = v->TriggerLimpHome;
-
-
-    v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] = 0;
-
-    if(v->HasAlarm!=0)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_ALARM_MASK;
-    }
-
-    if(v->HasWarning!=0)
-    {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] |= CAN_TX_WARNING_MASK;
+        v->pCANRxInterface->PowerLevel = 10;
     }
     else
     {
-        v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG] &= ~CAN_TX_WARNING_MASK;
+    	// In other states, use the original power level and output mode command.
     }
 
     // Update scooter speed for report
@@ -815,7 +799,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
 
             v->TorqCommandGenerator.DcCurrLimit = \
-                v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, (float)((v->pCANRxInterface->BatCurrentDrainLimit0P1A) * 0.1f), \
+                v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, v->pCANRxInterface->BatCurrentDrainLimit, \
                 v->MotorControl.TorqueToIdq.VbusReal, v->MotorControl.TorqueToIdq.VbusUsed );
 
             v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl, v->ThrotMapping.PercentageOut );
@@ -839,7 +823,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         {
             //do nothing
         }
-        v->FourQuadCtrl.Reset( &v->FourQuadCtrl, (((float)(v->pCANRxInterface->BatCurrentDrainLimit0P1A)) * 0.1f) );
+        v->FourQuadCtrl.Reset( &v->FourQuadCtrl, v->pCANRxInterface->BatCurrentDrainLimit );
         v->ThrotMapping.TnSelectEmpty = v->ThrotMapping.TnSelect;
         v->ThrotMapping.TnSelectHalf = v->ThrotMapping.TnSelect;
         v->ThrotMapping.TnSelectFull = v->ThrotMapping.TnSelect;
@@ -853,10 +837,47 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     {
         HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
     }
+
+    //check Drive lock state.
+    if ( v->DriveLockInfo.IsUseDriveLockFn )
+    {
+        if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
+        {
+            if (( RCCommCtrl.pRxInterface->RcConnStatus <= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) && ( v->SpeedInfo.MotorMechSpeedRPMAbs < (float)v->DriveLockInfo.RpmToStartCntDriveLock ))
+            {
+            	if ( v->DriveLockInfo.TimeToStopDriving_cnt >= v->DriveLockInfo.TimeToStopDriving_InPLCLoop )
+            	{
+            		v->DriveLockInfo.DriveStateFlag = Drive_Stop_Flag;
+            		v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+            	}
+            	else
+            	{
+            		v->DriveLockInfo.TimeToStopDriving_cnt++;
+            	}
+            }
+            else
+            {
+            	v->DriveLockInfo.TimeToStopDriving_cnt = 0;
+            }
+        }
+        else
+        {
+        	if ( RCCommCtrl.pRxInterface->RcConnStatus > RC_CONN_STATUS_RC_THROTTLE_LOCKED )
+        	{
+        		v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
+        	}
+        }
+    }
+    else
+    {
+    	v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
+    }
 }
 
 void AxisFactory_Do100HzLoop( Axis_t *v )
 {
+	float ACPowerTemp = 0;
+
     v->PwmRc.AlarmDet( &v->PwmRc );
     v->AlarmDetect.Do100HzLoop( &v->AlarmDetect );
     if( v->ServoOn )
@@ -880,16 +901,10 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
         v->MotorStall.Reset( &v->MotorStall );
     }
 
-    // Trigger limp home mode in 100Hz loop.
-    // TN mode change in PLC loop.
-    if(v->HasWarning == 1 /* todo && SOC <20%*/)
-    {
-        v->TriggerLimpHome = 1;
-    }
-    else
-    {
-        v->TriggerLimpHome = 0;
-    }
+    /* Calculate AC instantaneous and average Power */
+    ACPowerTemp = 1.5 * (v->MotorControl.CurrentControl.RotorCurrFb.D * v->MotorControl.VoltCmd.VdCmd +
+    		v->MotorControl.CurrentControl.RotorCurrFb.Q * v->MotorControl.VoltCmd.VqCmd);
+    AcPwrInfo.do100HzLoop(&AcPwrInfo, ACPowerTemp);
 }
 
 void AxisFactory_Do10HzLoop( Axis_t *v )

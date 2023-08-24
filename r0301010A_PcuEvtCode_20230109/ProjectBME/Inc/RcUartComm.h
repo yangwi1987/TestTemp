@@ -36,10 +36,10 @@ typedef enum RcCommDataId_e
 #define RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD		1500	/* 1500ms = 1.5 sec */
 #define RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT  15				/* 15 = RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD / 100 */
 
-#define RC_COMM_RC_FW_VER_SIZE	3	/* RC firmware version array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RC_SN_SIZE		32	/* RC serial number array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RF_FW_VER_SIZE	3	/* RF firmware version array size in byte. Todo: clarify the exact nuber with TBS */
-#define RC_COMM_RF_SN_SIZE		32	/* RF serial number array size in byte. Todo: clarify the exact nuber with TBS */
+#define RC_COMM_RC_FW_VER_SIZE	3	/* RC firmware version array size in byte.*/
+#define RC_COMM_RC_SN_SIZE		32	/* RC serial number array size in byte.*/
+#define RC_COMM_RF_FW_VER_SIZE	3	/* RF firmware version array size in byte.*/
+#define RC_COMM_RF_SN_SIZE		32	/* RF serial number array size in byte.*/
 
 #define RC_TEIMOUT_TEST 0
 #define RC_COMM_DMA_USAGE 1
@@ -75,6 +75,7 @@ typedef struct{
 	uint8_t RxUnit[1];
 	uint8_t RxBuff[RC_COMM_RX_BUFF_SIZE];
 	uint8_t TxBuff[RC_COMM_TX_BUFF_SIZE];
+	uint16_t AccUARTErrorCnt;
 	uint16_t RxDlc;
 	uint16_t TxDlc;
 	uint16_t TimeoutCnt;
@@ -91,7 +92,7 @@ typedef struct{
 	functypeRcComm_MsgDecoder MsgDecoder;
 	functypeRcComm_QueryInfoFromRF QueryInfoFromRF;
 	functypeRcComm_10HzLoop _10HzLoop;
-	functypeRcComm_Reset	Reset;
+	functypeRcComm_Reset Reset;
 }StructUartCtrl;
 
 
@@ -159,26 +160,27 @@ void HAL_UART_txCpltCallback(UART_HandleTypeDef *huart);
 
 #define RC_COMM_CTRL_DEFAULT \
 {\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	0,\
-	{0},\
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},\
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},\
-	0,\
-	0,\
-	0,\
-	0,\
-	{0x01,0x02,0x03},/* RCFwVer */ \
-	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},/* RCSN */ \
-	{0x01,0x02,0x03,},/* RFFwVer */ \
-	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},/* RFSN */ \
+	0,                                                                                     				/* *pTarget */ \
+	0,                                                                                     				/* *phcrc */  \
+	0,                                                                                    				/* *pTxInterface */ \
+	0,                                                                                     			 	/* *pRxInterface */ \
+	0,                                                                                     			 	/* RxPutIdx */ \
+	0,                                                                                     				/* RxReadIdx */\
+	0,                                                                                     			 	/* RxFlag */ \
+	0,                                                                                     			 	/* TxFlag */ \
+	0,                                                                                      			/* RcHaveConnectedFlag */ \
+	{0},                                                                                   			 	/* RxUnit[1] */ \
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},      			/* RxBuff[RC_COMM_RX_BUFF_SIZE] */ \
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},      			/* TxBuff[RC_COMM_TX_BUFF_SIZE] */ \
+	0,                                                                                     			 	/* AccUARTErrorCnt */ \
+	0,                                                                                      			/* RxDlc */ \
+	0,                                                                                      			/* TxDlc */ \
+	0,                                                                                      			/* TimeoutCnt */ \
+	0,                                                                                      			/* VerConfig */ \
+	{0x01,0x02,0x03},																					/* RCFwVer */ \
+	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},	/* RCSN */ \
+	{0x01,0x02,0x03,},																					/* RFFwVer */ \
+	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},	/* RFSN */ \
 	(functypeRcComm_Init)&RcComm_Init,\
 	(functypeRcComm_CalCrc)&RcComm_CalCrc,\
 	(functypeRcComm_StartScan)&RcComm_StartScan,\

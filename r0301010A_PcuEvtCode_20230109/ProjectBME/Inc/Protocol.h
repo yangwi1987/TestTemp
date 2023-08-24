@@ -16,7 +16,8 @@
 
 
 /* ==== macro for CANTX IDs for transmit ==== */
-#define CANTXID_BMS_CONTROL_01  0x500   /* command to control BMS actions*/
+#define CANTXID_BMS_CONTROL_01  0x500   /* command to control BMS actions #1 */
+#define CANTXID_BMS_CONTROL_02  0x501   /* command to control BMS actions #2 */
 
 #define CANTXID_ESC_LOG_INFO_0  0x720   /*Debug information for ESC develop 00*/
 #define CANTXID_ESC_LOG_INFO_1  0x721   /*Debug information for ESC develop 01*/
@@ -28,56 +29,40 @@
 #define CANTXID_ESC_LOG_INFO_7  0x727   /*Debug information for ESC develop 07*/
 
 /* ==== macro for CANRX IDs for receive ==== */
-
-#define CANRXID_BMS_VOLT_02           0x301   /* info shows BMS Volt value group2 */
-#define CANRXID_BMS_VOLT_03           0x302   /* info shows BMS Volt value group3 */
-#define CANRXID_BMS_VOLT_04           0x303   /* info shows BMS Volt value group4 */
-#define CANRXID_BMS_VOLT_05           0x304   /* info shows BMS Volt value group5 */
-#define CANRXID_BMS_VOLT_06           0x305   /* info shows BMS Volt value group6 */
-#define CANRXID_BMS_VOLT_01           0x306   /* info shows BMS Volt value group1 */
-
-#define CANRXID_BMS_STATE_MACHINE_01  0x401   /* info shows BMS state value */
 #define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
-#define CANRXID_BMS_CURRENT_01        0x404   /* info shows BMS current value */
-#define CANRXID_BMS_TEMP_01           0x600   /* info shows BMS temperature value group1 */
-#define CANRXID_BMS_TEMP_02           0x601   /* info shows BMS temperature value group2 */
-#define CANRXID_BMS_TEMP_03           0x602   /* info shows BMS temperature value group3 */
-#define CANRXID_BMS_TEMP_04           0x603   /* info shows BMS temperature value group4 */
+#define CANRXID_BMS_STATUS_02         0x403   /* info shows BMS status */
 
-#define CAN_TX_ALARM_MASK 0x01
-#define CAN_TX_WARNING_MASK 0x02
+#define CAN_TX_CRI_ALARM_MASK 0x01
+#define CAN_TX_NON_CRI_ALARM_MASK 0x02
+#define CAN_TX_WARNING_MASK 0x04
 
 
 /*======================================
  *  Enum definition
  *  ==================================*/
 
-
-typedef enum BmsMainSm_e
+typedef enum BmsActiveState_e
 {
-  BMS_MAIN_SM_OFF = 0,
-  BMS_MAIN_SM_INIT,
-  BMS_MAIN_SM_IDLE,
-  BMS_MAIN_SM_ACTIVE,
-  BMS_MAIN_SM_ERROR,
-  BMS_MAIN_SM_PROGRAMMING,
-  BMS_MAIN_SM_SHUTDOWN,
-} BmsMainSm_t;
+  BMS_ACTIVE_STATE_STARTUP = 0x00,
+  BMS_ACTIVE_STATE_PRECHARGE,
+  BMS_ACTIVE_STATE_DISCHARGE,
+  BMS_ACTIVE_STATE_REQUPERATION,
+  BMS_ACTIVE_STATE_CHARGE,
+  BMS_ACTIVE_STATE_STANDBY,
+  BMS_ACTIVE_STATE_REVERSIBLE_ERROR,
+  BMS_ACTIVE_STATE_PERMERNENT_ERROR,
+  BMS_ACTIVE_STATE_SHUTDOWN,
+  BMS_ACTIVE_STATE_MAX,
+} BmsActiveState_t;
 
-typedef enum BmsPrchSm_e
+typedef enum BmsPreChgState_e
 {
-  BMS_PRCH_SM_OFF = 0,
-  BMS_PRCH_SM_PRCH,
-  BMS_PRCH_SM_FINISH,
-  BMS_PRCH_SM_DONE,
-} BmsPrchSm_t;
-
-typedef enum BmsWakeUpReason_e
-{
-  BMS_WAKEUP_REASON_UNKNOWN = 0,
-  BMS_WAKEUP_REASON_12V,
-  BMS_WAKEUP_REASON_PUSH_BTN,
-} BmsWakeUpReason_t;
+  BMS_PRECHG_STATE_OFF = 0x00,
+  BMS_PRECHG_STATE_ACTIVE,
+  BMS_PRECHG_STATE_FAILED,
+  BMS_PRECHG_STATE_SUCCESSFUL,
+  BMS_PRECHG_STATE_MAX
+} BmsPreChgState_t;
 
 typedef enum FoilPos_e
 {
@@ -86,87 +71,67 @@ typedef enum FoilPos_e
   FOIL_POS_FOIL,
 } FoilPos_t;
 
-
-/*=========================================
- * Definition of BMS_State_machine_01(0x401)
- =========================================*/
-typedef struct
+typedef enum LedCtrlCode_e
 {
-  uint8_t LimpHomeActive  :1;
-  uint8_t WarningActive   :1;
-  uint8_t Revsd27         :6;
-  uint8_t BatteryOperation;   
-  BmsMainSm_t BmsMainSM;
-  BmsPrchSm_t BmsPrchSM;
-  BmsWakeUpReason_t WakeUpReason;
-  uint8_t ErrorCode_L;
-  uint8_t ErrorCode_H;
-  uint8_t Byte07;             /* unused byte 07*/
-} CanRxMsg_BmsSm_t;
+  LED_CTRL_OFF = 0,
+  LED_CTRL_GREEN,
+  LED_CTRL_BLUE,
+  LED_CTRL_RED,
+} LedCtrlCode_t;
+
+typedef union
+{
+  /* data */
+  uint8_t All;
+  struct
+  {
+    LedCtrlCode_t Led0:2;
+    LedCtrlCode_t Led1:2;
+    LedCtrlCode_t Led2:2;
+    LedCtrlCode_t Led3:2;
+  } Leds;
+} BatPackLedCtrl_t;
+
+#define BAT_LED_SHOW_BMS_ERROR 		0b11110000	/* RED, RED, OFF, OFF */
+#define BAT_LED_SHOW_ESC_ERROR 		0b00001111	/* OFF, OFF, RED, RED */
+#define BAT_LED_SHOW_OTHER_ERROR	0b00111100	/* OFF, RED, RED, OFF */
+#define BAT_LED_SHOW_NO_ERROR     	0b00000000  /* OFF, OFF, OFF, OFF */
 
 /*=========================================
  * Definition of BMS_Status_01(0x402)
  =========================================*/
 typedef struct
 {
-  uint8_t BmsStatus01_CRC;
-  uint8_t BmsStatus01_BZ  :4;
-  uint8_t ChipRevision    :4;
-  uint8_t SwVer_internal;   
-  uint8_t SwVer_Major;
-  uint8_t SwVer_Minor;
-  uint8_t SwVer_BugFix;
-  uint8_t SwVer_RC;
-  uint8_t	PackID;             /* unused byte 07*/
-} CanRxMsg_BmsStatus_t;
+  uint8_t DischargeCurrentLimit_h;
+  uint8_t BmsShutdownRequest      : 1;  /* A notification shows that BMS detects a turn-off command from USER (a press button action or others) */
+  uint8_t WarningFlag             : 1;  /* A flag shows that a battery warning condition is detected by BMS */
+  uint8_t AlarmFlag               : 1;  /* A flag shows that a battery alarm condition is detected by BMS */
+  uint8_t LimpFlag                : 1;  /* A flag shows limp mode output request from BMS */
+  uint8_t DischargeCurrentLimit_l : 4;  /* discharge current limitation of battery ,unit:1A, offset = 0 */
+  uint8_t Soc;                          /* Battery SOC */
+  uint8_t TerminalVoltage_h;
+  uint8_t Current_h               : 6;
+  uint8_t TerminalVoltage_l       : 2;  /* battery terminal voltage, unit=0.1V, offset = 0 */           
+  uint8_t Current_l;                 	/* current from battery, unit=0.05A, offset = 0, positive:charging, negative: discharging */
+  uint8_t MaxCellTemp;                  /* max temperature of cell, unit= 1'C, offset = -40 */
+  uint8_t Byte07;
+} CanRxMsg_BmsStatus01_t;
+
 
 /*=========================================
- * Definition of BMS_Current_01(0x404)
+ * Definition of BMS_Status_02(0x403)
  =========================================*/
 typedef struct
 {
-  uint8_t BmsCurrent01_CRC;
-  uint8_t BmsCurrent01_BZ   :4;
-  uint8_t Byte1b47          :4;   /* unused bit 4~7 in byte 1 */
-  uint8_t Current1[3];            /* 3 bytes value of current#1, unit = 0.01A, offset= 0, byte order : LSB first (intel) */  
-  uint8_t Current2[3];            /* 3 bytes value of current#2, unit = 0.01A, offset= 0, byte order : LSB first (intel)*/
-} CanRxMsg_BmsCurrent_t;
-
-typedef struct
-{
-  int16_t Volt[4];                /* unit: 0.00015V, offset: 1.5V*/
-} CanRxMsg_BmsVolt01to04_t;
-
-typedef struct
-{
-  float PackVolt_AFE;                /* unit: V */
-  float PackVolt_Calculated;         /* unit: V */
-} CanRxMsg_BmsVolt05_t;
-
-typedef struct
-{
-  int16_t CellMaxVolt;            /* unit: 0.00015V, offset: 1.5V*/
-  uint8_t CellMaxVoltIdx;         
-  uint8_t CellMinVolt_L;            /* CellMinVolt LSB ,unit: 0.00015V, offset: 1.5V*/
-  uint8_t CellMinVolt_H;            /* CellMinVolt HSB ,unit: 0.00015V, offset: 1.5V*/
-  uint8_t CellMinVoltIdx;         
-  uint16_t CellVoltDelta;         /* unit: 0.001V*/  
-} CanRxMsg_BmsVolt06_t;
-
-
-typedef struct
-{
-  float DIE_Temp;       /* unit:'C */
-  int16_t TempPrch;     /* unit: 0.01'C , offset: -40'C */
-  int16_t TempBalance;  /* unit: 0.01'C , offset: -40'C */      
-} CanRxMsg_BmsTemp01_t;
-
-typedef struct
-{
-  int16_t CellTemp[4];       /* unit: 0.01'C , offset: -40'C */
-} CanRxMsg_BmsTemp02to04_t;
-
-
+  uint8_t Byte00;
+  BmsActiveState_t BmsActiveState;       /* todo: confirm with BMS vender to signal definition */
+  BmsPreChgState_t PreCHGState;          /* todo: confirm with BMS vender to signal definition */
+  uint8_t BmsFrameCnt;                   /* Verify if this counter varies with time and range from 0 ~ 255 */ 
+  uint8_t Byte04;
+  uint8_t Byte05;
+  uint8_t Byte06;
+  uint8_t Byte07;
+} CanRxMsg_BmsStatus02_t;
 
 typedef enum BmsCtrlReq_e
 {
@@ -177,17 +142,35 @@ typedef enum BmsCtrlReq_e
 /*=========================================
  * Definition of VCU_BMS_Control_01(0x500)
  =========================================*/
-typedef struct{
-
-	uint8_t Byte0;
-	uint8_t Byte1;
-	BmsCtrlReq_t ConnReq;     
-	BmsCtrlReq_t DisconnReq;
-	BmsCtrlReq_t ShutdownReq;
-	uint8_t Byte5;
-	uint8_t Byte6;
-	uint8_t Byte7;
+typedef struct
+{
+  uint8_t ConnectionRequest     : 2;  /* 0 : no request, 1 request */
+  uint8_t DisconnectionRequest  : 2;  /* 0 : no request, 1 request */
+  uint8_t ShutdownRequest       : 2;  /* 0 : no request, 1 request */
+  uint8_t Byte0Reseved          : 2;
+  uint8_t Byte01;
+  uint8_t Byte02;
+  uint8_t Byte03;
+  uint8_t Byte04;
+  uint8_t Byte05;
+  uint8_t Byte06;
+  uint8_t Byte07;
 } CanTxMsg_BmsCtrl01_t;
+
+/*=========================================
+ * Definition of VCU_BMS_Control_02(0x501)
+ =========================================*/
+typedef struct
+{
+  BatPackLedCtrl_t LedCtrl;
+  uint8_t EscFrameCnt;        /* this value should loop from 0~255 */
+  uint8_t Byte02;
+  uint8_t Byte03;
+  uint8_t Byte04;
+  uint8_t Byte05;
+  uint8_t Byte06;
+  uint8_t Byte07;
+} CanTxMsg_BmsCtrl02_t;
 
 typedef struct
 {
@@ -205,12 +188,12 @@ typedef struct
 {
   uint16_t DcVoltU16;     /* unit: 0.1V */ 
   int16_t MotorRpmI16;    /* unit: rpm */
-  uint8_t EscState :4;    /* refer to "ENUM_PcuState" defined in "ICANInterface.h" */
+  uint8_t EscState :4;    /* refer to "PcuState_e" defined in "ICANInterface.h" */
   uint8_t WarnFlag :2;    /* 1: warning detected, 0: nothing */
   uint8_t AlarmFlag :2;   /* 1: Alarm detected, 0: nothing */
-  uint8_t OutputMode;     /* 0: limphome mode , 1: Paddle mode, 2: Surf Mode, 3 = Foil mode*/
-  uint8_t LimpHomeSrc;    /* 0: limphome mode is not activated, others: the trigger source of limp home mode, refer to (TBD enum) */
-  uint8_t DeratingSrc;    /* 0: derating is not activated, others: the trigger source of derating, refer to (TBD enum) */
+  uint8_t OutputMode;     /* 0: limpHome mode , 1: Paddle mode, 2: Surf Mode, 3 = Foil mode*/
+  uint8_t LimpHomeFlag;    /* 1: limpHomde detected, 0: nothing */
+  uint8_t DeratingSrc;    /* 0: derating is not activated, bit0: mos derating, bit1: cap derating, bit2: motor derating*/
 } CanTxMsg_EscLogInfo1_t;
 
 typedef struct 
@@ -253,33 +236,14 @@ typedef struct
   uint8_t Byte07;           /* unused byte 07 */
 } CanTxMsg_EscLogInfo6_t;
 
-typedef enum LedCtrlCode_e
-{
-  LED_CTRL_OFF = 0,
-  LED_CTRL_GREEN,
-  LED_CTRL_BLUE,
-  LED_CTRL_RED,
-} LedCtrlCode_t;
 
-typedef union 
-{
-  /* data */
-  uint8_t All;
-  struct 
-  {
-    LedCtrlCode_t Led0:2;
-    LedCtrlCode_t Led1:2;
-    LedCtrlCode_t Led2:2;
-    LedCtrlCode_t Led3:2;
-  } Leds;
-} BatPackLedCtrl_t;
 
 typedef struct
 {
   BatPackLedCtrl_t BatPackLedCtrl;  /* LED actione code sent to BMS by ESC , total size = 8bit (uint8_t) */
   uint8_t BatSoc;                   /* unit: % */
-  BmsMainSm_t BmsMainSm;            /* BMS main state mechine value report by BMS, refer to "BmsMainSm_t" */
-  BmsPrchSm_t BmsPrchSm;            /* BMS precharge state mechine value report by BMS, refer to "BmsPrchSm_t" */
+  BmsActiveState_t BmsMainSm;       /* BMS main state mechine value report by BMS, refer to "BmsMainSm_t" */
+  BmsPreChgState_t BmsPrchSm;       /* BMS precharge state mechine value report by BMS, refer to "BmsPrchSm_t" */
   uint8_t Byte4;					          /* unused byte 04 */
   uint8_t Byte5;					          /* unused byte 05 */
   uint8_t Byte6;					          /* unused byte 06 */
@@ -293,14 +257,8 @@ typedef struct
 
 typedef union EscCanRxCmd_u
 {
-  CanRxMsg_BmsCurrent_t BmsCurrent;
-  CanRxMsg_BmsSm_t BmsSm;
-  CanRxMsg_BmsStatus_t BmsStatus;
-  CanRxMsg_BmsTemp01_t BmsTemp01;
-  CanRxMsg_BmsTemp02to04_t BmsTemp02to04;
-  CanRxMsg_BmsVolt01to04_t BmsVolt01to04;
-  CanRxMsg_BmsVolt05_t BmsVolt05;
-  CanRxMsg_BmsVolt06_t BmsVolt06;
+  CanRxMsg_BmsStatus01_t BmsStatus01;
+  CanRxMsg_BmsStatus02_t BmsStatus02;
   uint8_t DataU8[8];
   int8_t DataI8[8];
   uint16_t DataU16[4];
@@ -313,6 +271,7 @@ typedef union EscCanRxCmd_u
 typedef union EscCanTxCmd_u
 {
   CanTxMsg_BmsCtrl01_t BmsCtrl01;
+  CanTxMsg_BmsCtrl02_t BmsCtrl02;
   CanTxMsg_EscLogInfo0_t EscLogInfo0;
   CanTxMsg_EscLogInfo1_t EscLogInfo1;
   CanTxMsg_EscLogInfo2_t EscLogInfo2;
@@ -337,67 +296,61 @@ typedef union EscCanTxCmd_u
 
 typedef struct 
 {
-  BmsMainSm_t MainSm;
-  BmsPrchSm_t PrchSM;
-  BmsWakeUpReason_t WakeUpReason;
+	uint8_t ShutDownReq;
+	uint8_t ConnectReq;
+	uint8_t DisconnectReq;
+	BatPackLedCtrl_t LedCtrlCmd;
+} BmsCtrlCmd_t;
+
+#define BMS_CTRL_CMD_DEFAULT 	\
+{  				  				\
+	0,		/*ShutDownReq*/		\
+	0,		/*ConnectReq*/		\
+	0,		/*DisconnectReq*/		\
+	{0},	/*LedCtrlCmd*/		\
+}								\
+
+
+typedef struct
+{
+  BmsActiveState_t MainSm;
+  BmsPreChgState_t PrchSM;
+  uint8_t BmsFrameCnt;
   uint8_t Soc;
-  uint8_t LimpHomeActiveFlag;
-  uint8_t WarningActiveFlag;
+  uint8_t LimpFlag;
+  uint8_t WarningFlag;
+  uint8_t AlarmFlag;
+  uint8_t BmsShutdownRequest;
   uint8_t BmsFwVer[BMS_VERSION_CODE_NUMBER];
   uint8_t BmsSN[BMS_SN_BYTE_NUMBER];
-  uint16_t ErrorCode;
-  float Current01;
-  float Current02;
+  int16_t MaxCellTemp;
+  float Current;
   float DcVolt;
-  float MaxCellTemp;
-  float CellTemp[10];
-  float TempDie;
-  float TempPrch;
-  float TempBalance;
-  float TempShunt;
+  float DCCurrentLimit;
+  float BatInstPwr;							/* Battery instantaneous power= Vbat x Ibat */
 } BmsReportInfo_t;
 
 #define BMS_REPORT_INFO_DEFAULT \
 {                               \
-  BMS_MAIN_SM_OFF,              \
-  BMS_PRCH_SM_OFF,              \
-  BMS_WAKEUP_REASON_UNKNOWN,    \
+  BMS_ACTIVE_STATE_STARTUP,     \
+  BMS_PRECHG_STATE_OFF,         \
+  0,                            \
   0,  /* SOC */                 \
-  0,  /* LimpHomeActiveFlag */  \
-  0,  /* WarningActiveFlag */   \
+  0,  /* LimpFlag */  			    \
+  0,  /* WarningFlag */   		  \
+  0,  /* AlarmFlag */			      \
+  0,  /*BmsShutdownRequest*/	  \
   {0,0,0,0,0},	/*BmsFwVer[BMS_VERSION_CODE_NUMBER]*/	\
-  {								\
-   0,0,0,0,0,0,0,0,0,0,			\
-   0,0,0,0,0,0,0,0,0,0			\
-  }, 	/*BmsSN[BMS_SN_BYTE_NUMBER]*/			\
-  0,  /* Error code */          \
-  0.0f, /*Current01*/           \
-  0.0f, /*Current02*/           \
-  0.0f, /*DcVolt*/              \
-  0.0f, /*MaxCellTemp*/         \
-  {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f},	/*CellTemp[10]*/\
-  0.0f, /*TempDie*/             \
-  0.0f, /*TemPrch*/             \
-  0.0f, /*TempBalance*/         \
-  0.0f, /*TempShunt*/           \
+  {								              \
+   0,0,0,0,0,0,0,0,0,0,			    \
+   0,0,0,0,0,0,0,0,0,0			    \
+  }, 	/*BmsSN[BMS_SN_BYTE_NUMBER]*/	\
+  0, /*MaxCellTemp*/        	  \
+  0.0f,	/*Current*/				      \
+  0.0f,	/*DcVolt*/				      \
+  0.0f,	/*DCCurrentLimit*/		  \
+  0.0f,	/*BatInstPwr*/		  \
 }                               \
-
-
-
-/* define the command to control BMS behavior */
-typedef struct 
-{
-  BmsCtrlReq_t ConnReq;     
-  BmsCtrlReq_t DisconnReq;
-  BmsCtrlReq_t ShutdownReq;     
-} BmsCtrlCmd_t;
-
-#define BMS_CTRL_CMD_DEFAULT          \
-{                                     \
-  BMS_CTRL_NO_REQ,  /* ConnReq */     \
-  BMS_CTRL_NO_REQ,  /* DisconnReq */  \
-  BMS_CTRL_NO_REQ,  /* ShutdownReq */ \
-}                                     \
 
 extern const CanIdConfig_t LscCanIdTableExtra[];
 

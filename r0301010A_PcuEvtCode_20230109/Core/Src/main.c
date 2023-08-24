@@ -114,14 +114,7 @@ static void USER_DWT_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t TestArr1[7] = {
-		0x07, 0x00, 0x32, 0x00, 0x00, 0x01, 0x02,
-};
 
-uint8_t TestArr2[8] ={
-		0,0,0,0,0,0,0,0
-};
-uint32_t CRCTestResult = 0;
 /* USER CODE END 0 */
 
 /**
@@ -185,14 +178,10 @@ int main(void)
 //  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_2 );
   __enable_irq();
 
-//  for(uint8_t x = 0; x < 7; x++){
-//	  TestArr2[x] = TestArr1[x];
-//  }
-//  uwCRCValue = HAL_CRC_Calculate(&hcrc,(uint32_t*)TestArr1,7);
-  CRCTestResult = RCCommCtrl.CalCrc(&RCCommCtrl,TestArr1,7);
 #if Measure_CPU_Load || Judge_function_delay
   USER_DWT_Init();
 #endif
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -735,7 +724,7 @@ static void MX_FDCAN2_Init(void)
   hfdcan2.Init.DataSyncJumpWidth = 6;
   hfdcan2.Init.DataTimeSeg1 = 25;
   hfdcan2.Init.DataTimeSeg2 = 8;
-  hfdcan2.Init.StdFiltersNbr = 6;
+  hfdcan2.Init.StdFiltersNbr = 4;
   hfdcan2.Init.ExtFiltersNbr = 0;
   hfdcan2.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan2) != HAL_OK)

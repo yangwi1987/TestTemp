@@ -10,10 +10,14 @@
 #include "RcUartComm.h"
 
 
-static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
-static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
-static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
-static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_DSC( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_ER( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_SA( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+//__STATIC_FORCEINLINE void UdsServiceCtrlBRP_WDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m );
 
 void UdsServiceCtrl_SendDataPeriodically (NetWorkService_t *p, LinkLayerCtrlUnit_t *pTx, uint32_t ParamID)
 {
@@ -107,7 +111,10 @@ EnumUdsBRPNRC UdsServiceCtrl_ReadDataRegionF( NetWorkService_t *p, LinkLayerCtrl
 			pPt = (uint8_t*)&HWVerNumber;
 			DIDDataLength = HW_VER_NUM_IDX;
 			break;
-
+		case 0x186:	// Active Diagnostic Session
+			pPt = (uint8_t*)&(p->pParamMgr->Session);
+			DIDDataLength = 1;
+			break;
 		case 0x187:	// Part Number Read
 			pPt = (uint8_t*)&BomNumber;
 			DIDDataLength = PART_NUM_IDX;
@@ -203,6 +210,7 @@ void UdsServiceCtrl_ServiceHandler( NetWorkService_t *p ,NetworkCtrl_t *v  )
 	if( v->Rx.Status == Rx_Complete)
 	{
 		v->Rx.Status = Rx_Reading;
+		p->SessionCNT = 0;
 		lSID = v->Rx.Data[0];
 		switch (lSID)
 		{
@@ -218,7 +226,14 @@ void UdsServiceCtrl_ServiceHandler( NetWorkService_t *p ,NetworkCtrl_t *v  )
 			}
 			case SID_SECURITY_ACCESS :
 			{
-				UdsServiceCtrl_SecurityAccess( p, &v->Rx, &v->Tx );
+    	    	if ( p->pParamMgr->Session != Session_0x01_Default )
+    	    	{
+    				UdsServiceCtrl_SecurityAccess( p, &v->Rx, &v->Tx );
+    	    	}
+    	    	else
+    	    	{
+    	    		p->NegativeRspReq( &v->Tx, v->Rx.Data[0], NRC_serviceNotSupportedInActiveSession );
+    	    	}
 				break;
 			}
 			case SID_COMMUNICATION_CTRL:
@@ -443,24 +458,31 @@ void UdsServiceCtrl_SessionControl( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 	{
 	case Session_0x01_Default:
 		p->pParamMgr->Session = Session_0x01_Default;
+		p->SessionCNTEnable = 0;
+		p->SessionCNT = 0;
 		break;
 	case Session_0x02_Programming:
 		p->pParamMgr->Session = Session_0x02_Programming;
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		p->pParamMgr->Session = Session_0x03_ExtendedDiagnostic;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		p->pParamMgr->Session = Session_0x04_SafetySystemDiagnostic;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		p->pParamMgr->Session = Session_0x40_VehicleManufacturerSpecific;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		p->pParamMgr->Session = Session_0x60_SystemSupplierSpecific;
+		p->SessionCNTEnable = 1;
 		break;
 	default:
 		p->pParamMgr->Session = Session_0x01_Default;
+		p->SessionCNTEnable = 0;
 		break;
 	}
 
@@ -476,55 +498,71 @@ void UdsServiceCtrl_SessionControl( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 
 void UdsServiceCtrl_SecurityAccess( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx)
 {
-	p->pSecurityCtrl->SubFuncIn = pRx->Data[1];
-	p->pSecurityCtrl->SubFuncCheck ( p->pSecurityCtrl, &pRx->Data[2], &pTx->Data[2] );
-
-	if ( p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_SEND_SEED )
+	if ( p->pSecurityCtrl->IsFalseAccessExceedLimit == TRUE )
 	{
-		pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-		pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
-		pTx->LengthTotal = 2 + UDS_SECURE_SEED_SIZE;
-		pTx->Status = Tx_Request;
-		p->pSecurityCtrl->SecureState = UDS_SECURE_STATE_WAIT_KEY;
-	}
-	else if ( (p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_CHECKED) && (p->pSecurityCtrl->SecureResult == UDS_SECURE_RESULT_SUCCESS) )
-	{
-		p->pParamMgr->Authority = p->pSecurityCtrl->SecureLvNow;
-		pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-		pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
-		pTx->LengthTotal = 2;
-		pTx->Status = Tx_Request;
+		p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_requiredTimeDelayNotExpired );
 	}
 	else
 	{
-		switch ( p->pSecurityCtrl->SecureResult )
-		{
-			case UDS_SECURE_RESULT_FAIL_WRONG_SEQ:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_RequestSequenceError );
-				break;
-			case UDS_SECURE_RESULT_FAIL_WRONG_KEY:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_InvalidKey );
-				break;
-			case UDS_SECURE_RESULT_FAIL_SUB_FUNCTION_VALUE_MISMATCH:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
-				break;
-			case UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_SubFunctionNotSupported );
-				break;
-			default:
-				p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
-				break;
-		}
-	}
+	    p->pSecurityCtrl->SubFuncIn = pRx->Data[1];
+	    p->pSecurityCtrl->SubFuncCheck ( p->pSecurityCtrl, &pRx->Data[2], &pTx->Data[2] );
 
+	    if ( p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_SEND_SEED )
+	    {
+	    	pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	    	pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
+	    	pTx->LengthTotal = 2 + UDS_SECURE_SEED_SIZE;
+	    	pTx->Status = Tx_Request;
+	    	p->pSecurityCtrl->SecureState = UDS_SECURE_STATE_WAIT_KEY;
+	    }
+	    else if ( (p->pSecurityCtrl->SecureState == UDS_SECURE_STATE_CHECKED) && (p->pSecurityCtrl->SecureResult == UDS_SECURE_RESULT_SUCCESS) )
+	    {
+	    	pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	    	pTx->Data[1] = p->pSecurityCtrl->SubFuncIn;
+	    	pTx->LengthTotal = 2;
+	    	pTx->Status = Tx_Request;
+	    }
+	    else
+	    {
+	    	switch ( p->pSecurityCtrl->SecureResult )
+	    	{
+	    		case UDS_SECURE_RESULT_FAIL_WRONG_SEQ:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_RequestSequenceError );
+	    			break;
+	    		case UDS_SECURE_RESULT_FAIL_WRONG_KEY:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_InvalidKey );
+	    			break;
+	    		case UDS_SECURE_RESULT_FAIL_SUB_FUNCTION_VALUE_MISMATCH:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
+	    			break;
+	    		case UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_SubFunctionNotSupported );
+	    			break;
+        		case UDS_SECURE_RESULT_FAIL_FALSE_ACCESS_EXCEED_LIMIT:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_exceededNumberOfAttempts );
+        			break;
+	    		default:
+	    			p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
+	    			break;
+	    	}
+	    }
+	}
 }
 
 void UdsServiceCtrl_ECUReset(NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx)
 {
-	pTx->Data[0] = pRx->Data[0]+POSITIVE_RESPONSE_OFFSET;
-	pTx->Data[1] = pRx->Data[1];
-	pTx->LengthTotal = 2;
-	pTx->Status = Tx_Request;
+	if ( p->ServiceCtrlBRP.ServoOnOffState == 1)
+	{
+		p->NegativeRspReq ( pTx, SID_SECURITY_ACCESS, NRC_ConditionsNotCorrect );
+	}
+	else
+	{
+		p->ECUSoftResetEnable = 1;
+		pTx->Data[0] = pRx->Data[0]+POSITIVE_RESPONSE_OFFSET;
+		pTx->Data[1] = pRx->Data[1];
+		pTx->LengthTotal = 2;
+		pTx->Status = Tx_Request;
+	}
 }
 
 void UdsServiceCtrl_CommunicationCtrl(LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ExtranetCANStation_t *pOp)
@@ -784,6 +822,49 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 		UdsServiceCtrl_SendDataPeriodicallyNoSwap( v, &v->NetWork.Tx, v->PeriodUpdateCtrl.ParamId);
 	}
 
+	if ( v->SessionCNTEnable )
+	{
+		if ( v->SessionCNT >= P2_STAR_SERVER_MAX_MS )
+		{
+			v->pParamMgr->Session = Session_0x01_Default;
+		    v->SessionCNTEnable = 0;
+		    v->SessionCNT = 0;
+		    v->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		}
+		else
+		{
+			v->SessionCNT++;
+		}
+	}
+
+	if ( v->ServiceCtrlBRP.BRPSessionCNTEnable )
+	{
+		if ( v->ServiceCtrlBRP.BRPSessionCNT >= P2_STAR_SERVER_MAX_MS )
+		{
+			v->ServiceCtrlBRP.DiagnosticSession = Session_0x01_DS;
+		    v->ServiceCtrlBRP.BRPSessionCNTEnable = 0;
+		    v->ServiceCtrlBRP.BRPSessionCNT = 0;
+		    v->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		}
+		else
+		{
+			v->ServiceCtrlBRP.BRPSessionCNT++;
+		}
+	}
+
+	if ( v->pSecurityCtrl->IsFalseAccessExceedLimit == TRUE )
+	{
+		if ( v->ServiceCtrlBRP.FalseAccessExceedLimitCNT >= FALSE_ACCESS_EXCEED_LIMIT_DELAY_TIME_MS )
+		{
+			v->pSecurityCtrl->IsFalseAccessExceedLimit = FALSE;
+			v->ServiceCtrlBRP.FalseAccessExceedLimitCNT = 0;
+		}
+		else
+		{
+            v->ServiceCtrlBRP.FalseAccessExceedLimitCNT++;
+		}
+	}
+
 }
 
 void UdsServiceCtrl_Init ( NetWorkService_t *v, FDCAN_HandleTypeDef *p, UdsSecurityAccessCtrl_t *u )
@@ -910,28 +991,28 @@ void UdsServiceCtrlBRP_ServiceHandler_Physical( NetWorkService_t *p, NetworkCtrl
     	lSID = v->Rx.Data[0];
     	switch (lSID)
     	{
-//            case SID_0x10_DSC_with_SF:
-//            {
-//            	UdsServiceCtrlBRP_DSC( &v->Rx, &v->Tx, m );
-//    	        break;
-//            }
-//            case SID_0x11_ER_with_SF:
-//            {
-//            	UdsServiceCtrlBRP_ER( &v->Rx, &v->Tx, m );
-//    	        break;
-//            }
-//            case SID_0x27_SA_with_SF:
-//            {
-//    	    	if ( m->DiagnosticSession == Session_0x03_EXTDS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
-//    	    	{
-//    	    	    UdsServiceCtrlBRP_SA( &v->Rx, &v->Tx, m );
-//    	    	}
-//    	    	else
-//    	    	{
-//    	    		m->Response_Code = NRC_0x7F_SNSIAS;
-//    	    	}
-//    	        break;
-//            }
+            case SID_0x10_DSC_with_SF:
+            {
+            	UdsServiceCtrlBRP_DSC( &v->Rx, &v->Tx, m );
+    	        break;
+            }
+            case SID_0x11_ER_with_SF:
+            {
+            	UdsServiceCtrlBRP_ER( &v->Rx, &v->Tx, m );
+    	        break;
+            }
+            case SID_0x27_SA_with_SF:
+            {
+    	    	if ( m->DiagnosticSession == Session_0x03_EXTDS ) //|| ( m->DiagnosticSession == Session_0x02_PRGS ))
+    	    	{
+    	    	    UdsServiceCtrlBRP_SA( &v->Rx, &v->Tx, m );
+    	    	}
+    	    	else
+    	    	{
+    	    		m->Response_Code = NRC_0x7F_SNSIAS;
+    	    	}
+    	        break;
+            }
             case SID_0x3E_TP_with_SF:
             {
             	UdsServiceCtrlBRP_TP( &v->Rx, &v->Tx, m );
@@ -1027,7 +1108,189 @@ void UdsServiceCtrlBRP_ServiceHandler_Physical( NetWorkService_t *p, NetworkCtrl
 	    }
     }
 }
-static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_DSC( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+	if ( pRx->LengthTotal == 2)
+	{
+		Union_UdsDataParameter DataParameter;
+		DataParameter.All = pRx->Data[1];
+	    m->SuppressPosRspMsgIndicationBit = DataParameter.Bits.SuppressPosRspMsgIndicationBit;
+		switch (DataParameter.Bits.SunFunctionType)
+		{
+		    case Session_0x01_DS:
+		    {
+		    	m->DiagnosticSession = Session_0x01_DS;
+		    	m->BRPSessionCNTEnable = 0;
+		    	m->BRPSessionCNT = 0;
+		    	m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		    	m->Response_Code = NRC_0x00_PR;
+		    	break;
+		    }
+		    case Session_0x02_PRGS:
+		    {
+		    	if ( m->ServoOnOffState == 1)
+		    	{
+		        	m->Response_Code = NRC_0x22_CNC;
+		    	}
+		    	else
+		    	{
+		    		BootAppTrig = BOOT_ENA;
+		    		m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		    		m->Response_Code = NRC_0x00_PR;
+		    	}
+		    	break;
+		    }
+		    case Session_0x03_EXTDS:
+		    {
+		    	m->DiagnosticSession = Session_0x03_EXTDS;
+		    	m->BRPSessionCNTEnable = 1;
+		    	m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		    	m->Response_Code = NRC_0x00_PR;
+		    	break;
+		    }
+		    default:
+		    {
+                m->Response_Code = NRC_0x12_SFNS;
+		    }
+		}
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
+
+	if ( m->Response_Code == NRC_0x00_PR )
+	{
+	    pTx->Data[0] = pRx->Data[0]+POSITIVE_RESPONSE_OFFSET;
+	    pTx->Data[1] = pRx->Data[1];
+	    pTx->Data[2] = ( P2_SERVER_MAX >> 8 );
+	    pTx->Data[3] = ( P2_SERVER_MAX & 0xFF );
+	    pTx->Data[4] = ( P2_STAR_SERVER_MAX >> 8 );
+	    pTx->Data[5] = ( P2_STAR_SERVER_MAX & 0xFF );
+	    pTx->LengthTotal=6;
+	}
+	else
+	{
+        ;;/*Do nothing*/
+	}
+}
+
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_ER( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+
+	if ( pRx->LengthTotal == 2)
+	{
+	    Union_UdsDataParameter DataParameter;
+	    DataParameter.All = pRx->Data[1];
+	    m->SuppressPosRspMsgIndicationBit = DataParameter.Bits.SuppressPosRspMsgIndicationBit;
+	    switch (DataParameter.Bits.SunFunctionType)
+	    {
+	        case Soft_Reset:
+	        {
+		    	if ( m->ServoOnOffState == 1)
+		    	{
+		        	m->Response_Code = NRC_0x22_CNC;
+		    	}
+		    	else
+		    	{
+		    		m->BRPECUSoftResetEnable = 1;
+	        	    m->Response_Code = NRC_0x00_PR;
+	        	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	        	    pTx->Data[1] = pRx->Data[1];
+	        	    pTx->LengthTotal = 2;
+		    	}
+	        	break;
+	        }
+	        default:
+	        {
+	        	m->Response_Code = NRC_0x12_SFNS;
+	        	break;
+	        }
+
+	    }
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
+
+}
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_SA( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+{
+	if ( pRx->LengthTotal == 2 + UDS_SECURE_SEED_SIZE ) /*To be discuss with BRP*/
+	{
+	    Union_UdsDataParameter DataParameter;
+	    DataParameter.All = pRx->Data[1];
+	    if (( DataParameter.Bits.SuppressPosRspMsgIndicationBit == TRUE ) && (( DataParameter.Bits.SunFunctionType & 0x01 ) == 1 ))
+	    {
+	    	m->Response_Code = NRC_0x22_CNC;
+	    }
+	    else if (( pRx->Data[2] || pRx->Data[3] ) && (( DataParameter.Bits.SunFunctionType & 0x01 ) == 1 ))
+	    {
+	    	m->Response_Code = NRC_0x31_ROOR;
+	    }
+	    else
+	    {
+	    	if ( m->pSecurityCtrl->IsFalseAccessExceedLimit == TRUE )
+	    	{
+	    		m->Response_Code = NRC_0x37_RTDNE;
+	    	}
+	    	else
+	    	{
+	            m->SuppressPosRspMsgIndicationBit = DataParameter.Bits.SuppressPosRspMsgIndicationBit;
+	            m->pSecurityCtrl->SubFuncIn = DataParameter.Bits.SunFunctionType;
+	            m->pSecurityCtrl->SubFuncCheck ( m->pSecurityCtrl, &pRx->Data[2], &pTx->Data[2] );
+
+	            if ( m->pSecurityCtrl->SecureState == UDS_SECURE_STATE_SEND_SEED )
+	            {
+	            	pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	            	pTx->Data[1] = m->pSecurityCtrl->SubFuncIn;
+	            	pTx->LengthTotal = 2 + UDS_SECURE_SEED_SIZE;
+	                m->Response_Code = NRC_0x00_PR;
+	            	m->pSecurityCtrl->SecureState = UDS_SECURE_STATE_WAIT_KEY;
+	            }
+	            else if ( (m->pSecurityCtrl->SecureState == UDS_SECURE_STATE_CHECKED) && (m->pSecurityCtrl->SecureResult == UDS_SECURE_RESULT_SUCCESS) )
+	            {
+	            	pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+	            	pTx->Data[1] = m->pSecurityCtrl->SubFuncIn;
+	            	pTx->LengthTotal = 2;
+	                m->Response_Code = NRC_0x00_PR;
+	            }
+	            else
+	            {
+	            	switch ( m->pSecurityCtrl->SecureResult )
+	            	{
+	            		case UDS_SECURE_RESULT_FAIL_WRONG_SEQ:
+	            			m->Response_Code = NRC_0x24_RSE;
+	            			break;
+	            		case UDS_SECURE_RESULT_FAIL_WRONG_KEY:
+	            			m->Response_Code = NRC_0x35_IK;
+	            			break;
+	            		case UDS_SECURE_RESULT_FAIL_SUB_FUNCTION_VALUE_MISMATCH:
+	            			m->Response_Code = NRC_0x22_CNC;
+	            			break;
+	            		case UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL:
+	            			m->Response_Code = NRC_0x12_SFNS;
+	            			break;
+	            		case UDS_SECURE_RESULT_FAIL_FALSE_ACCESS_EXCEED_LIMIT:
+	            			m->Response_Code = NRC_0x36_ENOA;
+	            			break;
+	            		default:
+	            			m->Response_Code = NRC_0x22_CNC;
+	            			break;
+	            	}
+	            }
+	        }
+	    }
+	}
+	else
+	{
+		m->Response_Code = NRC_0x13_IMLOIF;
+	}
+
+}
+
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
 {
 	if ( pRx->LengthTotal == 2)
 	{
@@ -1057,7 +1320,7 @@ static inline void UdsServiceCtrlBRP_TP( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrl
 	}
 
 }
-static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
 {
 	if ( pRx->LengthTotal == 3)
 	{
@@ -1070,7 +1333,7 @@ static inline void UdsServiceCtrlBRP_RDBI( LinkLayerCtrlUnit_t *pRx, LinkLayerCt
 	}
 
 }
-static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
 {
 
     if (pRx->LengthTotal == 4 )
@@ -1100,7 +1363,7 @@ static inline void UdsServiceCtrlBRP_CDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerC
     }
 
 }
-static inline void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
+__STATIC_FORCEINLINE void UdsServiceCtrlBRP_RDTCI( LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx, ServiceCtrlBRP_t *m )
 {
     if (pRx->LengthTotal == 3 )
     {

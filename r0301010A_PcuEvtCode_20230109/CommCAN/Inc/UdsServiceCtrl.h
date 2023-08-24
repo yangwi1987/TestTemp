@@ -25,10 +25,11 @@
 #define FALSE 0
 #define NONE 0
 
-#define FalseAccessExceedLimitDelayTime_ms  10 * 60 * 1000 // 10 minutes
-#define P2_Server_max              150       // Resolition: 1ms
-#define P2_Star_Server_max         505       // Resolition: 10ms
-#define P2_Star_Server_max_in_ms P2_Star_Server_max * 10
+#define FALSE_ACCESS_EXCEED_LIMIT_DELAY_TIME_MS 10 * 60 * 1000 // 10 minutes
+#define P2_SERVER_MAX              150       // Resolition: 1ms
+#define P2_STAR_SERVER_MAX         505       // Resolition: 10ms
+#define P2_STAR_SERVER_MAX_MS P2_STAR_SERVER_MAX * 10
+
 /*
  * Enum define for BRP UDS ===========================================================================================================================================================================================
  */
@@ -140,8 +141,11 @@ typedef enum
 	NRC_TransferDataSuspended = 0x71,
 	NRC_generalProgrammingFailure = 0x72,
 	NRC_WrongBlockSequenceCounter = 0x73,
+	NRC_serviceNotSupportedInActiveSession = 0x7F,
 	NRC_VoltageTooHigh = 0x92,
 	NRC_VoltageTooLow = 0x93,
+	NRC_exceededNumberOfAttempts = 0x36,
+	NRC_requiredTimeDelayNotExpired = 0x37,
 }EnumUdsNRC;
 
 typedef enum
@@ -156,16 +160,6 @@ typedef enum
 	TransferCtrlLoad_Idle,
 	TransferCtrlLoad_Processing,
 }EnumTrasnferCtrlLoadFlag;
-
-typedef enum
-{
-	Authority_EndUser = 0,
-	Authority_VehicleDealer = 1,
-	Authority_VehicleMf = 2,
-	Authority_LscMf = 5,
-	Authority_LscFAE = 6,
-	Authority_LscRd = 7,
-}EnumAuthority;
 
 typedef enum
 {
@@ -413,6 +407,9 @@ typedef struct
 	UdsSecurityAccessCtrl_t *pSecurityCtrl;
 	ParamMgr_t 			*pParamMgr;
 	uint8_t			EnableAutoSend;
+	uint8_t         SessionCNTEnable;
+	uint32_t        SessionCNT;
+	uint8_t     ECUSoftResetEnable;
 	funcTypeUdsServiceCtrl_Init				Init;
 	funcTypeUdsServiceCtrl_ServiceHandler	ServiceHandler;
 	funcTypeUdsServiceCtrl_NegativeRspReq   NegativeRspReq;
@@ -429,7 +426,10 @@ typedef struct
 	PERIODIC_UPDATE_DEFAULT,	\
 	0,							\
 	0,							\
-	0,							\
+	0,							/*	EnableAutoSend  */\
+	0,							/*  SessionCNTEnable*/\
+	0,							/*  SessionCNT;    */  \
+	0,							/*ECUSoftResetEnable;*/  \
 	(funcTypeUdsServiceCtrl_Init)UdsServiceCtrl_Init,\
 	(funcTypeUdsServiceCtrl_ServiceHandler)UdsServiceCtrl_ServiceHandler,\
 	(funcTypeUdsServiceCtrl_NegativeRspReq)UdsServiceCtrl_NegativeRspReq,\

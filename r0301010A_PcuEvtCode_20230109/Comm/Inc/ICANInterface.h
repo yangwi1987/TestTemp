@@ -17,6 +17,7 @@
 
 #define TX_ID_NUM	10
 #define REPORT_ALARM_DIVIDER 10
+#define DEFAULT_DC_LIMIT 1000.0f
 
 typedef enum {
 	RECEIVED_VCU_ID_1 = (uint8_t)1,
@@ -26,8 +27,8 @@ typedef enum {
 } RECEIVED_CAN_ID_ENUM;
 
 typedef enum {
-	PcuShiftP = 0,
-	PcuShiftD,
+	PCU_SHIFT_P = 0,
+	PCU_SHIFT_D,
 } ENUM_SHIFT;
 
 typedef enum {
@@ -37,15 +38,17 @@ typedef enum {
 	FourQ_Regen,
 } ENUM_4QuadStatus;
 
-typedef enum {
-	PcuState_Inital = 0,
-	PcuState_Ready,
-	PcuState_SERVO_ON,
-	PcuState_SERVO_OFF,
-	PcuState_Shutdown_Start,
-	PcuState_Shutdown_Finish,
-	PcuState_Error,
-} ENUM_PcuState;
+typedef enum PcuState_e
+{
+	PCU_STATE_INITIAL = 0,
+	PCU_STATE_READY,
+	PCU_STATE_OUTPUT,
+	PCU_STATE_STANDBY,
+	PCU_STATE_SHUTDOWN_START,
+	PCU_STATE_SHUTDOWN_FINISH,
+	PCU_STATE_POWER_OFF,
+	PCU_STATE_ERROR,
+} PcuState_t;
 
 typedef enum {
 	PcuCmd_Idle = 0,
@@ -58,15 +61,13 @@ typedef enum {
 	ServoOnCmd_ServoOn,
 } ServoOnCmd_e;
 
-typedef enum{
-	PowerOnOff_Initial,
-	PowerOnOff_Ready,
-	PowerOnOff_ShutdownStart,
-	PowerOnOff_NormalShutdown,
-	PowerOnOff_EmergencyShutDown,
-	PowerOnOff_WaitForReset,
-	PowerOnOff_Error,
-}PowerOnOffSeq_e;
+typedef enum PowerStateMachine_e
+{
+	PWR_SM_INITIAL,
+	PWR_SM_POWER_ON,
+	PWR_SM_POWER_OFF,
+	PWR_SM_WAIT_FOR_RESET,
+} PowerStateMachine_t;
 
 /*=========================================
  * Definition of Authendata
@@ -281,7 +282,7 @@ typedef struct{
  =========================================*/
 typedef struct
 {
-	int32_t	BatCurrentDrainLimit0P1A;
+	float	BatCurrentDrainLimit;
 	int32_t	MEPowerOutputLimit0P1W;
 	uint32_t RTCData;
 	uint8_t ThrottleCmd;
@@ -294,6 +295,7 @@ typedef struct
 	uint8_t UrgentShutdown;
 	uint8_t ExtPumpStatus;
 	uint8_t ReceivedCANID;
+	uint16_t AccCANErrorCnt;
 	UNION_CtrlIO ExtSignalCmd;
 	UNION_PRCH_CTRL PrchCtrlFB;
 	STRUCT_Authendata RxAuthData[2];
@@ -304,7 +306,7 @@ typedef struct
 typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
-  TX_INTERFACE_DBG_IDX_WARNING_AND_ALARM_FLAG = 1,
+  TX_INTERFACE_DBG_IDX_ERROR_FLAG = 1, // include critical alarm, non-critical alarm, and warning
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
@@ -329,8 +331,8 @@ typedef enum DebugFloatIdx_e
   IDX_RESERVERD,
   IDX_DC_LIMIT_DCBUS_REAL,
   IDX_DC_LIMIT_DCBUS_USE,
-  IDX_AVERAGE_POWER,
-  IDX_INSTANT_POWER,
+  IDX_INSTANT_AC_POWER,
+  IDX_AVERAGE_AC_POWER,
   IDX_REMAIN_TIME,
 
   IDC_DEBUG_FLOAT_MAX = 24, /* no more than this value*/
@@ -361,7 +363,6 @@ typedef struct
 	int16_t IDcBus0P1A;
 	int16_t VoltDcBu0P1V;
 	FoilPos_t FoilPos;
-	uint8_t LimpHomeSrc;
 	uint8_t DeratingSrc;
 	uint8_t ShiftReport;
 	uint8_t _4Quad;
@@ -387,6 +388,7 @@ typedef struct
 	uint8_t ShutDownReq;
 	uint16_t AlarmDivider;
 	UNION_DRIVE_STATE DriveState;
+	BmsCtrlCmd_t BmsCtrlCmd;
 
 } STRUCT_CANTxInterface;
 
@@ -402,7 +404,7 @@ typedef struct {
 } CANProtocol;
 
 #define CANRXINFO_DEFAULT { \
-	10000,  /* BatCurrentDrainLimit0P1A */\
+	DEFAULT_DC_LIMIT,  /* BatCurrentDrainLimit */\
 	10000,  /* MEPowerOutputLimit0P1W */\
 	0,      /* RTCData */\
 	0,      /* ThrottleCmd */\
@@ -415,6 +417,7 @@ typedef struct {
 	0,      /* UrgentShutdown */\
 	0,      /* ExtPumpStatus */\
 	0,      /* ReceivedCANID */\
+	0,      /* AccCANErrorCnt */\
 	{0},    /* ExtSignalCmd */\
 	{0},    /* PrchCtrlFB */\
 	{{NULL,0},{NULL,0}},      /* RxAuthData[2] */\
@@ -444,7 +447,6 @@ typedef struct {
 		0, /* IDcBus0P1A */ \
 		0, /* VoltDcBu0P1V */ \
 		FOIL_POS_PADDLE, /*FoilPos*/ \
-		0,	/* LimpHomeSrc*/\
 		0,	/* DeratingSrc*/\
 		0, /* ShiftReport */ \
 		0, /* _4Quad */ \

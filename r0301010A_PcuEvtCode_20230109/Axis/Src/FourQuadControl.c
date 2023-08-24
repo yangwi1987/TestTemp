@@ -134,6 +134,16 @@ static void FourQuadControl_DriveTableInit( FourQuadControl *v )
 	}
 	v->DriveFallingRamp = -Para * TimeBase; //Ramp Function Use Absolute Ramp Value
 
+	// Load Limp Transit variable
+	float LimpTransitSec = 1.0f;
+	float MaxPower = 0.0f;
+	ParamMgr_ParaGainHandler( &(DriveParams), &(DriveParams.SystemParams.LimpTransitSec), &LimpTransitSec );
+	for( n = 0 ; n < DRIVE_TABLE_LENGTH ; n++ )
+	{
+		MaxPower = ( MaxPower > v->DriveCurve[n].Para[DRIVE_POWER_MAX] ) ? MaxPower : v->DriveCurve[n].Para[DRIVE_POWER_MAX];
+	}
+	v->LimpTransitRamp = (( MaxPower - v->DriveCurve[0].Para[DRIVE_POWER_MAX] ) / LimpTransitSec ) * TimeBase;
+
 	v->DrivePowerLevelTarget = 1.0f;
 	v->DrivePowerLevelGain = 1.0f;
 	uint16_t ParaError = 0.0f;
@@ -230,21 +240,29 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	float PropulseMin = 0.0f;
 	float Smax = pTable->Para[DRIVE_SPEED_MAX] ;
 
-	if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
+	if ( v->Driving_TNIndex == 0 )
 	{
-		v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
-		v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
-	}
-	else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
-	{
-		v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
-		v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
+		v->DrivePowerCmd = Ramp( v->DrivePowerCmd, pTable->Para[DRIVE_POWER_MAX], v->LimpTransitRamp );
 	}
 	else
 	{
-		// do nothing
+		if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
+		{
+			v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
+			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
+		}
+		else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
+		{
+			v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
+			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
+		}
+		else
+		{
+			// do nothing
+		}
+		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
+
 	}
-	v->DrivePowerCmd = pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
 
 	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
 	float F2 = pTable->Para[DRIVE_PROPULSION_MAX];
@@ -321,19 +339,19 @@ void FourQuadControl_Switch( FourQuadControl *v )
 	int16_t MotorRPMTmp = (int16_t)( v->MotorRPM );
 
 	//Switch Control
-	if( v->GearPositionState == PcuShiftP )
+	if( v->GearPositionState == PCU_SHIFT_P )
 	{
-		v->ServoCmdOut = 0;
+		v->ServoCmdOut = DISABLE;
 		v->FourQuadState = FourQuadState_None;
 
-		if( v->GearPositionCmd == PcuShiftD && v->ThrottleReleaseFlg == 1 )
+		if( v->GearPositionCmd == PCU_SHIFT_D && v->ThrottleReleaseFlg == 1 )
 		{
-			v->GearPositionState = PcuShiftD;
+			v->GearPositionState = PCU_SHIFT_D;
 		}
 	}
-	else if( v->GearPositionState == PcuShiftD )
+	else if( v->GearPositionState == PCU_SHIFT_D )
 	{
-		v->ServoCmdOut = 1;
+		v->ServoCmdOut = ENABLE;
 
 		if( v->FirstEntryFlg == 1 && v->ThrottleReleaseFlg == 0 )
 		{
@@ -350,14 +368,14 @@ void FourQuadControl_Switch( FourQuadControl *v )
 			v->FirstEntryFlg = 0;
 		}
 
-		if( v->GearPositionCmd == PcuShiftP )
+		if( v->GearPositionCmd == PCU_SHIFT_P )
 		{
-			v->GearPositionState = PcuShiftP;
+			v->GearPositionState = PCU_SHIFT_P;
 			v->FirstEntryFlg = 1;
 		}
 	}
 
-	v->ServoCmdOut = ( v->ServoCmdIn == 0 )? 0 : v->ServoCmdOut;
+	v->ServoCmdOut = ( v->ServoCmdIn == DISABLE )? DISABLE : v->ServoCmdOut;
 }
 
 void FourQuadControl_Calc( FourQuadControl *v )

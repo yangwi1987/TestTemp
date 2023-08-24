@@ -66,9 +66,9 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		{
 				// PCU Thermal
 				//Name			ZeroFlagEnable,		TableIdx,		Channel Enable,	Adc Group,			Adc Rank
-				{PCU_NTC_0,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_2			},	// MOS NTC Center
-				{PCU_NTC_1,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_3			},	// MOS NTC Side
-				{PCU_NTC_2,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_2,				RANK_1			},	// CAP NTC
+				{MOS_NTC_CENTER,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_2			},	// MOS NTC Center
+				{MOS_NTC_SIDE,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_3			},	// MOS NTC Side
+				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_2,				RANK_1			},	// CAP NTC
 				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
@@ -234,7 +234,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P2-78
 				{		0,		0,		0,		0,		0},	//P2-79
 				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.DebugParam1},	//P2-80
-				{		0,		65535,		0,		0x47,		&DriveParams.PCUParams.DebugParam2},	//P2-81
+				{		0,		65535,		0,		0x45,		&DriveParams.PCUParams.DebugParam2},	//P2-81
 				{		0,		65535,		0,		0x47,		&DriveParams.PCUParams.DebugParam3},	//P2-82
 				{		0,		65535,		0,		0x47,		&DriveParams.PCUParams.DebugParam4},	//P2-83
 				{		0,		65535,		0,		0x47,		&DriveParams.PCUParams.DebugParam5},	//P2-84

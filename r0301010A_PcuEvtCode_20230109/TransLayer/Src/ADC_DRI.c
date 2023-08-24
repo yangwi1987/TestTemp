@@ -319,9 +319,9 @@ void AdcStation_DoPLCLoop( AdcStation *v )
 	v->ThermoADCCatcher++;
 	if( v->ThermoADCCatcher >= 10 ) //10ms
 	{
-		v->ThermoADCCatchValue[PCU_NTC_0] = (*v->pTempADCValue[PCU_NTC_0]);
-		v->ThermoADCCatchValue[PCU_NTC_1] = (*v->pTempADCValue[PCU_NTC_1]);
-		v->ThermoADCCatchValue[PCU_NTC_2] = (*v->pTempADCValue[PCU_NTC_2]);
+		v->ThermoADCCatchValue[MOS_NTC_CENTER] = (*v->pTempADCValue[MOS_NTC_CENTER]);
+		v->ThermoADCCatchValue[MOS_NTC_SIDE] = (*v->pTempADCValue[MOS_NTC_SIDE]);
+		v->ThermoADCCatchValue[CAP_NTC] = (*v->pTempADCValue[CAP_NTC]);
 		v->ThermoADCCatchValue[MOTOR_NTC_0_A0] = (*v->pTempADCValue[MOTOR_NTC_0_A0]);
 		v->ThermoADCCatcher = 0;
 	}
@@ -329,12 +329,12 @@ void AdcStation_DoPLCLoop( AdcStation *v )
 
 void AdcStation_Do100HzLoop( AdcStation *v )
 {
-	v->ThermoTraIndex = PCU_NTC_0;
-	v->AdcTraOut.PCU_NTC[0] = AdcStation_DoThermoTransition(v);
-	v->ThermoTraIndex = PCU_NTC_1;
-	v->AdcTraOut.PCU_NTC[1] = AdcStation_DoThermoTransition(v);
-	v->ThermoTraIndex = PCU_NTC_2;
-	v->AdcTraOut.PCU_NTC[2] = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = MOS_NTC_CENTER;
+	v->AdcTraOut.PCU_NTC[MOS_NTC_CENTER] = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = MOS_NTC_SIDE;
+	v->AdcTraOut.PCU_NTC[MOS_NTC_SIDE] = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = CAP_NTC;
+	v->AdcTraOut.PCU_NTC[CAP_NTC] = AdcStation_DoThermoTransition(v);
 	v->ThermoTraIndex = MOTOR_NTC_0_A0;
 	v->AdcTraOut.MOTOR_NTC = AdcStation_DoThermoTransition(v);
 }
