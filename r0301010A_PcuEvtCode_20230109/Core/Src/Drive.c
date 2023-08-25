@@ -95,11 +95,11 @@ uint32_t VersionAddressArray[5] =
 /*
  * 13V measure special
  */
-#define RECORD_13V_NUMBER 18000
-float Record_13V[RECORD_13V_NUMBER] = {0};
-uint16_t Record_13V_cnt = 0;
+#define RECORD_13V_NUMBER 90000
+uint8_t Record_13V[RECORD_13V_NUMBER] = {0};
+uint32_t Record_13V_cnt = 0;
 uint8_t Record_13V_flag = 0;
-static uint16_t i_record_13v = 0;
+static uint32_t i_record_13v = 0;
 
 /*
  * Boot-loader function declare
@@ -466,7 +466,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		{
 			if ( i_record_13v < RECORD_13V_NUMBER )
 			{
-		        RetValue = (uint32_t)(Record_13V[i_record_13v]*100.0f);
+		        RetValue = (Record_13V[i_record_13v]);
 		        i_record_13v++;
 			}
 		    else
@@ -2165,13 +2165,13 @@ void drive_DoPLCLoop(void)
 	{
 		if ( Record_13V_cnt == 0 )
 		{
-			memset(&(Record_13V[0]), 0, sizeof(uint16_t)*RECORD_13V_NUMBER);
-		    Record_13V[0] = AdcStation1.AdcTraOut.V13;
+			memset(&(Record_13V[0]), 0, sizeof(uint8_t) * RECORD_13V_NUMBER);
+		    Record_13V[0] = (uint8_t)(AdcStation1.AdcTraOut.V13 * 10.0f);
 		    Record_13V_cnt = 1;
 		}
 		else if ( Record_13V_cnt < RECORD_13V_NUMBER )
 		{
-		    Record_13V[Record_13V_cnt] = AdcStation1.AdcTraOut.V13;
+		    Record_13V[Record_13V_cnt] = (uint8_t)(AdcStation1.AdcTraOut.V13 * 10.0f);
 		    Record_13V_cnt++;
 		}
 		else
