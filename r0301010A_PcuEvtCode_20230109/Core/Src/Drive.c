@@ -2163,13 +2163,7 @@ void drive_DoPLCLoop(void)
 	}
 	if ( Record_13V_flag == 1)
 	{
-		if ( Record_13V_cnt == 0 )
-		{
-			memset(&(Record_13V[0]), 0, sizeof(uint8_t) * RECORD_13V_NUMBER);
-		    Record_13V[0] = (uint8_t)(AdcStation1.AdcTraOut.V13 * 10.0f);
-		    Record_13V_cnt = 1;
-		}
-		else if ( Record_13V_cnt < RECORD_13V_NUMBER )
+		if ( Record_13V_cnt < RECORD_13V_NUMBER )
 		{
 		    Record_13V[Record_13V_cnt] = (uint8_t)(AdcStation1.AdcTraOut.V13 * 10.0f);
 		    Record_13V_cnt++;
@@ -2183,7 +2177,15 @@ void drive_DoPLCLoop(void)
 	}
 	else
 	{
-
+        if (( Record_13V_cnt < RECORD_13V_NUMBER ) && ( Record_13V_cnt != 0 ))
+        {
+        	Record_13V[Record_13V_cnt] = 0;
+        	Record_13V_cnt++;
+        }
+        else
+        {
+        	Record_13V_cnt = 0;
+        }
 	}
 	/*
 	 *
