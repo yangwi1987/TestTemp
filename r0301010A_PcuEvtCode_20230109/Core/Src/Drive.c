@@ -1104,44 +1104,72 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xF1F2_RF_FW_VERSION  :
         {
-			pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-			pTx->Data[1] = pRx->Data[1];
-			pTx->Data[2] = pRx->Data[2];
-			memcpy(&pTx->Data[3], RCCommCtrl.RFFwVer, RC_COMM_RF_FW_VER_SIZE);
-			pTx->LengthTotal = 3 + RC_COMM_RF_FW_VER_SIZE;
-			tempRsp = NRC_0x00_PR;
-        	break;
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION) !=0)
+			{
+				pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+				pTx->Data[1] = pRx->Data[1];
+				pTx->Data[2] = pRx->Data[2];
+				memcpy(&pTx->Data[3], RCCommCtrl.RFFwVer, RC_COMM_RF_FW_VER_SIZE);
+				pTx->LengthTotal = 3 + RC_COMM_RF_FW_VER_SIZE;
+				tempRsp = NRC_0x00_PR;
+        	}
+			else
+			{
+				tempRsp = NRC_0x22_CNC;
+			} 
+			break;
         }
 		case DID_0xF1F3_RF_SERAIL_NUMBER  :
 		{		
 			/* The buffer was loaded, reply the value */
-			pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-			pTx->Data[1] = pRx->Data[1];
-			pTx->Data[2] = pRx->Data[2];
-			memcpy(&pTx->Data[3], RCCommCtrl.RFSN, RC_COMM_RF_SN_SIZE);
-			pTx->LengthTotal = 3 + RC_COMM_RF_SN_SIZE;
-			tempRsp = NRC_0x00_PR;
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN) !=0)
+			{
+				pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+				pTx->Data[1] = pRx->Data[1];
+				pTx->Data[2] = pRx->Data[2];
+				memcpy(&pTx->Data[3], RCCommCtrl.RFSN, RC_COMM_RF_SN_SIZE);
+				pTx->LengthTotal = 3 + RC_COMM_RF_SN_SIZE;
+				tempRsp = NRC_0x00_PR;
+			}
+			else
+			{
+				tempRsp = NRC_0x22_CNC;
+			}
         	break;
         }
 		case DID_0xF1F4_RC_FW_VERSION  :
         {
-			pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-			pTx->Data[1] = pRx->Data[1];
-			pTx->Data[2] = pRx->Data[2];
-			memcpy(&pTx->Data[3], RCCommCtrl.RCFwVer, RC_COMM_RC_FW_VER_SIZE);
-			pTx->LengthTotal = 3 + RC_COMM_RC_FW_VER_SIZE;
-			tempRsp = NRC_0x00_PR;
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION) !=0)
+			{
+				pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+				pTx->Data[1] = pRx->Data[1];
+				pTx->Data[2] = pRx->Data[2];
+				memcpy(&pTx->Data[3], RCCommCtrl.RCFwVer, RC_COMM_RC_FW_VER_SIZE);
+				pTx->LengthTotal = 3 + RC_COMM_RC_FW_VER_SIZE;
+				tempRsp = NRC_0x00_PR;
+			}
+			else
+			{
+				tempRsp = NRC_0x22_CNC;
+			}
         	break;
         }
 		case DID_0xF1F5_RC_SERIAL_NUMBER  :
         {
-			pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-			pTx->Data[1] = pRx->Data[1];
-			pTx->Data[2] = pRx->Data[2];
-			memcpy(&pTx->Data[3], RCCommCtrl.RCSN, RC_COMM_RC_SN_SIZE);
-			pTx->LengthTotal = 3 + RC_COMM_RC_SN_SIZE;
-			tempRsp = NRC_0x00_PR;
-        	break;
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN) !=0)
+			{
+				pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
+				pTx->Data[1] = pRx->Data[1];
+				pTx->Data[2] = pRx->Data[2];
+				memcpy(&pTx->Data[3], RCCommCtrl.RCSN, RC_COMM_RC_SN_SIZE);
+				pTx->LengthTotal = 3 + RC_COMM_RC_SN_SIZE;
+				tempRsp = NRC_0x00_PR;
+			}
+			else
+			{
+				tempRsp = NRC_0x22_CNC;	
+			}
+			break;
         }
         default:
         {

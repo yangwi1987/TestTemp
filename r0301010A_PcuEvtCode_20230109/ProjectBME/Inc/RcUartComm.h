@@ -12,6 +12,7 @@
 #include "stm32g4xx_hal.h"
 #include "ICANInterface.h"
 
+
 typedef enum RcCommError_e
 {
 	RC_COMM_ERROR = -1,
@@ -33,13 +34,13 @@ typedef enum RcCommDataId_e
 
 #define RC_COMM_QUERY_RF_INFO_INTERVAL_MS	100
 #define RC_COMM_QUERY_RF_INFO_INTERVAL_PRESCALER_CNT	1	/* 1 = RC_COMM_QUERY_RF_INFO_INTERVAL_MS / 100 */
-#define RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD		1500	/* 1500ms = 1.5 sec */
-#define RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT  15				/* 15 = RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD / 100 */
+#define RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD		5000	/* 5000ms = 5 sec */
+#define RC_COMM_QUERY_RF_INFO_TIMEOUT_CNT  50				/* 50 = RC_COMM_QUERY_RF_INFO_TIMEOUT_THRESHOLD / 100 */
 
-#define RC_COMM_RC_FW_VER_SIZE	3	/* RC firmware version array size in byte.*/
-#define RC_COMM_RC_SN_SIZE		32	/* RC serial number array size in byte.*/
-#define RC_COMM_RF_FW_VER_SIZE	3	/* RF firmware version array size in byte.*/
-#define RC_COMM_RF_SN_SIZE		32	/* RF serial number array size in byte.*/
+#define RC_COMM_RC_FW_VER_SIZE	5	/* RC firmware version array size in byte.*/
+#define RC_COMM_RC_SN_SIZE		33	/* RC serial number array size in byte.*/
+#define RC_COMM_RF_FW_VER_SIZE	5	/* RF firmware version array size in byte.*/
+#define RC_COMM_RF_SN_SIZE		33	/* RF serial number array size in byte.*/
 
 #define RC_TEIMOUT_TEST 0
 #define RC_COMM_DMA_USAGE 1
@@ -51,6 +52,15 @@ typedef enum RcCommDataId_e
 #define RC_COMM_HEAD_VALUE 0x03
 #define RC_COMM_END_VALUE 0xFF
 #define RC_COMM_TIMEOUT_THRESHOLD_100MS 11	// 11*100ms = 1100ms
+
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION 0x04
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN 0x08
+#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_ALL RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION|	\
+												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN|			\
+												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION|	\
+												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN			\
 
 typedef void (*functypeRcComm_Init)( void *,void *,void *,void*,void* );
 typedef uint16_t (*functypeRcComm_CalCrc)( void *, uint8_t*, uint8_t);
@@ -80,6 +90,7 @@ typedef struct{
 	uint16_t TxDlc;
 	uint16_t TimeoutCnt;
 	uint16_t VerConfig;
+	uint8_t	RcInfoQueryCompleteFlag;
 	uint8_t RCFwVer[RC_COMM_RC_FW_VER_SIZE];
 	uint8_t RCSN[RC_COMM_RC_SN_SIZE];
 	uint8_t RFFwVer[RC_COMM_RF_FW_VER_SIZE];
@@ -160,27 +171,28 @@ void HAL_UART_txCpltCallback(UART_HandleTypeDef *huart);
 
 #define RC_COMM_CTRL_DEFAULT \
 {\
-	0,                                                                                     				/* *pTarget */ \
-	0,                                                                                     				/* *phcrc */  \
-	0,                                                                                    				/* *pTxInterface */ \
-	0,                                                                                     			 	/* *pRxInterface */ \
-	0,                                                                                     			 	/* RxPutIdx */ \
-	0,                                                                                     				/* RxReadIdx */\
-	0,                                                                                     			 	/* RxFlag */ \
-	0,                                                                                     			 	/* TxFlag */ \
-	0,                                                                                      			/* RcHaveConnectedFlag */ \
-	{0},                                                                                   			 	/* RxUnit[1] */ \
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},      			/* RxBuff[RC_COMM_RX_BUFF_SIZE] */ \
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},      			/* TxBuff[RC_COMM_TX_BUFF_SIZE] */ \
-	0,                                                                                     			 	/* AccUARTErrorCnt */ \
-	0,                                                                                      			/* RxDlc */ \
-	0,                                                                                      			/* TxDlc */ \
-	0,                                                                                      			/* TimeoutCnt */ \
-	0,                                                                                      			/* VerConfig */ \
-	{0x01,0x02,0x03},																					/* RCFwVer */ \
-	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},	/* RCSN */ \
-	{0x01,0x02,0x03,},																					/* RFFwVer */ \
-	{33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,48,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64},	/* RFSN */ \
+	0,		/* *pTarget */ 	\
+	0,		/* *phcrc */  	\
+	0,		/* *pTxInterface */ \
+	0,		/* *pRxInterface */ \
+	0,		/* RxPutIdx */ 	\
+	0,		/* RxReadIdx */	\
+	0,		/* RxFlag */ 	\
+	0,      /* TxFlag */ 	\
+	0,      /* RcHaveConnectedFlag */ \
+	{0},    /* RxUnit[1] */ \
+	{0},	/* RxBuff[RC_COMM_RX_BUFF_SIZE] */ \
+	{0},	/* TxBuff[RC_COMM_TX_BUFF_SIZE] */ \
+	0,		/* AccUARTErrorCnt */ \
+	0,		/* RxDlc */ \
+	0,		/* TxDlc */ \
+	0,		/* TimeoutCnt */ \
+	0,		/* VerConfig */ \
+	0,		/* RcInfoQueryCompleteFlag */	\
+	{0},	/* RCFwVer */ \
+	{0},	/* RCSN */ \
+	{0},	/* RFFwVer */ \
+	{0},	/* RFSN */ \
 	(functypeRcComm_Init)&RcComm_Init,\
 	(functypeRcComm_CalCrc)&RcComm_CalCrc,\
 	(functypeRcComm_StartScan)&RcComm_StartScan,\
