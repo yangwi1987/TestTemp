@@ -168,23 +168,59 @@ EnumUdsBRPNRC UdsServiceCtrl_ReadDataRegionF( NetWorkService_t *p, LinkLayerCtrl
 			break;
 
 		case 0x1F2:
-			pPt = (uint8_t*)RCCommCtrl.RFFwVer;
-			DIDDataLength = RC_COMM_RF_FW_VER_SIZE;
+			
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION) !=0)
+			{
+				pPt = (uint8_t*)RCCommCtrl.RFFwVer;
+				DIDDataLength = RC_COMM_RF_FW_VER_SIZE;
+			}
+			else
+			{
+				NrcRet = NRC_0x22_CNC;
+			}
+
 			break;
 
 		case 0x1F3:
-			pPt = (uint8_t*)RCCommCtrl.RFSN;
-			DIDDataLength = RC_COMM_RF_SN_SIZE;
+
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN) !=0)
+			{
+				pPt = (uint8_t*)RCCommCtrl.RFSN;
+				DIDDataLength = RC_COMM_RF_SN_SIZE;
+			}
+			else
+			{
+				NrcRet = NRC_0x22_CNC;
+			}
+
 			break;
 
 		case 0x1F4:
-			pPt = (uint8_t*)RCCommCtrl.RCFwVer;
-			DIDDataLength = RC_COMM_RC_FW_VER_SIZE;
+
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION) != 0)
+			{
+				pPt = (uint8_t*)RCCommCtrl.RCFwVer;
+				DIDDataLength = RC_COMM_RC_FW_VER_SIZE;
+			}
+			else
+			{
+				NrcRet = NRC_0x22_CNC;
+			}
+
 			break;
 
 		case 0x1F5:
-			pPt = (uint8_t*)RCCommCtrl.RCSN;
-			DIDDataLength = RC_COMM_RC_SN_SIZE;
+
+			if((RCCommCtrl.RcInfoQueryCompleteFlag & RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN) != 0)
+			{
+				pPt = (uint8_t*)RCCommCtrl.RCSN;
+				DIDDataLength = RC_COMM_RC_SN_SIZE;
+			}
+			else
+			{
+				NrcRet = NRC_0x22_CNC;
+			}
+
 			break;
 
 		default :

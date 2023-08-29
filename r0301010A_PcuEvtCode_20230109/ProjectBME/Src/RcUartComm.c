@@ -32,17 +32,8 @@ StructUartCtrl RCCommCtrl = RC_COMM_CTRL_DEFAULT;
 
 uint16_t RcInfoQueryRetryCnt = 0;
 uint8_t RcInfoQueryRetryEnable = 1;
-uint8_t RcInfoQueryCompleteFlag = 0;
 uint8_t RecRcComFlag = 0; // Received RC command flag
 
-#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION 0x01
-#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN 0x02
-#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION 0x04
-#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN 0x08
-#define RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_ALL RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION|	\
-												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN|			\
-												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION|	\
-												RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN			\
 
 
 uint32_t RcComm_CalCrc(StructUartCtrl *p, uint8_t *pDataStart, uint8_t size)
@@ -306,22 +297,22 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 				{
 				case RC_COMM_DATA_ID_RF_FW_VERSION:
 					memcpy( p->RFFwVer, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RF_FW_VER_SIZE);
-					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION;
+					p->RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_FW_VERSION;
 					break;
 
 				case RC_COMM_DATA_ID_RF_SN:
 					memcpy( p->RFSN, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RF_SN_SIZE);
-					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN;
+					p->RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RF_SN;
 					break;
 
 				case RC_COMM_DATA_ID_RC_FW_VERSION:
 					memcpy( p->RCFwVer, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RC_FW_VER_SIZE);
-					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION;
+					p->RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_FW_VERSION;
 					break;
 
 				case RC_COMM_DATA_ID_RC_SN:
 					memcpy( p->RCSN, pData + RC_COMM_DATA_IDX_OF_QUERY_RF_INFO_CMD_DATA, RC_COMM_RC_SN_SIZE);
-					RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN;
+					p->RcInfoQueryCompleteFlag |= RC_COMM_RC_INFO_QUERY_COMPLETE_FLAG_MASK_RC_SN;
 					break;
 
 				default:
@@ -482,7 +473,7 @@ void RcComm_Init(StructUartCtrl *p, UART_HandleTypeDef *huart, CRC_HandleTypeDef
 	p->pRxInterface = r;
 	RcInfoQueryRetryCnt = 0;
 	RcInfoQueryRetryEnable = 1;
-	RcInfoQueryCompleteFlag = 0;
+	p->RcInfoQueryCompleteFlag = 0;
 	p->RcHaveConnectedFlag = 0;
 	if(p->VerConfig == 0) // default to VP3 UART protocol
 	{
@@ -568,7 +559,7 @@ void RcComm_10HzLoop(StructUartCtrl *p)
 	{
 		for(uint8_t i = 0; i < 4; i++)
 		{
-			if(((RcInfoQueryCompleteFlag >> i) & 0x01) == 0) 
+			if(((p->RcInfoQueryCompleteFlag >> i) & 0x01) == 0) 
 			{
 				/* This info is not acquired yet, query it from RF */
 				p->QueryInfoFromRF(p, RcCommRFInfoQueryOrderTable[i]);
