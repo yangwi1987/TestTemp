@@ -168,6 +168,9 @@ typedef enum
 	Security_Level_2,
 	Security_Level_3,
 	Security_Level_4,
+	Security_Level_5,
+	Security_Level_6,
+	Security_Level_7,
 }EnumSecurityLevel;
 
 typedef enum

@@ -119,14 +119,10 @@ uint8_t UdsSecurityAccess_KeySend ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataIn
 		case 2:
 		case 3:
 		case 4:
+		case 5:
+		case 6:
 			InverseSeed= 0x0000FFFF&(~(p->Seed));
 			KeyExpected = (uint32_t)( 0x0000FFFF& (InverseSeed* p->Keymul/ 0x40 ));
-			break;
-		case 5:
-			return UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL;
-			break;
-		case 6:
-			return UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL;
 			break;
 		case 7:
 			return UDS_SECURE_RESULT_FAIL_UNSUPPORT_SECURE_LEVEL;
