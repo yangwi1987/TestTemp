@@ -181,7 +181,7 @@ typedef enum
 	Session_0x40_VehicleManufacturerSpecific = 0x40,	// 0x40 ~ 0x5F
 	Session_0x60_SystemSupplierSpecific = 0x60,			// 0x60 ~ 0x7E
 	Session_0x7F_IsoSAEReserved = 0x7F,
-}EnumSession;
+}EnumSession; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
 
 typedef enum
 {

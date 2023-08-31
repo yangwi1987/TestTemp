@@ -14,12 +14,13 @@
 ////									0			1			2			3			4			5			6			7
 //uint32_t SecurityAccessMask[8]= { 	0, 			0x1030, 	0x1030, 	0x0809,		0x0809, 	0x02D670ED, 0x0505A0A0, 0xAA005500 };
 
-uint8_t keymul[2][8]= {
+uint8_t keymul[3][8]= {
 		{0xDA, 0x24, 0x17, 0xA8, 0x0E, 0x39, 0x0B, 0x49},
-		{0xAC, 0x0A, 0x78, 0x37, 0x7A, 0xEA, 0xDA, 0xCF}
+		{0xAC, 0x0A, 0x78, 0x37, 0x7A, 0xEA, 0xDA, 0xCF},
+		{0xAC, 0x0A, 0x78, 0x55, 0x7A, 0xEA, 0xDA, 0xCE}
 };
-//										0			1			2			3			4			5			6			7
-uint32_t SecurityAccessMask[8]= { 	0, 			0x0920, 	0x0920, 	0x0828,		0x0828, 	0x02D670ED, 0x0505A0A0, 0xAA005500 };
+//									0		1			2			3			4			5			6			7
+uint32_t SecurityAccessMask[8]= { 	0,		0x0920,		0x0920, 	0x0828,		0x0828,		0x0828,		0x0828,		0xAA005500 };
 
 void UdsSecurityAccess_Init ( UdsSecurityAccessCtrl_t *p )
 {
@@ -54,7 +55,9 @@ uint8_t UdsSecurityAccess_SeedReq ( UdsSecurityAccessCtrl_t *p, uint8_t *pDataOu
 		if( (p->SecureLvReq== 1)|
 			(p->SecureLvReq== 2)|
 			(p->SecureLvReq== 3)|
-			(p->SecureLvReq== 4) )
+			(p->SecureLvReq== 4)|
+			(p->SecureLvReq== 5)|
+			(p->SecureLvReq== 6) )
 		{
 			p->Seed&= 0x0000FFFF;
 		}
@@ -94,6 +97,12 @@ void UdsSecurityAccess_KeymulCal( UdsSecurityAccessCtrl_t *p )
     	Idx.Byte.bit2= 0x00000001&( p->keymulSel >> 11 );
     	Idx.Byte.reserved= 0;
     	p->Keymul= keymul[1][Idx.All];
+    } else if( (p->SecureLvReq == 5)|(p->SecureLvReq == 6) ) {
+    	Idx.Byte.bit0= 0x00000001&( p->keymulSel >> 3 );
+    	Idx.Byte.bit1= 0x00000001&( p->keymulSel >> 5 );
+    	Idx.Byte.bit2= 0x00000001&( p->keymulSel >> 11 );
+    	Idx.Byte.reserved= 0;
+    	p->Keymul= keymul[2][Idx.All];
     } else;
 }
 

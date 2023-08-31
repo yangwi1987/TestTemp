@@ -48,7 +48,7 @@ typedef enum
 
 typedef struct {
 	uint16_t Dirty;
-	uint16_t Session;
+	uint16_t Session; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
 	uint16_t Authority;
 	uint8_t *pFlashParaReadEnableTable;
 	ParamTableInfo_t *pParamTable;
