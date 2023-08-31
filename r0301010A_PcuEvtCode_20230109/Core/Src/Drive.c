@@ -2142,27 +2142,14 @@ void drive_DoCurrentLoop(void)
 	}
 }
 
-// 1kHz
-void drive_DoPLCLoop(void)
+void Session_DoPLCLoop(void)
 {
-	int i;
-	AdcStation1.DoPLCLoop( &AdcStation1 );
-
-	//TODO add "GlobalAlarmDetect_Accumulation" here.
-	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
-	{
-		//Fernando test start
-		//UartBuffer.Rx(&UartBuffer,&CtrlUi);
-		//Fernando test end
-		Axis[i].DoPLCLoop(&Axis[i]);
-	}
-
 	switch ( ParamMgr1.Session )
 	{
 	case Session_0x01_Default:
 		break;
 	case Session_0x02_Programming:
-		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_1 )
+		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_2 )
 		{
 			BootAppTrig = BOOT_ENA;
 		}
@@ -2172,29 +2159,74 @@ void drive_DoPLCLoop(void)
 	case Session_0x04_SafetySystemDiagnostic:
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
+		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
+		{
+
+		}
 		break;
 	case Session_0x60_SystemSupplierSpecific:
-		MFStation1.CalMaxAvgCnt( &MFStation1, DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ], PcuAuthorityCtrl.SecureLvNow  );
-//		MFStation1.GpioMfinfo( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
-		MFStation1.RMS( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
+		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
+		{
+			MFStation1.CalMaxAvgCnt( &MFStation1, DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ], PcuAuthorityCtrl.SecureLvNow  );
+	//		MFStation1.GpioMfinfo( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
+			MFStation1.RMS( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
 #if USE_CURRENT_CALIBRATION
-		MFStation1.CalibCurrent.RDModeAndAuth( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_FUNC_SEL - FN_BASE ], PcuAuthorityCtrl.SecureLvNow );
-		MFStation1.CalibCurrent.ReadCmdInfo( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_CURR_CALIB_SETUP - FN_BASE ], &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
-		MFStation1.CalibCurrent.RCurrentAdc( &MFStation1.CalibCurrent, &AdcStation1, &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
-		MFStation1.CalibCurrent.CalibGainandZPoint( &MFStation1.CalibCurrent, &DriveFnRegs[ FN_MF_CURR_CALC - FN_BASE ] );
+			MFStation1.CalibCurrent.RDModeAndAuth( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_FUNC_SEL - FN_BASE ], PcuAuthorityCtrl.SecureLvNow );
+			MFStation1.CalibCurrent.ReadCmdInfo( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_CURR_CALIB_SETUP - FN_BASE ], &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
+			MFStation1.CalibCurrent.RCurrentAdc( &MFStation1.CalibCurrent, &AdcStation1, &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
+			MFStation1.CalibCurrent.CalibGainandZPoint( &MFStation1.CalibCurrent, &DriveFnRegs[ FN_MF_CURR_CALC - FN_BASE ] );
 #endif
 #if USE_VOLTAGE_CALIBRATION
-		MFStation1.CalibDcBusVoltage.TempVal = MFStation1.CalibDcBusVoltage.RVoltAdc( &MFStation1.CalibDcBusVoltage, &AdcStation1, &DriveFnRegs[ FN_MF_VOLT_CALIB_START - FN_BASE ] );
-		if( MFStation1.CalibDcBusVoltage.TempVal> 0 )
-		{
-			DriveParams.PCUParams.DcBusCalibValue[ MFStation1.CalibDcBusVoltage.Calib_StartFlag ] = MFStation1.CalibDcBusVoltage.TempVal;
-			MFStation1.CalibDcBusVoltage.Calib_StartFlag = DISABLE;
-		}
+			MFStation1.CalibDcBusVoltage.TempVal = MFStation1.CalibDcBusVoltage.RVoltAdc( &MFStation1.CalibDcBusVoltage, &AdcStation1, &DriveFnRegs[ FN_MF_VOLT_CALIB_START - FN_BASE ] );
+			if( MFStation1.CalibDcBusVoltage.TempVal> 0 )
+			{
+				DriveParams.PCUParams.DcBusCalibValue[ MFStation1.CalibDcBusVoltage.Calib_StartFlag ] = MFStation1.CalibDcBusVoltage.TempVal;
+				MFStation1.CalibDcBusVoltage.Calib_StartFlag = DISABLE;
+			}
 #endif
+		}
 		break;
 	default:
 		break;
 	}
+}
+
+void Session_DoWhileSessionChange(void)
+{
+	// Set flag or do action according to the next session
+	switch ( ParamMgr1.NextSession )
+	{
+	case Session_0x01_Default:
+		break;
+	case Session_0x02_Programming:
+		break;
+	case Session_0x03_ExtendedDiagnostic:
+		break;
+	case Session_0x04_SafetySystemDiagnostic:
+		break;
+	case Session_0x40_VehicleManufacturerSpecific:
+		break;
+	case Session_0x60_SystemSupplierSpecific:
+		break;
+	default:
+		break;
+	}
+}
+
+// 1kHz
+void drive_DoPLCLoop(void)
+{
+	int i;
+	AdcStation1.DoPLCLoop( &AdcStation1 );
+
+	//TODO add "GlobalAlarmDetect_Accumulation" here.
+	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
+	{
+		Axis[i].DoPLCLoop(&Axis[i]);
+	}
+
+	Session_DoPLCLoop();
+
 	ExtranetCANStation.DisableRst( &ExtranetCANStation );
 	if ( ExtranetCANStation.Enable )
 	{
@@ -2223,6 +2255,12 @@ void drive_Do100HzLoop(void)
 		Axis[i].Do100HzLoop(&Axis[i]);
 	}
 	MFStation1.GpioMfinfo( &MFStation1 );
+
+	if( ParamMgr1.NextSession != ParamMgr1.Session )
+	{
+		Session_DoWhileSessionChange();
+		ParamMgr1.NextSession = ParamMgr1.Session;
+	}
 
 	/*update max and min value*/
 	/*To do: currently, MCU enter 100Hz earlier than PLC loop, temporary solution is bypass the first entering*/
