@@ -724,7 +724,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     AxisFactory_UpdateCANTxInterface( v );
     AxisFactory_ConfigAlarmSystemInPLCLoop( v );
 
-    if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+//  if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+    if ( v->MfOrRDFunctionDisable )
     {
         //Do nothing, there is a bug for changing DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] from 1 to 0.
     }
@@ -733,7 +734,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         AxisFactory_GetSetting( v );
     }
 
-    if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+    if ( v->MfOrRDFunctionDisable )
     {
         //Throttle detect code
         AxisFactory_GetScooterThrottle( v );
@@ -773,7 +774,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         v->PhaseLoss.PLCLoopElecSpeedAbs = v->SpeedInfo.ElecSpeedAbs;
         v->PhaseLoss.PLCLoopTorqueCmd = v->TorqCommandGenerator.Out;
         v->PhaseLoss.RunTimeDetect( &v->PhaseLoss );
-        if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)	//Normal Mode
+        if ( v->MfOrRDFunctionDisable )	//Normal Mode
         {
             v->FourQuadCtrl.Driving_TNIndex = v->pCANRxInterface->OutputModeCmd;
             // Input throttle command, and calculate torque command for FOC.
@@ -815,7 +816,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     else
     {
         v->PhaseLoss.RunTimeClean( &v->PhaseLoss );
-        if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)	//Normal Mode
+        if ( v->MfOrRDFunctionDisable )	//Normal Mode
         {
             CtrlUi.MotorCtrlMode = v->MotorControl.StartUpWay;
         }

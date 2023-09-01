@@ -2161,12 +2161,30 @@ void Session_DoPLCLoop(void)
 	case Session_0x40_VehicleManufacturerSpecific:
 		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
 		{
-
+			if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+			{
+				Axis[0].MfOrRDFunctionDisable = 1;
+			}
+			else
+			{
+				// enable AxisFactory_GetSetting;  AxisFactory_GetUiStatus; AxisFactory_GetUiCmd;
+				Axis[0].MfOrRDFunctionDisable = 0;
+			}
 		}
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
 		{
+			if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+			{
+				Axis[0].MfOrRDFunctionDisable = 1;
+			}
+			else
+			{
+				// enable AxisFactory_GetSetting;  AxisFactory_GetUiStatus; AxisFactory_GetUiCmd;
+				Axis[0].MfOrRDFunctionDisable = 0;
+			}
+
 			MFStation1.CalMaxAvgCnt( &MFStation1, DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ], PcuAuthorityCtrl.SecureLvNow  );
 	//		MFStation1.GpioMfinfo( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
 			MFStation1.RMS( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
@@ -2205,8 +2223,12 @@ void Session_DoWhileSessionChange(void)
 	case Session_0x04_SafetySystemDiagnostic:
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
+		// todo
+		// reset all alarm
 		break;
 	case Session_0x60_SystemSupplierSpecific:
+		// todo
+		// reset all alarm
 		break;
 	default:
 		break;
@@ -2636,12 +2658,14 @@ void JumpCtrlFunction( void )
 		}
 	}
 	else if( ( DriveFnRegs[ FN_PCU_RESET_OPERATION - FN_BASE ] == BOOT_ENA ) &&	\
-			 ( PcuAuthorityCtrl.SecureLvNow > Security_Level_1 ) &&				\
 			 ( Axis[0].ServoOn == MOTOR_STATE_OFF ) )
 	{
-		HAL_Delay(100);
-		DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
-		JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
+		if( (ParamMgr1.Session == Session_0x40_VehicleManufacturerSpecific) || (ParamMgr1.Session == Session_0x60_SystemSupplierSpecific) )
+		{
+			HAL_Delay(100);
+			DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
+			JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
+		}
 	}
 	else if( (Axis[0].PcuPowerState == PWR_SM_WAIT_FOR_RESET) && \
 			 (Axis[0].ServoOn == MOTOR_STATE_OFF) )
