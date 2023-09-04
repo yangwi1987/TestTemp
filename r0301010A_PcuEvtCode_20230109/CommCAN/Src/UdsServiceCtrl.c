@@ -502,19 +502,23 @@ void UdsServiceCtrl_SessionControl( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		p->pParamMgr->Session = Session_0x03_ExtendedDiagnostic;
-		p->SessionCNTEnable = 1;
+	//	p->SessionCNTEnable = 1;
+		p->SessionCNTEnable = 0;
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		p->pParamMgr->Session = Session_0x04_SafetySystemDiagnostic;
-		p->SessionCNTEnable = 1;
+	//		p->SessionCNTEnable = 1;
+			p->SessionCNTEnable = 0;
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		p->pParamMgr->Session = Session_0x40_VehicleManufacturerSpecific;
-		p->SessionCNTEnable = 1;
+	//		p->SessionCNTEnable = 1;
+			p->SessionCNTEnable = 0;
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		p->pParamMgr->Session = Session_0x60_SystemSupplierSpecific;
-		p->SessionCNTEnable = 1;
+	//		p->SessionCNTEnable = 1;
+			p->SessionCNTEnable = 0;
 		break;
 	default:
 		p->pParamMgr->Session = Session_0x01_Default;
