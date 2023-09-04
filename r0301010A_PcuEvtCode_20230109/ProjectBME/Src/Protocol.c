@@ -66,6 +66,12 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
 
   switch (pIdIn)
   {
+  // debug for P3 ESC EOL
+    case 0x401 :
+    v->ReceivedCANID |= RECEIVED_BAT_ID_1;  /* For BMS CAN timeout usage */
+        break;
+
+  // debug end
     case CANRXID_BMS_STATUS_01 :
     {
 

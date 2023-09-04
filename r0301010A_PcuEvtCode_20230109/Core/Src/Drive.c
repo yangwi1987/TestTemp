@@ -2698,7 +2698,9 @@ void JumpCtrlFunction( void )
 	else if( ( DriveFnRegs[ FN_PCU_RESET_OPERATION - FN_BASE ] == BOOT_ENA ) &&	\
 			 ( Axis[0].ServoOn == MOTOR_STATE_OFF ) )
 	{
-		if( (ParamMgr1.Session == Session_0x40_VehicleManufacturerSpecific) || (ParamMgr1.Session == Session_0x60_SystemSupplierSpecific) )
+		if( (ParamMgr1.Session == Session_0x01_Default) || \
+			(ParamMgr1.Session == Session_0x40_VehicleManufacturerSpecific) || \
+			(ParamMgr1.Session == Session_0x60_SystemSupplierSpecific) )
 		{
 			HAL_Delay(100);
 			DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
