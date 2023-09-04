@@ -439,7 +439,7 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 		pAngleInit->IdCmd = p->IdSecondCmd;						\
 		pAngleInit->IqCmd = p->IqSecondCmd;						\
 	}														\
-	else if( p->Cnt < ( p->MaxCnt +10000 )) 			    /*delay 1s*/\
+	else if( p->Cnt < ( p->MaxCnt + 10000 )) 			    /*delay 1s*/\
 	{														\
 		pAngleInit->IdCmd = 0.0f;							\
 		pAngleInit->IqCmd = 0.0f;							\
