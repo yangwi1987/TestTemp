@@ -72,10 +72,12 @@ uint16_t Sensorless_Init( Sensorless_t *p, SensorlessSetting_t *pSetting )
 	p->AngleInit.PulseDetection.IdMax = 0.0f;
 
 	//Angle Init Fixed Cmd Setting
-	p->AngleInit.FixedCmd.MaxCnt = (uint16_t)(pSetting->AngleInitFixedCmdTime / pSetting->Period);
-	p->AngleInit.FixedCmd.IdCmd = pSetting->AngleInitFixedCmdId;
-	p->AngleInit.FixedCmd.IqCmd = pSetting->AngleInitFixedCmdIq;
-	p->AngleInit.FixedCmd.HalfCnt = p->AngleInit.FixedCmd.MaxCnt>>1;
+	p->AngleInit.FixedCmd.MaxCnt = (uint16_t)((pSetting->AngleInitFixedCmdFirstTime + pSetting->AngleInitFixedCmdSecondTime) / pSetting->Period);
+	p->AngleInit.FixedCmd.IdFirstCmd = pSetting->AngleInitFixedCmdFirstId;
+	p->AngleInit.FixedCmd.IqFirstCmd = pSetting->AngleInitFixedCmdFirstIq;
+	p->AngleInit.FixedCmd.SecondCnt = (uint16_t)(pSetting->AngleInitFixedCmdSecondTime / pSetting->Period);
+	p->AngleInit.FixedCmd.IdSecondCmd = pSetting->AngleInitFixedCmdSecondId;
+	p->AngleInit.FixedCmd.IqSecondCmd = pSetting->AngleInitFixedCmdSecondIq;
 	//Angle Init Fixed Cmd Clean
 	p->AngleInit.FixedCmd.Cnt = 0;
 	return p->Error;

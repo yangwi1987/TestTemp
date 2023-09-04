@@ -523,16 +523,19 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	SensorlessSetting.EEMFAngleObserverHz1 = 10.0f;
 	SensorlessSetting.EEMFAngleObserverHz2 = 50.0f;
 	SensorlessSetting.EEMFAngleObserverHz3 = 110.0f;
-	SensorlessSetting.HFISinVamp = 8.0f;
+	SensorlessSetting.HFISinVamp = DriveParams.SystemParams.HFIInjVol;
 	SensorlessSetting.HFISinAngleObserverHz1 = 10.0f;
 	SensorlessSetting.HFISinAngleObserverHz2 = 50.0f;
 	SensorlessSetting.HFISinAngleObserverHz3 = 110.0f;
 	SensorlessSetting.HFISinLPFHz = 500.0f;
 	SensorlessSetting.HFISinBPFHz = 1000.0f;
 	SensorlessSetting.HFISinBPFQ = 0.5f;
-	SensorlessSetting.AngleInitFixedCmdTime = 2.0f;
-	SensorlessSetting.AngleInitFixedCmdId = -50.0f;
-	SensorlessSetting.AngleInitFixedCmdIq = 50.0f;
+	SensorlessSetting.AngleInitFixedCmdFirstTime = 0.3f;
+	SensorlessSetting.AngleInitFixedCmdSecondTime = 0.7f;
+	SensorlessSetting.AngleInitFixedCmdFirstId = -25.0f;        //120deg
+	SensorlessSetting.AngleInitFixedCmdFirstIq = 43.30127f;     //120deg
+	SensorlessSetting.AngleInitFixedCmdSecondId = -43.30127f;   //210deg
+	SensorlessSetting.AngleInitFixedCmdSecondIq = -25.0f;       //210deg
 	p->Sensorless.Init(&(p->Sensorless),&SensorlessSetting);
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
 #if USE_HFI_SIN==1

@@ -186,9 +186,12 @@ typedef struct
 	float HFISinLPFHz;
 	float HFISinBPFHz;
 	float HFISinBPFQ;
-	float AngleInitFixedCmdTime;
-	float AngleInitFixedCmdId;
-	float AngleInitFixedCmdIq;
+	float AngleInitFixedCmdFirstTime;
+	float AngleInitFixedCmdSecondTime;
+	float AngleInitFixedCmdFirstId;
+	float AngleInitFixedCmdFirstIq;
+	float AngleInitFixedCmdSecondId;
+	float AngleInitFixedCmdSecondIq;
 } SensorlessSetting_t;
 
 typedef struct
@@ -211,10 +214,12 @@ typedef struct
 typedef struct
 {
 	uint16_t Cnt;
-	uint16_t HalfCnt;
 	uint16_t MaxCnt;
-	float IdCmd;
-	float IqCmd;
+	uint16_t SecondCnt;
+	float IdFirstCmd;
+	float IqFirstCmd;
+	float IdSecondCmd;
+	float IqSecondCmd;
 } IPMSensorlessAngleInitByFixedCmd_t;
 
 typedef struct
@@ -299,21 +304,27 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 {			\
 	0,		\
 	0,		\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
-	0.0f,	\
+	0.0f,	/*Ld;    */\
+	0.0f,	/*Lq;    */\
+	0.0f,	/*Res;   */\
+	0.0f,	/*J;     */\
+	0.0f,	/*Period;*/\
+	0.0f,	/*EEMFAngleObserverHz1;       */\
+	0.0f,	/*EEMFAngleObserverHz2;       */\
+	0.0f,	/*EEMFAngleObserverHz3;       */\
+	0.0f,	/*HFISinVamp;                 */\
+	0.0f,	/*HFISinAngleObserverHz1;     */\
+	0.0f,	/*HFISinAngleObserverHz2;     */\
+	0.0f,	/*HFISinAngleObserverHz3;     */\
+	0.0f,	/*HFISinLPFHz;                */\
+	0.0f,	/*HFISinBPFHz;                */\
+	0.0f,	/*HFISinBPFQ;                 */\
+	0.0f,	/*AngleInitFixedCmdFirstTime; */\
+	0.0f,	/*AngleInitFixedCmdSecondTime;*/\
+	0.0f,	/*AngleInitFixedCmdFirstId; */\
+	0.0f,	/*AngleInitFixedCmdFirstIq; */\
+	0.0f,	/*AngleInitFixedCmdSecondId;*/\
+	0.0f,	/*AngleInitFixedCmdSecondIq;*/\
 }
 
 #define IPM_SENSORLESS_HFI_SIN_SETTING_DEFAULT \
@@ -416,32 +427,34 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 	(pfunSensorless_Clean) Sensorless_Clean, \
 }
 
-
-
-
 #define SENSORLESS_ANGLE_INIT_BY_FIXED_CMD(p,pAngleInit)	\
 	p->Cnt++;												\
-	if( p->Cnt < p->HalfCnt )								\
+	if( p->Cnt < p->SecondCnt )								\
 	{														\
-		pAngleInit->IdCmd = 0.0f;							\
-		pAngleInit->IqCmd = p->IqCmd;						\
+		pAngleInit->IdCmd = p->IdFirstCmd; 						\
+		pAngleInit->IqCmd = p->IqFirstCmd;			    		\
 	}														\
 	else if( p->Cnt < p->MaxCnt )							\
 	{														\
-		pAngleInit->IdCmd = p->IdCmd;						\
+		pAngleInit->IdCmd = p->IdSecondCmd;						\
+		pAngleInit->IqCmd = p->IqSecondCmd;						\
+	}														\
+	else if( p->Cnt < ( p->MaxCnt +10000 )) 			    /*delay 1s*/\
+	{														\
+		pAngleInit->IdCmd = 0.0f;							\
 		pAngleInit->IqCmd = 0.0f;							\
 	}														\
 	else 													\
 	{														\
 		pAngleInit->IdCmd = 0.0f;							\
 		pAngleInit->IqCmd = 0.0f;							\
-		p->Cnt = p->MaxCnt + 1;								\
+		p->Cnt = p->MaxCnt + 10001;								\
 		pAngleInit->Start = FUNCTION_NO;					\
 	}														\
 	/*assigne to AngleInit_t*/								\
 	pAngleInit->Vinj = 0.0f;								\
 	pAngleInit->EleAngle = 0.0f;							\
-	pAngleInit->EleAngleInit = _PI;							\
+	pAngleInit->EleAngleInit = 3.66519f;							/*210 deg*/\
 
 
 #endif /* INC_SENSORLESS_H_ */
