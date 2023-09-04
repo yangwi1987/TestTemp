@@ -773,7 +773,10 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         v->PhaseLoss.PLCLoopVcmdAmp = v->MotorControl.VoltCmd.VcmdAmp;
         v->PhaseLoss.PLCLoopElecSpeedAbs = v->SpeedInfo.ElecSpeedAbs;
         v->PhaseLoss.PLCLoopTorqueCmd = v->TorqCommandGenerator.Out;
-        v->PhaseLoss.RunTimeDetect( &v->PhaseLoss );
+        if(v->PhaseLoss.Enable == ALARM_ENABLE)
+        {
+        	v->PhaseLoss.RunTimeDetect( &v->PhaseLoss );
+        }
         if ( v->MfOrRDFunctionDisable )	//Normal Mode
         {
             v->FourQuadCtrl.Driving_TNIndex = v->pCANRxInterface->OutputModeCmd;
@@ -889,12 +892,15 @@ void AxisFactory_Do100HzLoop( Axis_t *v )
         }
         else
         {
-            float MaxABSPhaseCurrent =  MAX3( ABS(v->pAdcStation->AdcTraOut.Iu[v->AxisID-1]), ABS(v->pAdcStation->AdcTraOut.Iv[v->AxisID-1]), ABS(v->pAdcStation->AdcTraOut.Iw[v->AxisID-1]) ) ;
-            v->MotorStall.Calc( &v->MotorStall, MaxABSPhaseCurrent, ABS(v->SpeedInfo.MotorMechSpeedRPM) );
-            if( v->MotorStall.IsMotorStall ) //todo AlarmDetect.Do100Hzloop
-            {
-                v->AlarmDetect.RegisterAxisAlarm( &v->AlarmDetect, ALARMID_MOTORSTALL, SystemTable.AlarmTableInfo[ALARMID_MOTORSTALL].AlarmType );
-            }
+        	if( v->MotorStall.Enable == ALARM_ENABLE)
+        	{
+				float MaxABSPhaseCurrent =  MAX3( ABS(v->pAdcStation->AdcTraOut.Iu[v->AxisID-1]), ABS(v->pAdcStation->AdcTraOut.Iv[v->AxisID-1]), ABS(v->pAdcStation->AdcTraOut.Iw[v->AxisID-1]) ) ;
+				v->MotorStall.Calc( &v->MotorStall, MaxABSPhaseCurrent, ABS(v->SpeedInfo.MotorMechSpeedRPM) );
+				if( v->MotorStall.IsMotorStall ) //todo AlarmDetect.Do100Hzloop
+				{
+					v->AlarmDetect.RegisterAxisAlarm( &v->AlarmDetect, ALARMID_MOTORSTALL, SystemTable.AlarmTableInfo[ALARMID_MOTORSTALL].AlarmType );
+				}
+        	}
         }
     }
     else

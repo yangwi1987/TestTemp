@@ -2147,16 +2147,20 @@ void Session_DoPLCLoop(void)
 	switch ( ParamMgr1.Session )
 	{
 	case Session_0x01_Default:
+		Axis[0].MfOrRDFunctionDisable = 0;
 		break;
 	case Session_0x02_Programming:
+		Axis[0].MfOrRDFunctionDisable = 0;
 		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_2 )
 		{
 			BootAppTrig = BOOT_ENA;
 		}
 		break;
 	case Session_0x03_ExtendedDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 0;
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 0;
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
@@ -2209,26 +2213,60 @@ void Session_DoPLCLoop(void)
 	}
 }
 
+void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+{
+	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
+	pAxis->MotorStall.Enable = ALARM_ENABLE;
+	pAxis->AlarmDetect.CAN0Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+}
+
+void DisableAlarmWhenSessionChange(Axis_t *pAxis)
+{
+	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
+	pAxis->MotorStall.Enable = ALARM_DISABLE;
+	pAxis->AlarmDetect.CAN0Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+}
+
 void Session_DoWhileSessionChange(void)
 {
 	// Set flag or do action according to the next session
 	switch ( ParamMgr1.NextSession )
 	{
 	case Session_0x01_Default:
+		Axis[0].MfOrRDFunctionDisable = 0;
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x02_Programming:
+		Axis[0].MfOrRDFunctionDisable = 0;
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x03_ExtendedDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 0;
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 0;
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
-		// todo
-		// reset all alarm
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x60_SystemSupplierSpecific:
-		// todo
 		// reset all alarm
+		ResetAllAlarm( &AlarmMgr1 );
+		DisableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	default:
 		break;

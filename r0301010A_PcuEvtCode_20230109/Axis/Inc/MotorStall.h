@@ -33,6 +33,7 @@ typedef struct /*__attribute__((__packed__))*/
 
 typedef struct {
 	uint16_t IsMotorStall;
+	uint16_t Enable;
 	float LastAccHeatEnergy;
 	float AccHeatEnergy;
 	functypeMotorStall_Init Init;
@@ -45,7 +46,8 @@ void MotorStall_Calc( MotorStall_t *v, float ACCurrent, float MotorRPM );
 void MotorStall_Reset( MotorStall_t *v );
 
 #define MOTORSTALL_DEFAULT \
-{	0, \
+{	0, /* IsMotorStall */\
+	0, /* Enable */\
 	0.0f, \
 	0.0f, \
 	(functypeMotorStall_Init)MotorStall_Init, \
