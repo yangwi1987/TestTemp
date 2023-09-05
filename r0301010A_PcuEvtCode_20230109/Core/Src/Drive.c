@@ -2147,23 +2147,24 @@ void Session_DoPLCLoop(void)
 	switch ( ParamMgr1.Session )
 	{
 	case Session_0x01_Default:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		break;
 	case Session_0x02_Programming:
-		Axis[0].MfOrRDFunctionDisable = 0;
-		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_2 )
+		Axis[0].MfOrRDFunctionDisable = 1;
+		//todo check security level in bootloader. Remove the this condition in the future.
+		if( PcuAuthorityCtrl.SecureLvNow >= Security_Level_2 )
 		{
 			BootAppTrig = BOOT_ENA;
 		}
 		break;
 	case Session_0x03_ExtendedDiagnostic:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
-		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
+		if( PcuAuthorityCtrl.SecureLvNow >= Security_Level_5 )
 		{
 			if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
 			{
@@ -2245,19 +2246,19 @@ void Session_DoWhileSessionChange(void)
 	switch ( ParamMgr1.NextSession )
 	{
 	case Session_0x01_Default:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x02_Programming:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x03_ExtendedDiagnostic:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
-		Axis[0].MfOrRDFunctionDisable = 0;
+		Axis[0].MfOrRDFunctionDisable = 1;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
