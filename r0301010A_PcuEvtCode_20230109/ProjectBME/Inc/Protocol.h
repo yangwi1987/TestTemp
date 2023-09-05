@@ -29,6 +29,7 @@
 #define CANTXID_ESC_LOG_INFO_7  0x727   /*Debug information for ESC develop 07*/
 
 /* ==== macro for CANRX IDs for receive ==== */
+#define CANRXID_BMS_DEBUG_STATUS_01   0x401   /* info shows BMS status */
 #define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
 #define CANRXID_BMS_STATUS_02         0x403   /* info shows BMS status */
 

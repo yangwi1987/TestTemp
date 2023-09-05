@@ -2265,7 +2265,9 @@ void Session_DoWhileSessionChange(void)
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		// reset all alarm
+		AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
 		ResetAllAlarm( &AlarmMgr1 );
+		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 		DisableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	default:
@@ -2316,10 +2318,10 @@ void drive_Do100HzLoop(void)
 	}
 	MFStation1.GpioMfinfo( &MFStation1 );
 
-	if( ParamMgr1.NextSession != ParamMgr1.Session )
+	if( ParamMgr1.Session != ParamMgr1.NextSession )
 	{
 		Session_DoWhileSessionChange();
-		ParamMgr1.NextSession = ParamMgr1.Session;
+		ParamMgr1.Session = ParamMgr1.NextSession;
 	}
 
 	/*update max and min value*/
