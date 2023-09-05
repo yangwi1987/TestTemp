@@ -2178,7 +2178,7 @@ void Session_DoPLCLoop(void)
 		}
 		break;
 	case Session_0x60_SystemSupplierSpecific:
-		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_5 )
+		if( PcuAuthorityCtrl.SecureLvNow >= Security_Level_5 )
 		{
 			if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
 			{
