@@ -731,6 +731,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     }
     else
     {
+    	// todo do AxisFactory_CleanParameter() out of the AxisFactory_GetSetting; Avoid modify DriveFnRegs in AxisFactory_GetSetting.
         AxisFactory_GetSetting( v );
     }
 
