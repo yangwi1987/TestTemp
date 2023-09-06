@@ -2222,8 +2222,6 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
 	pAxis->MotorStall.Enable = ALARM_ENABLE;
-	pAxis->AlarmDetect.CAN0Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-	pAxis->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
@@ -2235,8 +2233,6 @@ void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
 	pAxis->MotorStall.Enable = ALARM_DISABLE;
-	pAxis->AlarmDetect.CAN0Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-	pAxis->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
