@@ -283,7 +283,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved326},	//P3-26 ALARMID_FLASH_UNINITIALIZED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved327},	//P3-27 ALARMID_FLASH_READ_FAILED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved328},	//P3-28 ALARMID_FLASH_DAMAGED
-				{		0,		0,		0,		0,		0},	//P3-29
+				{		1,		1000,		    100,    		0x45,		&DriveParams.PCUParams.Reserved329},	//P3-29 ALARMID_MOTOR_REVERSE
 				{		0,		0,		0,		0,		0},	//P3-30
 				{		0,		0,		0,		0,		0},	//P3-31
 				{		0,		0,		0,		0,		0},	//P3-32
