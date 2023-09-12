@@ -181,6 +181,8 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 		v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	}
 #endif
+	v->Motor_Reverse.AlarmInfo 	 = SystemTable.AlarmTableInfo[ALARMID_MOTOR_REVERSE];
+	v->Motor_Reverse.Counter = 0;
 
 	// set threshold from external flash (P3-00~P3-99) for alarm detected by AlarmDetect_Accumulation
 	// This function sholud be executed after ParamMgr1.Init, P3-00 is index 0. Max P3-99 is index 0x63
@@ -213,6 +215,7 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	SetAlarmThreshold(&v->SHORT_NTC_PCU_2, ALARMID_SHORT_NTC_PCU_2);
 	SetAlarmThreshold(&v->SHORT_NTC_Motor_0, ALARMID_SHORT_NTC_MOTOR_0);
 	SetAlarmThreshold(&v->RC_INVALID, ALARMID_RC_INVALID);
+	SetAlarmThreshold(&v->Motor_Reverse, ALARMID_MOTOR_REVERSE);
 
 	v->Do100HzLoop = (functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop;
 }
@@ -322,7 +325,15 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 		AlarmDetect_Accumulation( v, &v->CAN1Timeout, 1 );
 	}
 	// Axis alarm detect
-	AlarmDetect_Accumulation( v, &v->OSP, (int16_t)ABS( v->pSpeedInfo->MotorMechSpeedRPM ) );
+	if ( v->pSpeedInfo->MotorMechSpeedRPM > 0.0f)
+	{
+		AlarmDetect_Accumulation( v, &v->OSP, (int16_t) v->pSpeedInfo->MotorMechSpeedRPM );
+	}
+	else
+	{
+		AlarmDetect_Accumulation( v, &v->Motor_Reverse, (int16_t) ( -v->pSpeedInfo->MotorMechSpeedRPM ));
+	}
+
 
 	// PWM RC SIGNAL ABNORMAL, check if RC have connected to RF after ESC power on.
 	if( RCCommCtrl.RcHaveConnectedFlag == 1){

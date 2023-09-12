@@ -1319,6 +1319,11 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P1F14_Motor_High_temperature_warning;
 	        	break;
 		    }
+		    case ALARMID_MOTOR_REVERSE :
+		    {
+		    	tempDTC_Number = DTC_RecordNumber_P021A_Motor_Reverse;
+	        	break;
+		    }
 		    default:
 		    {
 		    	break;

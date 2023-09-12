@@ -54,6 +54,7 @@ typedef enum
 	DTC_RecordNumber_P1F12_ESC_Mosfet_High_temperature_warning                ,
 	DTC_RecordNumber_P1F13_ESC_Capacitor_High_temperature_warning             ,
 	DTC_RecordNumber_P1F14_Motor_High_temperature_warning                     ,
+	DTC_RecordNumber_P021A_Motor_Reverse                     ,
 	DTC_RecordNumber_Total
 }DTC_RecordNumber_e;
 
@@ -85,6 +86,7 @@ typedef enum
 	DTC_Code_P1F12_ESC_Mosfet_High_temperature_warning                =  0x1F12,
 	DTC_Code_P1F13_ESC_Capacitor_High_temperature_warning             =  0x1F13,
 	DTC_Code_P1F14_Motor_High_temperature_warning                     =  0x1F14,
+	DTC_Code_P021A_Motor_Reverse                                      =  0x021A,
 }DTC_Code_e;
 
 typedef enum
@@ -196,7 +198,8 @@ void DTC_DoHouseKeeping ( DTCStation_t *v, ExtFlash_t *p );
 		DTC_Code_P0605_Internal_Control_Module_ROM_Error        ,\
 		DTC_Code_P1F12_ESC_Mosfet_High_temperature_warning      ,\
 		DTC_Code_P1F13_ESC_Capacitor_High_temperature_warning   ,\
-		DTC_Code_P1F14_Motor_High_temperature_warning            \
+		DTC_Code_P1F14_Motor_High_temperature_warning           ,\
+		DTC_Code_P021A_Motor_Reverse            \
 		}\
 
 #define DTC_STATION_DEFFAULT { \

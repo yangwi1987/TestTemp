@@ -97,6 +97,7 @@ typedef struct {
 	PROTECT_POLLING_TYPE RC_INVALID;
 	PROTECT_POLLING_TYPE FOIL_SENSOR_BREAK;
 	PROTECT_POLLING_TYPE FOIL_SENSOR_SHORT;
+	PROTECT_POLLING_TYPE Motor_Reverse;
 	functypeAlarmDetect_Init Init;
 	functypeAlarmDetect_RegisterAxisAlarm RegisterAxisAlarm;
 	functypeAlarmDetect_DoCurrentLoop DoCurrentLoop;
@@ -120,6 +121,7 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v );
 	0, /* pPhaseLoss */ \
 	0, /* pPwmRcStattion */ \
 	0, /* BufICEnable */\
+	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
