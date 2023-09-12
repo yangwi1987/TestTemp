@@ -227,7 +227,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 
 		.SysParamTableInfoArray =
 		{
-				// Property = {10^n[10:8], read location[7:6], size[5], decimal[4:3], Authority[2:0]}. See in ParamTable.h.
+				// Property = {HasShift[11], 10^n[10:8], read location[7:6], size[5], decimal[4:3], Authority[2:0]}. See in ParamTable.h.
 				// ============================ P0 SystemParams ============================
 				//    Min,		  Max,	  Default,   Property,		*pAddr
 				{	    0,			0,			0,		    0,		0},	//P0-00
@@ -420,10 +420,10 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			0,			0,			0,		0},	//P1-87
 				{		0,			0,			0,			0,		0},	//P1-88
 				{		0,			0,			0,			0,		0},	//P1-89
-				{		0,			0,			0,			0,		0},	//P1-90
-				{		0,			0,			0,			0,		0},	//P1-91
-				{		0,			0,			0,			0,		0},	//P1-92
-				{		0,			0,			0,			0,		0},	//P1-93
+				{	    32688,	  	32808,		32768,		0x842,		&DriveParams.SystemParams.MotorDeratingTempOffset},	//P1-90
+				{	    20,			250,		100,		0x52,		&DriveParams.SystemParams.MotorDeratingScale},	//P1-91
+				{	    32728,	  	32808,		32768,		0x842,		&DriveParams.SystemParams.MosDeratingTempOffset},	//P1-92
+				{	    20,			250,		100,		0x52,		&DriveParams.SystemParams.MOSDeratingScale},	//P1-93
 				{		0,			0,			0,			0,		0},	//P1-94
 				{		0,			0,			0,			0,		0},	//P1-95
 				{		0,			0,			0,			0,		0},	//P1-96
