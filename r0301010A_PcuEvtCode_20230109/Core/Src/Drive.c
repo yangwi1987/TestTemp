@@ -1920,6 +1920,7 @@ void drive_Init(void)
 	}
 
 	// Init Axis1 Motor Stall Table
+	Axis[0].MotorStall.Enable = SystemTable.AlarmTableInfo[ALARMID_MOTORSTALL].AlarmEnable;
 	Axis[0].MotorStall.Init( &Axis[0].MotorStall );
 
 	// Init Axis1 Thermal Table
