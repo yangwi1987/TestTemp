@@ -168,6 +168,9 @@ typedef enum
 	Security_Level_2,
 	Security_Level_3,
 	Security_Level_4,
+	Security_Level_5,
+	Security_Level_6,
+	Security_Level_7,
 }EnumSecurityLevel;
 
 typedef enum
@@ -181,7 +184,7 @@ typedef enum
 	Session_0x40_VehicleManufacturerSpecific = 0x40,	// 0x40 ~ 0x5F
 	Session_0x60_SystemSupplierSpecific = 0x60,			// 0x60 ~ 0x7E
 	Session_0x7F_IsoSAEReserved = 0x7F,
-}EnumSession;
+}EnumSession; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
 
 typedef enum
 {

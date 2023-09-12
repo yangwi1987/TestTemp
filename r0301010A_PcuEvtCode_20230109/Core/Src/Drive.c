@@ -1920,6 +1920,7 @@ void drive_Init(void)
 	}
 
 	// Init Axis1 Motor Stall Table
+	Axis[0].MotorStall.Enable = SystemTable.AlarmTableInfo[ALARMID_MOTORSTALL].AlarmEnable;
 	Axis[0].MotorStall.Init( &Axis[0].MotorStall );
 
 	// Init Axis1 Thermal Table
@@ -2142,6 +2143,136 @@ void drive_DoCurrentLoop(void)
 	}
 }
 
+void Session_DoPLCLoop(void)
+{
+	switch ( ParamMgr1.Session )
+	{
+	case Session_0x01_Default:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		break;
+	case Session_0x02_Programming:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		//todo check security level in bootloader. Remove the this condition in the future.
+		if( PcuAuthorityCtrl.SecureLvNow >= Security_Level_2 )
+		{
+			BootAppTrig = BOOT_ENA;
+		}
+		break;
+	case Session_0x03_ExtendedDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		break;
+	case Session_0x04_SafetySystemDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		break;
+	case Session_0x40_VehicleManufacturerSpecific:
+		if( PcuAuthorityCtrl.SecureLvNow >= Security_Level_5 )
+		{
+			if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+			{
+				Axis[0].MfOrRDFunctionDisable = 1;
+			}
+			else
+			{
+				// enable AxisFactory_GetSetting;  AxisFactory_GetUiStatus; AxisFactory_GetUiCmd;
+				Axis[0].MfOrRDFunctionDisable = 0;
+			}
+		}
+		break;
+	case Session_0x60_SystemSupplierSpecific:
+		if( PcuAuthorityCtrl.SecureLvNow >= Security_Level_5 )
+		{
+			if ((DriveFnRegs[FN_ENABLE-FN_BASE] | DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] | DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE]) == 0)
+			{
+				Axis[0].MfOrRDFunctionDisable = 1;
+			}
+			else
+			{
+				// enable AxisFactory_GetSetting;  AxisFactory_GetUiStatus; AxisFactory_GetUiCmd;
+				Axis[0].MfOrRDFunctionDisable = 0;
+			}
+
+			MFStation1.CalMaxAvgCnt( &MFStation1, DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ], PcuAuthorityCtrl.SecureLvNow  );
+	//		MFStation1.GpioMfinfo( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
+			MFStation1.RMS( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
+#if USE_CURRENT_CALIBRATION
+			MFStation1.CalibCurrent.RDModeAndAuth( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_FUNC_SEL - FN_BASE ], PcuAuthorityCtrl.SecureLvNow );
+			MFStation1.CalibCurrent.ReadCmdInfo( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_CURR_CALIB_SETUP - FN_BASE ], &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
+			MFStation1.CalibCurrent.RCurrentAdc( &MFStation1.CalibCurrent, &AdcStation1, &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
+			MFStation1.CalibCurrent.CalibGainandZPoint( &MFStation1.CalibCurrent, &DriveFnRegs[ FN_MF_CURR_CALC - FN_BASE ] );
+#endif
+#if USE_VOLTAGE_CALIBRATION
+			MFStation1.CalibDcBusVoltage.TempVal = MFStation1.CalibDcBusVoltage.RVoltAdc( &MFStation1.CalibDcBusVoltage, &AdcStation1, &DriveFnRegs[ FN_MF_VOLT_CALIB_START - FN_BASE ] );
+			if( MFStation1.CalibDcBusVoltage.TempVal> 0 )
+			{
+				DriveParams.PCUParams.DcBusCalibValue[ MFStation1.CalibDcBusVoltage.Calib_StartFlag ] = MFStation1.CalibDcBusVoltage.TempVal;
+				MFStation1.CalibDcBusVoltage.Calib_StartFlag = DISABLE;
+			}
+#endif
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+{
+	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
+	pAxis->MotorStall.Enable = ALARM_ENABLE;
+	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+}
+
+void DisableAlarmWhenSessionChange(Axis_t *pAxis)
+{
+	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
+	pAxis->MotorStall.Enable = ALARM_DISABLE;
+	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+}
+
+void Session_DoWhileSessionChange(void)
+{
+	// Set flag or do action according to the next session
+	switch ( ParamMgr1.NextSession )
+	{
+	case Session_0x01_Default:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		EnableAlarmWhenSessionChange( &Axis[0] );
+		break;
+	case Session_0x02_Programming:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		EnableAlarmWhenSessionChange( &Axis[0] );
+		break;
+	case Session_0x03_ExtendedDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		EnableAlarmWhenSessionChange( &Axis[0] );
+		break;
+	case Session_0x04_SafetySystemDiagnostic:
+		Axis[0].MfOrRDFunctionDisable = 1;
+		EnableAlarmWhenSessionChange( &Axis[0] );
+		break;
+	case Session_0x40_VehicleManufacturerSpecific:
+		EnableAlarmWhenSessionChange( &Axis[0] );
+		break;
+	case Session_0x60_SystemSupplierSpecific:
+		// reset all alarm
+		AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
+		ResetAllAlarm( &AlarmMgr1 );
+		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
+		DisableAlarmWhenSessionChange( &Axis[0] );
+		break;
+	default:
+		break;
+	}
+}
+
 // 1kHz
 void drive_DoPLCLoop(void)
 {
@@ -2151,50 +2282,11 @@ void drive_DoPLCLoop(void)
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
-		//Fernando test start
-		//UartBuffer.Rx(&UartBuffer,&CtrlUi);
-		//Fernando test end
 		Axis[i].DoPLCLoop(&Axis[i]);
 	}
 
-	switch ( ParamMgr1.Session )
-	{
-	case Session_0x01_Default:
-		break;
-	case Session_0x02_Programming:
-		if( PcuAuthorityCtrl.SecureLvNow > Security_Level_1 )
-		{
-			BootAppTrig = BOOT_ENA;
-		}
-		break;
-	case Session_0x03_ExtendedDiagnostic:
-		break;
-	case Session_0x04_SafetySystemDiagnostic:
-		break;
-	case Session_0x40_VehicleManufacturerSpecific:
-		break;
-	case Session_0x60_SystemSupplierSpecific:
-		MFStation1.CalMaxAvgCnt( &MFStation1, DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ], PcuAuthorityCtrl.SecureLvNow  );
-//		MFStation1.GpioMfinfo( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
-		MFStation1.RMS( &MFStation1, PcuAuthorityCtrl.SecureLvNow  );
-#if USE_CURRENT_CALIBRATION
-		MFStation1.CalibCurrent.RDModeAndAuth( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_FUNC_SEL - FN_BASE ], PcuAuthorityCtrl.SecureLvNow );
-		MFStation1.CalibCurrent.ReadCmdInfo( &MFStation1.CalibCurrent, DriveFnRegs[ FN_MF_CURR_CALIB_SETUP - FN_BASE ], &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
-		MFStation1.CalibCurrent.RCurrentAdc( &MFStation1.CalibCurrent, &AdcStation1, &DriveFnRegs[ FN_MF_CURR_CALIB_START - FN_BASE ] );
-		MFStation1.CalibCurrent.CalibGainandZPoint( &MFStation1.CalibCurrent, &DriveFnRegs[ FN_MF_CURR_CALC - FN_BASE ] );
-#endif
-#if USE_VOLTAGE_CALIBRATION
-		MFStation1.CalibDcBusVoltage.TempVal = MFStation1.CalibDcBusVoltage.RVoltAdc( &MFStation1.CalibDcBusVoltage, &AdcStation1, &DriveFnRegs[ FN_MF_VOLT_CALIB_START - FN_BASE ] );
-		if( MFStation1.CalibDcBusVoltage.TempVal> 0 )
-		{
-			DriveParams.PCUParams.DcBusCalibValue[ MFStation1.CalibDcBusVoltage.Calib_StartFlag ] = MFStation1.CalibDcBusVoltage.TempVal;
-			MFStation1.CalibDcBusVoltage.Calib_StartFlag = DISABLE;
-		}
-#endif
-		break;
-	default:
-		break;
-	}
+	Session_DoPLCLoop();
+
 	ExtranetCANStation.DisableRst( &ExtranetCANStation );
 	if ( ExtranetCANStation.Enable )
 	{
@@ -2223,6 +2315,12 @@ void drive_Do100HzLoop(void)
 		Axis[i].Do100HzLoop(&Axis[i]);
 	}
 	MFStation1.GpioMfinfo( &MFStation1 );
+
+	if( ParamMgr1.Session != ParamMgr1.NextSession )
+	{
+		Session_DoWhileSessionChange();
+		ParamMgr1.Session = ParamMgr1.NextSession;
+	}
 
 	/*update max and min value*/
 	/*To do: currently, MCU enter 100Hz earlier than PLC loop, temporary solution is bypass the first entering*/
@@ -2598,12 +2696,16 @@ void JumpCtrlFunction( void )
 		}
 	}
 	else if( ( DriveFnRegs[ FN_PCU_RESET_OPERATION - FN_BASE ] == BOOT_ENA ) &&	\
-			 ( PcuAuthorityCtrl.SecureLvNow > Security_Level_1 ) &&				\
 			 ( Axis[0].ServoOn == MOTOR_STATE_OFF ) )
 	{
-		HAL_Delay(100);
-		DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
-		JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
+		if( (ParamMgr1.Session == Session_0x01_Default) || \
+			(ParamMgr1.Session == Session_0x40_VehicleManufacturerSpecific) || \
+			(ParamMgr1.Session == Session_0x60_SystemSupplierSpecific) )
+		{
+			HAL_Delay(100);
+			DriveFnRegs[FN_PCU_RESET_OPERATION - FN_BASE] = 0;
+			JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
+		}
 	}
 	else if( (Axis[0].PcuPowerState == PWR_SM_WAIT_FOR_RESET) && \
 			 (Axis[0].ServoOn == MOTOR_STATE_OFF) )

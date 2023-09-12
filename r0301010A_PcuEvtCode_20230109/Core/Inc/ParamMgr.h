@@ -48,7 +48,8 @@ typedef enum
 
 typedef struct {
 	uint16_t Dirty;
-	uint16_t Session;
+	uint16_t Session; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
+	uint16_t NextSession; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
 	uint16_t Authority;
 	uint8_t *pFlashParaReadEnableTable;
 	ParamTableInfo_t *pParamTable;
@@ -71,7 +72,8 @@ extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float
 
 #define PARAM_MGR_DEFAULT { \
 	0, \
-	Session_0x01_Default, \
+	Session_0x01_Default, /* Session */ \
+	Session_0x01_Default, /* NextSession */ \
 	DEFAULT_SECURITY_LEVEL, /* Authority */ \
 	0, /* pFlashParaReadEnableTable */ \
 	0, /* pParamTable */\
