@@ -35,7 +35,7 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 	v->WindingDerating.X.InputMin = v->WindingDerating.X.InputMin + XOffset;
 	for(i = 0; i<WINDING_DERATING_TABLE_NUN; i++)
 	{
-		ModifiedWindingDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->WindingDerating.pTableStart[i] - TempFirstY) * YScale );
+		ModifiedWindingDeratingTable[i] = (int16_t) (roundf( (float)TempFirstY + (float)(v->WindingDerating.pTableStart[i] - TempFirstY) * YScale ));
 	}
  	v->WindingDerating.pTableStart = &ModifiedWindingDeratingTable[0];
 
@@ -46,7 +46,7 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 	v->MosDerating.X.InputMin = v->MosDerating.X.InputMin + XOffset;
 	for(i = 0; i<MOS_DERATING_TABLE_NUN; i++)
 	{
-		ModifiedMosDeratingTable[i] = roundf( (float)TempFirstY + (float)(v->MosDerating.pTableStart[i] - TempFirstY) * YScale );
+		ModifiedMosDeratingTable[i] = (int16_t) (roundf( (float)TempFirstY + (float)(v->MosDerating.pTableStart[i] - TempFirstY) * YScale ));
 	}
 	v->MosDerating.pTableStart = &ModifiedMosDeratingTable[0];
 
