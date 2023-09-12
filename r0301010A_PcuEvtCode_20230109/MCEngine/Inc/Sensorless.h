@@ -192,6 +192,7 @@ typedef struct
 	float AngleInitFixedCmdFirstIq;
 	float AngleInitFixedCmdSecondId;
 	float AngleInitFixedCmdSecondIq;
+	float AngleInitFixedCmdDelayTimeSec;
 } SensorlessSetting_t;
 
 typedef struct
@@ -216,6 +217,7 @@ typedef struct
 	uint16_t Cnt;
 	uint16_t MaxCnt;
 	uint16_t SecondCnt;
+	uint16_t DelayCnt;
 	float IdFirstCmd;
 	float IqFirstCmd;
 	float IdSecondCmd;
@@ -325,6 +327,7 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 	0.0f,	/*AngleInitFixedCmdFirstIq; */\
 	0.0f,	/*AngleInitFixedCmdSecondId;*/\
 	0.0f,	/*AngleInitFixedCmdSecondIq;*/\
+	0.0f,	/*AngleInitFixedCmdDelayTimeSec;*/\
 }
 
 #define IPM_SENSORLESS_HFI_SIN_SETTING_DEFAULT \
@@ -396,6 +399,7 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 	0,		\
 	0,		\
 	0,		\
+	0,		\
 	0.0f,	\
 	0.0f,	\
 }
@@ -439,7 +443,7 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 		pAngleInit->IdCmd = p->IdSecondCmd;						\
 		pAngleInit->IqCmd = p->IqSecondCmd;						\
 	}														\
-	else if( p->Cnt < ( p->MaxCnt + 10000 )) 			    /*delay 1s*/\
+	else if( p->Cnt < ( p->MaxCnt + p->DelayCnt )) 			\
 	{														\
 		pAngleInit->IdCmd = 0.0f;							\
 		pAngleInit->IqCmd = 0.0f;							\
@@ -448,7 +452,7 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 	{														\
 		pAngleInit->IdCmd = 0.0f;							\
 		pAngleInit->IqCmd = 0.0f;							\
-		p->Cnt = p->MaxCnt + 10001;								\
+		p->Cnt = p->MaxCnt + p->DelayCnt + 1;								\
 		pAngleInit->Start = FUNCTION_NO;					\
 	}														\
 	/*assigne to AngleInit_t*/								\

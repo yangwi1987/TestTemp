@@ -78,6 +78,7 @@ uint16_t Sensorless_Init( Sensorless_t *p, SensorlessSetting_t *pSetting )
 	p->AngleInit.FixedCmd.SecondCnt = (uint16_t)(pSetting->AngleInitFixedCmdSecondTime / pSetting->Period);
 	p->AngleInit.FixedCmd.IdSecondCmd = pSetting->AngleInitFixedCmdSecondId;
 	p->AngleInit.FixedCmd.IqSecondCmd = pSetting->AngleInitFixedCmdSecondIq;
+	p->AngleInit.FixedCmd.DelayCnt = (uint16_t)(pSetting->AngleInitFixedCmdDelayTimeSec / pSetting->Period);
 	//Angle Init Fixed Cmd Clean
 	p->AngleInit.FixedCmd.Cnt = 0;
 	return p->Error;

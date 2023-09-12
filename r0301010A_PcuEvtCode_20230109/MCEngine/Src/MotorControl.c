@@ -536,6 +536,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	SensorlessSetting.AngleInitFixedCmdFirstIq = 43.30127f;     //120deg
 	SensorlessSetting.AngleInitFixedCmdSecondId = -43.30127f;   //210deg
 	SensorlessSetting.AngleInitFixedCmdSecondIq = -25.0f;       //210deg
+	SensorlessSetting.AngleInitFixedCmdDelayTimeSec = (float)(DriveParams.SystemParams.IinitialAlignDelay) * 0.1f;
 	p->Sensorless.Init(&(p->Sensorless),&SensorlessSetting);
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
 #if USE_HFI_SIN==1
