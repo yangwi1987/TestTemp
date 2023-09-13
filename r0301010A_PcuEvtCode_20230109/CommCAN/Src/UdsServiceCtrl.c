@@ -440,7 +440,7 @@ void UdsServiceCtrl_WriteDataByIDLsc( NetWorkService_t *p, LinkLayerCtrlUnit_t *
 	uint8_t Result = PARAM_ACCESS_SUCCESS;
 	uint8_t ReplyResult;
 
-	p->pParamMgr->Authority = p->pSecurityCtrl->SecureLvNow;
+	p->pParamMgr->Security = p->pSecurityCtrl->SecureLvNow;
 
 	ParamID.All = (pRx->Data[1]<<8)+pRx->Data[2];
 	lParamID = ParamID.Bits.ParamID;

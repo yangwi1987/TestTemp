@@ -317,7 +317,7 @@ int32_t ParamMgr_WriteParam( ParamMgr_t *v, uint16_t AxisID, uint16_t PN, int32_
 	if( v->pParamTable[index].pAddr != 0 ) {
 		uint16_t *TempAddr = v->pParamTable[index].pAddr;
 		// check authority
-		if( v->Authority < (v->pParamTable[index].Property & PPD_AUTHORITY_MASK) )
+		if( v->Security < (v->pParamTable[index].Property & PPD_AUTHORITY_MASK) )
 		{
 			if( pError != NULL )
 			{
@@ -370,7 +370,7 @@ int32_t ParamMgr_WriteFnRegs( ParamMgr_t *v, uint16_t FN, uint32_t value, uint8_
 	uint16_t index = FN - FN_BASE;
 	ParamAccessResult_e Result;
 
-	if( v->Authority < DriveFnRegsInfo[index].Authority ){
+	if( v->Security < DriveFnRegsInfo[index].Security ){
 		Result = PARAM_ACCESS_FAIL_NO_AUTH;
 	}else if( (value >DriveFnRegsInfo[index].Max) || (value < DriveFnRegsInfo[index].Min) ){
 		Result = PARAM_ACCESS_FAIL_VALUE_NOT_AVAILABLE;

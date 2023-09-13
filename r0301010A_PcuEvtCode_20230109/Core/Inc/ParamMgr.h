@@ -31,7 +31,7 @@ typedef int32_t (*functypeParamMgr_WriteFnRegs)(void *, uint16_t, int32_t, uint8
 typedef struct {
 	uint32_t Min;
 	uint32_t Max;
-	uint16_t Authority;
+	uint16_t Security;
 } DriveFnRegsInfo_t;
 
 
@@ -50,7 +50,7 @@ typedef struct {
 	uint16_t Dirty;
 	uint16_t Session; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
 	uint16_t NextSession; // original LSC manufacturing session. BRP session is DiagnosticSession in UDSserviceCtrl.h
-	uint16_t Authority;
+	uint16_t Security;
 	uint8_t *pFlashParaReadEnableTable;
 	ParamTableInfo_t *pParamTable;
 	functypeParamMgr_Init Init;
@@ -74,7 +74,7 @@ extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float
 	0, \
 	Session_0x01_Default, /* Session */ \
 	Session_0x01_Default, /* NextSession */ \
-	DEFAULT_SECURITY_LEVEL, /* Authority */ \
+	0, /* Security */ \
 	0, /* pFlashParaReadEnableTable */ \
 	0, /* pParamTable */\
 	(functypeParamMgr_Init)ParamMgr_Init, \

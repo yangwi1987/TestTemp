@@ -155,7 +155,7 @@ typedef struct {
 	uint16_t Reserved137;	//P1-37
 	uint16_t Reserved138;	//P1-38
 	uint16_t Reserved139;	//P1-39
-	uint16_t Reserved140;	//P1-40
+	uint16_t ParamMgrSecurity;	//P1-40
 	uint16_t Reserved141;	//P1-41
 	uint16_t Reserved142;	//P1-42
 	uint16_t Reserved143;	//P1-43

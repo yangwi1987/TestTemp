@@ -370,7 +370,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			0,			0,			0,		0},	//P1-37
 				{		0,			0,			0,			0,		0},	//P1-38
 				{		0,			0,			0,			0,		0},	//P1-39
-				{		0,			0,			0,			0,		0},	//P1-40
+				{	    0,	  	   7,		  5,		 0x45,		&DriveParams.SystemParams.ParamMgrSecurity},	//P1-40
 				{		0,			0,			0,			0,		0},	//P1-41
 				{		0,			0,			0,			0,		0},	//P1-42
 				{		0,			0,			0,			0,		0},	//P1-43

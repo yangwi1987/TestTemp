@@ -1907,6 +1907,9 @@ void drive_Init(void)
 	// TODO when add motor2 parameters, check if the check sum mechanism is still OK?
 	ParamMgr1.Init( &ParamMgr1, &ExtFlash1 );
 
+	// Assign the security from external flash after read data from external flash.
+	ParamMgr1.Security = DriveParams.SystemParams.ParamMgrSecurity;
+
 	// set flag after DriveParam has been updated. and before AlarmDetect init.
 	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
 
