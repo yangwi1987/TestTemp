@@ -396,12 +396,14 @@ void HFISin_Calc( IPMSensorlessHFISin_t *p, float Ialpha, float Ibeta );
 
 #define IPM_SENSORLESS_ANGLE_INIT_BY_FIXED_CMD_DEFAULT	\
 {			\
-	0,		\
-	0,		\
-	0,		\
-	0,		\
-	0.0f,	\
-	0.0f,	\
+	0,		/*	uint16_t Cnt;      */\
+	0,		/*	uint16_t MaxCnt;   */\
+	0,		/*	uint16_t SecondCnt;*/\
+	0,		/*	uint16_t DelayCnt; */\
+	0.0f,	/*	float IdFirstCmd;  */\
+	0.0f,	/*	float IqFirstCmd;  */\
+	0.0f,	/*	float IdSecondCmd; */\
+	0.0f,	/*	float IqSecondCmd; */\
 }
 
 #define IPM_SENSORLESS_ANGLE_INIT_DEFAULT \
