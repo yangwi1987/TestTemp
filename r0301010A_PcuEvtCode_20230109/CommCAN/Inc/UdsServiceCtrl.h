@@ -30,6 +30,8 @@
 #define P2_STAR_SERVER_MAX         505       // Resolition: 10ms
 #define P2_STAR_SERVER_MAX_MS P2_STAR_SERVER_MAX * 10
 
+#define MF_SESSION_MAX_MS        60000       // Resolition: 1ms
+
 /*
  * Enum define for BRP UDS ===========================================================================================================================================================================================
  */

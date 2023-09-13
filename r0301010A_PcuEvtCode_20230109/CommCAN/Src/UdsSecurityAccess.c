@@ -25,7 +25,7 @@ uint32_t SecurityAccessMask[8]= { 	0,		0x0920,		0x0920, 	0x0828,		0x0828,		0x082
 void UdsSecurityAccess_Init ( UdsSecurityAccessCtrl_t *p )
 {
 	p->SecureLvReq = 0;
-	p->SecureLvNow = DEFAULT_SECURITY_LEVEL;  // todo Para default security level
+//	p->SecureLvNow = DEFAULT_SECURITY_LEVEL;
 	p->SecureState = UDS_SECURE_STATE_IDLE;
 	p->SecureResult = UDS_SECURE_RESULT_IDLE;
 	p->Seed = 0;
