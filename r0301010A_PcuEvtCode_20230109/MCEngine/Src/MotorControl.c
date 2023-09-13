@@ -532,10 +532,15 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	SensorlessSetting.HFISinBPFQ = 0.5f;
 	SensorlessSetting.AngleInitFixedCmdFirstTime = 0.3f;
 	SensorlessSetting.AngleInitFixedCmdSecondTime = 0.7f;
-	SensorlessSetting.AngleInitFixedCmdFirstId = -25.0f;        //120deg
-	SensorlessSetting.AngleInitFixedCmdFirstIq = 43.30127f;     //120deg
-	SensorlessSetting.AngleInitFixedCmdSecondId = -43.30127f;   //210deg
-	SensorlessSetting.AngleInitFixedCmdSecondIq = -25.0f;       //210deg
+	/*
+	 * assuem d-axis align alpha-axis is 0 deg
+	 * Id = Is * COS(theta),  Id = Is * SIM(theta),
+	 * Set Is = 50 A, First theta = 120 deg, Second theta = 210 deb
+	 */
+	SensorlessSetting.AngleInitFixedCmdFirstId = -25.0f;        // 50 * COS(120 deg)
+	SensorlessSetting.AngleInitFixedCmdFirstIq = 43.30127f;     // 50 * SIN(120 deg)
+	SensorlessSetting.AngleInitFixedCmdSecondId = -43.30127f;   // 50 * COS(210 deg)
+	SensorlessSetting.AngleInitFixedCmdSecondIq = -25.0f;       // 50 * SIN(210 deg)
 	SensorlessSetting.AngleInitFixedCmdDelayTimeSec = (float)(DriveParams.SystemParams.IinitialAlignDelay) * 0.1f;
 	p->Sensorless.Init(&(p->Sensorless),&SensorlessSetting);
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
