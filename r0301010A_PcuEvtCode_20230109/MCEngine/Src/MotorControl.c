@@ -533,7 +533,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	SensorlessSetting.AngleInitFixedCmdFirstTime = 0.3f;
 	SensorlessSetting.AngleInitFixedCmdSecondTime = 0.7f;
 	/*
-	 * assuem d-axis align alpha-axis is 0 deg
+	 * assume d-axis align alpha-axis is 0 deg
 	 * Id = Is * COS(theta),  Id = Is * SIM(theta),
 	 * Set Is = 50 A, First theta = 120 deg, Second theta = 210 deb
 	 */
