@@ -204,7 +204,15 @@ static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
     {
         case PWR_SM_POWER_ON:
         {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+        	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0)
+            {
+        		v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+            }
+        	else
+        	{
+        		v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+        	}
+
             v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
             break;
         }

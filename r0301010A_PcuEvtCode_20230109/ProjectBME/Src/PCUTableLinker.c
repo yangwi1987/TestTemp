@@ -241,7 +241,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		65535,		0,		0x47,		&DriveParams.PCUParams.DebugParam6},	//P2-85
 				{		0,		65535,		0,		0x44,		&DriveParams.PCUParams.DebugParam7},	//P2-86
 				{		0,		65535,		0,		0x44,		&DriveParams.PCUParams.DebugParam8},	//P2-87
-				{		0,		65535,		0,		0x44,		&DriveParams.PCUParams.DebugParam9},	//P2-88
+				{		0,		65535,		1,		0x44,		&DriveParams.PCUParams.DebugParam9},	//P2-88
 				{		0,		65535,		0,		0x44,		&DriveParams.PCUParams.DebugParam10},	//P2-89
 				{		0,		4095,		0,		0x45,		&DriveParams.PCUParams.DcBusCalibValue[0]},	//P2-90
 				{		0,		4095,		0,		0x45,		&DriveParams.PCUParams.DcBusCalibValue[1]},	//P2-91
