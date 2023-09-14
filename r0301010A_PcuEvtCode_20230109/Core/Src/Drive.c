@@ -2224,8 +2224,16 @@ void Session_DoPLCLoop(void)
 	}
 }
 
-void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+void EnableAlarmResetMFWhenSessionChange(Axis_t *pAxis)
 {
+	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
+	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
+	DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE] = 0;
+	DriveFnRegs[FN_OPEN_SPD_COMMAND-FN_BASE] = 0;
+	DriveFnRegs[FN_OPEN_SPD_V_I_LIMIT-FN_BASE] = 0;
+	DriveFnRegs[FN_RPM_GAIN_CMD-FN_BASE] = 0;
+	DriveFnRegs[FN_RPM_SLOPE_CMD-FN_BASE] = 0;
+
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_ENABLE;
@@ -2253,22 +2261,22 @@ void Session_DoWhileSessionChange(void)
 	{
 	case Session_0x01_Default:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmWhenSessionChange( &Axis[0] );
+		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x02_Programming:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmWhenSessionChange( &Axis[0] );
+		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmWhenSessionChange( &Axis[0] );
+		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmWhenSessionChange( &Axis[0] );
+		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
-		EnableAlarmWhenSessionChange( &Axis[0] );
+		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		// reset all alarm
@@ -2386,7 +2394,7 @@ static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 		v->ThermoDeratingSrc &= ~MOS_DERATING;
 	}
 
-	if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->MosDerating.X.InputMin )
+	if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->WindingDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOTOR_DERATING;
