@@ -1160,7 +1160,7 @@ __STATIC_FORCEINLINE void UdsServiceCtrlBRP_DSC( LinkLayerCtrlUnit_t *pRx, LinkL
 		    	m->DiagnosticSession = Session_0x01_DS;
 		    	m->BRPSessionCNTEnable = 0;
 		    	m->BRPSessionCNT = 0;
-		    	m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL; // todo Para default security level
+		    	m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
 		    	m->Response_Code = NRC_0x00_PR;
 		    	break;
 		    }
@@ -1173,7 +1173,7 @@ __STATIC_FORCEINLINE void UdsServiceCtrlBRP_DSC( LinkLayerCtrlUnit_t *pRx, LinkL
 		    	else
 		    	{
 		    		BootAppTrig = BOOT_ENA;
-		    		m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL; // todo Para default security level
+		    		m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
 		    		m->Response_Code = NRC_0x00_PR;
 		    	}
 		    	break;
@@ -1182,7 +1182,7 @@ __STATIC_FORCEINLINE void UdsServiceCtrlBRP_DSC( LinkLayerCtrlUnit_t *pRx, LinkL
 		    {
 		    	m->DiagnosticSession = Session_0x03_EXTDS;
 		    	m->BRPSessionCNTEnable = 1;
-		    	m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL; // todo Para default security level
+		    	m->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
 		    	m->Response_Code = NRC_0x00_PR;
 		    	break;
 		    }
