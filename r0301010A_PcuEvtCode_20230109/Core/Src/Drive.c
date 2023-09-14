@@ -2599,24 +2599,21 @@ void drive_DoHouseKeeping(void)
         }
 	}
 
-//	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] != 0xFF)
+	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 1)
 	{
-		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 1)
-		{
-			RCCommCtrl.AccUARTErrorCnt = 0;
-			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
-		}
-		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
-		{
-			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
-			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
-		}
-		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
-		{
-			RCCommCtrl.AccUARTErrorCnt = 0;
-			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
-			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
-		}
+		RCCommCtrl.AccUARTErrorCnt = 0;
+		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
+	}
+	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
+	{
+		Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
+	}
+	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
+	{
+		RCCommCtrl.AccUARTErrorCnt = 0;
+		Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
 	}
 
 }
