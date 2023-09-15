@@ -16,7 +16,8 @@
 #define UDS_SECURE_SEED_SIZE 2
 #define UDS_SECURE_TIMEOUT_THRESHOLD_MS	60000 //60sec
 #define FALSE_ACCESS_EXCEED_LIMIT_NUMBER 3 // 3 times
-#define DEFAULT_SECURITY_LEVEL  5
+#define SECURITY_LEVEL_0  0
+#define DEFAULT_SECURITY_LEVEL  SECURITY_LEVEL_0
 
 typedef void (*funcTypeUdsSecurityAccess_Init) ( void* );
 typedef void (*funcTypeUdsSecurityAccess_Clear) ( void* );

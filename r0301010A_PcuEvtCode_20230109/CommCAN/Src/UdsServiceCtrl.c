@@ -440,7 +440,7 @@ void UdsServiceCtrl_WriteDataByIDLsc( NetWorkService_t *p, LinkLayerCtrlUnit_t *
 	uint8_t Result = PARAM_ACCESS_SUCCESS;
 	uint8_t ReplyResult;
 
-	p->pParamMgr->Authority = p->pSecurityCtrl->SecureLvNow;
+	p->pParamMgr->Security = p->pSecurityCtrl->SecureLvNow;
 
 	ParamID.All = (pRx->Data[1]<<8)+pRx->Data[2];
 	lParamID = ParamID.Bits.ParamID;
@@ -502,23 +502,19 @@ void UdsServiceCtrl_SessionControl( NetWorkService_t *p, LinkLayerCtrlUnit_t *pR
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		p->pParamMgr->NextSession = Session_0x03_ExtendedDiagnostic;
-	//	p->SessionCNTEnable = 1;
-		p->SessionCNTEnable = 0;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		p->pParamMgr->NextSession = Session_0x04_SafetySystemDiagnostic;
-	//		p->SessionCNTEnable = 1;
-			p->SessionCNTEnable = 0;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		p->pParamMgr->NextSession = Session_0x40_VehicleManufacturerSpecific;
-	//		p->SessionCNTEnable = 1;
-			p->SessionCNTEnable = 0;
+		p->SessionCNTEnable = 1;
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		p->pParamMgr->NextSession = Session_0x60_SystemSupplierSpecific;
-	//		p->SessionCNTEnable = 1;
-			p->SessionCNTEnable = 0;
+		p->SessionCNTEnable = 1;
 		break;
 	default:
 		p->pParamMgr->NextSession = Session_0x01_Default;
@@ -848,7 +844,7 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 	}
 	else
 	{
-	    v->ServiceHandler( v, &v->NetWork );
+     	    v->ServiceHandler( v, &v->NetWork );
 	}
 	v->SendDataPeriodically( v, &v->NetWork.Tx, v->PeriodUpdateCtrl.ParamId);
 	if( v->NetWork.STCounter++ >= v->NetWork.STminCmd )
@@ -862,14 +858,15 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 		UdsServiceCtrl_SendDataPeriodicallyNoSwap( v, &v->NetWork.Tx, v->PeriodUpdateCtrl.ParamId);
 	}
 
+	// LSC original session
 	if ( v->SessionCNTEnable )
 	{
-		if ( v->SessionCNT >= P2_STAR_SERVER_MAX_MS )
+		if ( v->SessionCNT >= MF_SESSION_MAX_MS )
 		{
 			v->pParamMgr->NextSession = Session_0x01_Default;
 		    v->SessionCNTEnable = 0;
 		    v->SessionCNT = 0;
-		    v->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		    v->pSecurityCtrl->SecureLvNow = SECURITY_LEVEL_0;
 		}
 		else
 		{
@@ -877,6 +874,7 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 		}
 	}
 
+	// BRP session
 	if ( v->ServiceCtrlBRP.BRPSessionCNTEnable )
 	{
 		if ( v->ServiceCtrlBRP.BRPSessionCNT >= P2_STAR_SERVER_MAX_MS )
@@ -884,7 +882,7 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 			v->ServiceCtrlBRP.DiagnosticSession = Session_0x01_DS;
 		    v->ServiceCtrlBRP.BRPSessionCNTEnable = 0;
 		    v->ServiceCtrlBRP.BRPSessionCNT = 0;
-		    v->pSecurityCtrl->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+		    v->pSecurityCtrl->SecureLvNow = SECURITY_LEVEL_0;
 		}
 		else
 		{

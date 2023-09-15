@@ -1974,6 +1974,11 @@ void drive_Init(void)
 	IntranetCANStation.NetWork.DriveSetup.LoadParam ( &IntranetCANStation.NetWork.DriveSetup, &CANModuleConfigIntra, LscCanIdTableIntra );
 	IntranetCANStation.Init ( &IntranetCANStation, &hfdcan2, &PcuAuthorityCtrl );
 
+	//Assign the security from external flash after read data from external flash.
+	PcuAuthorityCtrl.SecureLvNow = DriveParams.SystemParams.ParamMgrSecurity;
+	// note: IntranetCANStation.ServiceCtrlBRP.pSecurityCtrl = IntranetCANStation.pSecurityCtrl = &PcuAuthorityCtrl.
+	ParamMgr1.Security = IntranetCANStation.pSecurityCtrl->SecureLvNow;
+
 	Drive_BinVersionCompare( AppVersion );
 	Drive_BinCheckWordCompare( &AppCheckWord );
 
@@ -2225,6 +2230,18 @@ void Session_DoPLCLoop(void)
 	}
 }
 
+void ResetMFWhenSessionChange(Axis_t *pAxis)
+{
+	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
+	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
+	DriveFnRegs[FN_RD_FUNC_SEL-FN_BASE] = 0;
+	DriveFnRegs[FN_OPEN_SPD_COMMAND-FN_BASE] = 0;
+	DriveFnRegs[FN_OPEN_SPD_V_I_LIMIT-FN_BASE] = 0;
+	DriveFnRegs[FN_RPM_GAIN_CMD-FN_BASE] = 0;
+	DriveFnRegs[FN_RPM_SLOPE_CMD-FN_BASE] = 0;
+	pAxis->CtrlUiEnable = 0;
+	CtrlUi.MfFunMode = FN_MF_FUNC_SEL_RESERVED;
+}
 void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
@@ -2254,18 +2271,22 @@ void Session_DoWhileSessionChange(void)
 	{
 	case Session_0x01_Default:
 		Axis[0].MfOrRDFunctionDisable = 1;
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x02_Programming:
 		Axis[0].MfOrRDFunctionDisable = 1;
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
@@ -2387,7 +2408,7 @@ static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 		v->ThermoDeratingSrc &= ~MOS_DERATING;
 	}
 
-	if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->MosDerating.X.InputMin )
+	if( *(v->TempNow[MOTOR_NTC_0_A0]) > v->WindingDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOTOR_DERATING;
@@ -2592,24 +2613,24 @@ void drive_DoHouseKeeping(void)
         }
 	}
 
-//	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] != 0xFF)
+	// if reset register is not 0
+	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] != 0)
 	{
 		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 1)
 		{
 			RCCommCtrl.AccUARTErrorCnt = 0;
-			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
 		}
-		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
+		else if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
 		{
 			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
-			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
 		}
-		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
+		else if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
 		{
 			RCCommCtrl.AccUARTErrorCnt = 0;
 			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
-			DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
 		}
+		// reset DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] to 0 anyway.
+		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
 	}
 
 }
