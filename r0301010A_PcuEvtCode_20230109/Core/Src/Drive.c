@@ -2225,7 +2225,7 @@ void Session_DoPLCLoop(void)
 	}
 }
 
-void ResetMFWhenSessionChange(void)
+void ResetMFWhenSessionChange(Axis_t *pAxis)
 {
 	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
 	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
@@ -2234,6 +2234,8 @@ void ResetMFWhenSessionChange(void)
 	DriveFnRegs[FN_OPEN_SPD_V_I_LIMIT-FN_BASE] = 0;
 	DriveFnRegs[FN_RPM_GAIN_CMD-FN_BASE] = 0;
 	DriveFnRegs[FN_RPM_SLOPE_CMD-FN_BASE] = 0;
+	pAxis->CtrlUiEnable = 0;
+	CtrlUi.MfFunMode = FN_MF_FUNC_SEL_RESERVED;
 }
 void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 {
@@ -2264,22 +2266,22 @@ void Session_DoWhileSessionChange(void)
 	{
 	case Session_0x01_Default:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		ResetMFWhenSessionChange();
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x02_Programming:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		ResetMFWhenSessionChange();
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		ResetMFWhenSessionChange();
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		ResetMFWhenSessionChange();
+		ResetMFWhenSessionChange( &Axis[0] );
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
