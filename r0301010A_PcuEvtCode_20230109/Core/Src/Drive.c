@@ -2608,20 +2608,23 @@ void drive_DoHouseKeeping(void)
         }
 	}
 
-	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 1)
+	// if reset register is not 0
+	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] != 0)
 	{
-		RCCommCtrl.AccUARTErrorCnt = 0;
-		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
-	}
-	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
-	{
-		Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
-		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
-	}
-	if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
-	{
-		RCCommCtrl.AccUARTErrorCnt = 0;
-		Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+		if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 1)
+		{
+			RCCommCtrl.AccUARTErrorCnt = 0;
+		}
+		else if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 2)
+		{
+			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+		}
+		else if(DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] == 3)
+		{
+			RCCommCtrl.AccUARTErrorCnt = 0;
+			Axis[0].pCANRxInterface->AccCANErrorCnt = 0;
+		}
+		// reset DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] to 0 anyway.
 		DriveFnRegs[ FN_PCU_ERR_CNT_RESET - FN_BASE ] = 0;
 	}
 
