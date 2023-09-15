@@ -199,6 +199,11 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 	case DN_FOIL_VOLTAGE:
 		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
 		break;
+
+	case DN_CURRENT_LIMIT :
+		RetValue = (int32_t)(Axis[0].pCANRxInterface->BatCurrentDrainLimit * 10.0f);
+		break;
+
 	case DC_FOIL_ADC:
 		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
 		break;

@@ -271,7 +271,7 @@
 #define DN_IC_CURR_RMS				741
 #define DN_PCU_NTC_2_TEMP			742
 #define DN_FOIL_VOLTAGE				746
-
+#define DN_CURRENT_LIMIT			747
 #define DC_FOIL_ADC					748
 #define DN_U_CURR_ADC				749
 
