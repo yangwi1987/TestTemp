@@ -861,7 +861,7 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 	// LSC original session
 	if ( v->SessionCNTEnable )
 	{
-		if ( v->SessionCNT >= MF_SESSION_MAX_MS ) // todo modify session time out second
+		if ( v->SessionCNT >= MF_SESSION_MAX_MS )
 		{
 			v->pParamMgr->NextSession = Session_0x01_Default;
 		    v->SessionCNTEnable = 0;
