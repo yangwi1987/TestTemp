@@ -2224,7 +2224,7 @@ void Session_DoPLCLoop(void)
 	}
 }
 
-void EnableAlarmResetMFWhenSessionChange(Axis_t *pAxis)
+void ResetMFWhenSessionChange(void)
 {
 	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
 	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
@@ -2233,7 +2233,9 @@ void EnableAlarmResetMFWhenSessionChange(Axis_t *pAxis)
 	DriveFnRegs[FN_OPEN_SPD_V_I_LIMIT-FN_BASE] = 0;
 	DriveFnRegs[FN_RPM_GAIN_CMD-FN_BASE] = 0;
 	DriveFnRegs[FN_RPM_SLOPE_CMD-FN_BASE] = 0;
-
+}
+void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+{
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_ENABLE;
@@ -2261,22 +2263,26 @@ void Session_DoWhileSessionChange(void)
 	{
 	case Session_0x01_Default:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
+		ResetMFWhenSessionChange();
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x02_Programming:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
+		ResetMFWhenSessionChange();
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x03_ExtendedDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
+		ResetMFWhenSessionChange();
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x04_SafetySystemDiagnostic:
 		Axis[0].MfOrRDFunctionDisable = 1;
-		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
+		ResetMFWhenSessionChange();
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
-		EnableAlarmResetMFWhenSessionChange( &Axis[0] );
+		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		// reset all alarm
