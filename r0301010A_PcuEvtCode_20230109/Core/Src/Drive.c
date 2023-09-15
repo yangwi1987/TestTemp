@@ -1970,7 +1970,8 @@ void drive_Init(void)
 	IntranetCANStation.Init ( &IntranetCANStation, &hfdcan2, &PcuAuthorityCtrl );
 
 	//Assign the security from external flash after read data from external flash.
-	IntranetCANStation.pSecurityCtrl->SecureLvNow = DriveParams.SystemParams.ParamMgrSecurity;
+	PcuAuthorityCtrl.SecureLvNow = DriveParams.SystemParams.ParamMgrSecurity;
+	// note: IntranetCANStation.ServiceCtrlBRP.pSecurityCtrl = IntranetCANStation.pSecurityCtrl = &PcuAuthorityCtrl.
 	ParamMgr1.Security = IntranetCANStation.pSecurityCtrl->SecureLvNow;
 
 	Drive_BinVersionCompare( AppVersion );
