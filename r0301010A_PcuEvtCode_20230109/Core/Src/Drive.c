@@ -2000,6 +2000,8 @@ void drive_Init(void)
 	// Register alarm depend on AlarmTableInfo table and error status of each module.
 	GlobalAlarmDetect_init();
 
+	ExtFlash_CER( &ExtFlash1 );
+
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
 }
