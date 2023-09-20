@@ -14,6 +14,9 @@
 
 static uint8_t CurrToPLCCnt = 0;
 extern uint16_t IsUseDigitalFoilSensor;
+static float PowerLevelGainArray[10] = \
+		{ 0.032,0.074666667,0.122666667,0.18,0.246666667,0.324,0.417333333,0.537333333,0.684, 1.0};
+
 
 void AxisSync_SyncFourQuadParams( Axis_t *v )
 {
@@ -91,7 +94,8 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
         v->AlarmDetect.CAN1Timeout.Counter = 0;
     }
     v->pCANRxInterface->ReceivedCANID = 0;
-    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
+//    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
+    v->FourQuadCtrl.DrivePowerLevelTarget = PowerLevelGainArray[v->pCANRxInterface->PowerLevel - 1];
 }
 
 void AxisFactory_UpdateCANTxInterface( Axis_t *v )

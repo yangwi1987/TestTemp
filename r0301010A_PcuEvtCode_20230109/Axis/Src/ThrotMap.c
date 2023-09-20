@@ -36,7 +36,7 @@ void ThrottleMapping_Init( ThrottleMapping_t *v, DriveParams_t *a )
 		{
 			v->InitError |= 0x4;
 		}
-		if( ( ( float )( a->SystemParams.ThrottleRamp[i] *0.001f ) < 1.0f ) && ( ( float )( a->SystemParams.ThrottleRamp[i] *0.001f ) > 0.0f ) )
+		if( ( ( float )( a->SystemParams.ThrottleRiseRamp[i] *0.001f ) < 1.0f ) && ( ( float )( a->SystemParams.ThrottleRiseRamp[i] *0.001f ) > 0.0f ) )
 		{
 			v->InitError = 0;
 		}
@@ -45,6 +45,14 @@ void ThrottleMapping_Init( ThrottleMapping_t *v, DriveParams_t *a )
 			v->InitError |= 0x8;
 		}
 	}
+	if( ( ( float )( a->SystemParams.ThrottleFallRamp *0.001f ) < 1.1f ) && ( ( float )( a->SystemParams.ThrottleFallRamp *0.001f ) > 0.0f ) )
+	{
+		v->InitError = 0;
+	}
+	else
+	{
+		v->InitError |= 0x8;
+	}
 	if( v->InitError == 0x0 )
 	{
 		for( i = 0; i < MAX_TN_CNT; i++ )
@@ -52,9 +60,11 @@ void ThrottleMapping_Init( ThrottleMapping_t *v, DriveParams_t *a )
 			v->ThrottleTnTab[i].EmptyThrottle = ( float )( a->SystemParams.ThrottleEmptyPt[i] *0.01f  );
 			v->ThrottleTnTab[i].HalfThrottle  = ( float )( a->SystemParams.ThrottleHalfPt[i]  *0.01f  );
 			v->ThrottleTnTab[i].FullThrottle  = ( float )( a->SystemParams.ThrottleFullPt[i]  *0.01f  );
-			v->ThrottleTnTab[i].ThrotRamp 	  = ( float )( a->SystemParams.ThrottleRamp[i]    *0.001f );
+			v->ThrottleTnTab[i].ThrotRiseRamp 	  = ( float )( a->SystemParams.ThrottleRiseRamp[i]    *0.001f );
+			v->ThrottleTnTab[i].ThrotFallRamp 	  = ( float )( a->SystemParams.ThrottleFallRamp    *0.001f );
 		}
 	}
+
 	v->PercentageOut = 0.0f;
 	v->PercentageTarget = 0.0f;
 }
@@ -129,11 +139,20 @@ void ThrottleMapping_Ramp( ThrottleMapping_t *v )
 {
 	if( v->PercentageTarget > v->PercentageOut )
 	{
-		v->PercentageOut = v->PercentageOut + v->ThrottleTnTab[ v->TnSelect ].ThrotRamp;
+		v->PercentageOut = v->PercentageOut + v->ThrottleTnTab[ v->TnSelect ].ThrotRiseRamp;
+		if( v->PercentageTarget < v->PercentageOut )
+		{
+			v->PercentageOut = v->PercentageTarget;
+		}
 	}
 	else
 	{
-		v->PercentageOut = v->PercentageTarget;
+//		v->PercentageOut = v->PercentageTarget;
+		v->PercentageOut = v->PercentageOut - v->ThrottleTnTab[ v->TnSelect ].ThrotFallRamp;
+		if( v->PercentageTarget > v->PercentageOut )
+		{
+			v->PercentageOut = v->PercentageTarget;
+		}
 	}
 
 	if( v->PercentageOut > 1.0f )

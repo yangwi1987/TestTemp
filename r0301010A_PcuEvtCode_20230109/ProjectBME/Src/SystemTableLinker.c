@@ -349,12 +349,12 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[2]},	//P1-16
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[3]},	//P1-17
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[4]},	//P1-18
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[0]},	//P1-19
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[1]},	//P1-20
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[2]},	//P1-21
-				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[3]},	//P1-22
-				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[4]},	//P1-23
-				{		0,			0,			0,			0,		0},	//P1-24
+				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRiseRamp[0]},	//P1-19
+				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRiseRamp[1]},	//P1-20
+				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRiseRamp[2]},	//P1-21
+				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRiseRamp[3]},	//P1-22
+				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRiseRamp[4]},	//P1-23
+				{		1,		 1000,			1000,		 0x5A,		&DriveParams.SystemParams.ThrottleFallRamp},	//P1-24
 				{		0,		65535,		   10,		 0x45,		&DriveParams.SystemParams.SecTimeThresholdForDriveLock},	//P1-25
 				{		0,		 6000,		  100,		 0x45,		&DriveParams.SystemParams.RpmToStartCntDriveLock},	//P1-26
 				{		0,			0,			0,			0,		0},	//P1-27
