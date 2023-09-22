@@ -36,7 +36,7 @@ void ThrottleMapping_Init( ThrottleMapping_t *v, DriveParams_t *a )
 		{
 			v->InitError |= 0x4;
 		}
-		if( ( ( float )( a->SystemParams.ThrottleRiseRamp[i] *0.001f ) < 1.0f ) && ( ( float )( a->SystemParams.ThrottleRiseRamp[i] *0.001f ) > 0.0f ) )
+		if( ( ( float )( a->SystemParams.ThrottleRiseRamp[i] *0.001f ) < 10.1f ) && ( ( float )( a->SystemParams.ThrottleRiseRamp[i] *0.001f ) > 0.0f ) )
 		{
 			v->InitError = 0;
 		}
@@ -45,7 +45,7 @@ void ThrottleMapping_Init( ThrottleMapping_t *v, DriveParams_t *a )
 			v->InitError |= 0x8;
 		}
 	}
-	if( ( ( float )( a->SystemParams.ThrottleFallRamp *0.001f ) < 1.1f ) && ( ( float )( a->SystemParams.ThrottleFallRamp *0.001f ) > 0.0f ) )
+	if( ( ( float )( a->SystemParams.ThrottleFallRamp *0.001f ) < 10.1f ) && ( ( float )( a->SystemParams.ThrottleFallRamp *0.001f ) > 0.0f ) )
 	{
 		v->InitError = 0;
 	}
@@ -139,7 +139,7 @@ void ThrottleMapping_Ramp( ThrottleMapping_t *v )
 {
 	if( v->PercentageTarget > v->PercentageOut )
 	{
-		v->PercentageOut = v->PercentageOut + v->ThrottleTnTab[ v->TnSelect ].ThrotRiseRamp;
+		v->PercentageOut = v->PercentageOut + ( v->ThrottleTnTab[ v->TnSelect ].ThrotRiseRamp * 0.1f);
 		if( v->PercentageTarget < v->PercentageOut )
 		{
 			v->PercentageOut = v->PercentageTarget;
@@ -148,7 +148,7 @@ void ThrottleMapping_Ramp( ThrottleMapping_t *v )
 	else
 	{
 //		v->PercentageOut = v->PercentageTarget;
-		v->PercentageOut = v->PercentageOut - v->ThrottleTnTab[ v->TnSelect ].ThrotFallRamp;
+		v->PercentageOut = v->PercentageOut - ( v->ThrottleTnTab[ v->TnSelect ].ThrotFallRamp * 0.1f);
 		if( v->PercentageTarget > v->PercentageOut )
 		{
 			v->PercentageOut = v->PercentageTarget;
