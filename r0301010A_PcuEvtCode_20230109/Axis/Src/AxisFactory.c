@@ -94,8 +94,8 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
         v->AlarmDetect.CAN1Timeout.Counter = 0;
     }
     v->pCANRxInterface->ReceivedCANID = 0;
-//    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
-    v->FourQuadCtrl.DrivePowerLevelTarget = PowerLevelGainArray[v->pCANRxInterface->PowerLevel - 1];
+    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
+//    v->FourQuadCtrl.DrivePowerLevelTarget = PowerLevelGainArray[v->pCANRxInterface->PowerLevel - 1];
 }
 
 void AxisFactory_UpdateCANTxInterface( Axis_t *v )
