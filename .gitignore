@@ -52,15 +52,15 @@ Mkfile.old
 dkms.conf
 
 # folders
-r0301010A_PcuEvtCode_20230109/.metadata/
-r0301010A_PcuEvtCode_20230109/.settings/
-r0301010A_PcuEvtCode_20230109/DebugBME/
-r0301010A_PcuEvtCode_20230109/Release/
+r04010101_ESCAPP_20231004/.metadata/
+r04010101_ESCAPP_20231004/.settings/
+r04010101_ESCAPP_20231004/DebugBME/
+r04010101_ESCAPP_20231004/Release/
 .metadata/
-r0301010A_PcuEvtCode_20230109/.cproject
+r04010101_ESCAPP_20231004/.cproject
 .vscode/settings.json
-r0301010A_PcuEvtCode_20230109/.cproject
-r0301010A_PcuEvtCode_20230109/trunk Debug OF11.launch
-r0301010A_PcuEvtCode_20230109/trunk.launch
-r0301010A_PcuEvtCode_20230109/trunk Debug OF11.launch
-r0301010A_PcuEvtCode_20230109/.settings/com.st.stm32cube.ide.mcu.sfrview.prefs
+r04010101_ESCAPP_20231004/.cproject
+r04010101_ESCAPP_20231004/trunk Debug OF11.launch
+r04010101_ESCAPP_20231004/trunk.launch
+r04010101_ESCAPP_20231004/trunk Debug OF11.launch
+r04010101_ESCAPP_20231004/.settings/com.st.stm32cube.ide.mcu.sfrview.prefs
