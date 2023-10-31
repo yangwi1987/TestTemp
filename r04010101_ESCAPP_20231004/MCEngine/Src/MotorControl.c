@@ -28,7 +28,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
 	DevideVbus = 1.0f / p->SensorFb.Vbus;
 	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
-	if( FunctionMode == FUNCTION_MODE_BOOTSTRAP )
+	switch ( FunctionMode )
+	{
+	case FUNCTION_MODE_BOOTSTRAP:
+//	if( FunctionMode == FUNCTION_MODE_BOOTSTRAP )
 	{
 		//CmdFrom = CMD_FROM_NONE;
 		//PosFb = POS_FB_NONE;
@@ -41,8 +44,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 		BootrapDuty.Duty[1]=p->Cmd.BoostrapDuty;
 		BootrapDuty.Duty[2]=p->Cmd.BoostrapDuty;
 		p->PwmDutyCmd.Set180( &(BootrapDuty), &(p->PwmDutyCmd) );
+		break;
 	}
-	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
+	case FUNCTION_MODE_IF_CONTROL:
+//	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
 	{
 		p->IfControl.Calc( &(p->IfControl), p->Cmd.IfRpmTarget );
 		p->CurrentControl.IdCmd = 0.0f;
@@ -104,8 +109,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
 		//Set command
 		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
+			break;
 	}
-	else if ( FunctionMode == FUNCTION_MODE_VF_CONTROL )
+	case FUNCTION_MODE_VF_CONTROL:
+//	else if ( FunctionMode == FUNCTION_MODE_VF_CONTROL )
 	{
 		p->VfControl.Calc( &(p->VfControl), p->Cmd.VfRpmTarget );
 
@@ -151,8 +158,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
 		//Set command
 		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
+			break;
 	}
-	else if ( FunctionMode == FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP )
+	case FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP:
+//	else if ( FunctionMode == FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP )
 	{
 		// CmdFrom = CMD_FROM_SIX_WAVE_120_CLOSE_LOOP;
 		p->SixWave120CurrentControl.CurrCmd = p->Cmd.SixWaveCurrCmd;
@@ -180,8 +189,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 		p->PwmDutyCmd.MaxDuty = 1.0f - ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
 		p->SixWave120Duty.DutyCmd = p->PwmDutyCmd.MinDuty + p->SixWave120Duty.DutyCmd;
 		p->PwmDutyCmd.Set120( p->SixWave120Duty.DutyCmd, &(p->PwmDutyCmd), p->SixWave120Duty.PwmStatus);
+		break;
 	}
-	else
+//	else
+	default:
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
 		if ( p->CurrentControl.EnableDirectIdqCmd == FUNCTION_ENABLE)
@@ -198,21 +209,21 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 		p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 
 		//PosFb = POS_FB_EEMF;
-		if( FunctionMode == FUNCTION_MODE_EEMF )
-		{
-#if MOTOR_STAGE==MOTOR_P1_3
-			p->CurrentControl.EleAngle = p->Sensorless.EEMF.EleAngle;	
-#else
-			p->CurrentControl.EleAngle = p->Sensorless.EEMF.EleAngle + p->Sensorless.EEMF.EleSpeed * 0.000021f;
-#endif
-			p->CurrentControl.EleSpeed = p->Sensorless.EEMF.EleSpeed;
-		}
-		//PosFb = POS_FB_HFI_SIN;
-		else if ( FunctionMode == FUNCTION_MODE_HFI_SIN )
-		{
-			p->CurrentControl.EleAngle = p->Sensorless.HFISin.EleAngle;
-			p->CurrentControl.EleSpeed = p->Sensorless.HFISin.EleSpeed;
-		}
+//		if( FunctionMode == FUNCTION_MODE_EEMF )
+//		{
+//#if MOTOR_STAGE==MOTOR_P1_3
+//			p->CurrentControl.EleAngle = p->Sensorless.EEMF.EleAngle;
+//#else
+//			p->CurrentControl.EleAngle = p->Sensorless.EEMF.EleAngle + p->Sensorless.EEMF.EleSpeed * 0.000021f;
+//#endif
+//			p->CurrentControl.EleSpeed = p->Sensorless.EEMF.EleSpeed;
+//		}
+//		//PosFb = POS_FB_HFI_SIN;
+//		else if ( FunctionMode == FUNCTION_MODE_HFI_SIN )
+//		{
+//			p->CurrentControl.EleAngle = p->Sensorless.HFISin.EleAngle;
+//			p->CurrentControl.EleSpeed = p->Sensorless.HFISin.EleSpeed;
+//		}
 #if	USE_HFI_SIN==USE_FUNCTION
 		//HFI
 		if( p->Sensorless.AngleInit.Start == FUNCTION_YES )
@@ -372,6 +383,9 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
 		//Set command
 		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
+
+	}
+	break;
 	}
 }
 

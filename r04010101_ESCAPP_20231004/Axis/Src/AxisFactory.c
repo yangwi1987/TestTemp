@@ -328,12 +328,12 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
             }
-            else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
-            {
-            	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-            	v->MotorCtrlMode = FUNCTION_MODE_BOOTSTRAP;
-            	v->MotorControl.Clean( &v->MotorControl );
-            }
+//            else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
+//            {
+//            	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+//            	v->MotorCtrlMode = FUNCTION_MODE_BOOTSTRAP;
+//            	v->MotorControl.Clean( &v->MotorControl );
+//            }
             break;
 
         case MOTOR_STATE_SHUTDOWN_START:
@@ -541,6 +541,7 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 
     if( v->ServoOn )
     {
+    	/*
         if( v->SpeedInfo.ElecSpeedAbs < EEMF_START_SPEED  )
         {
             if( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_NO )
@@ -586,6 +587,7 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
                 v->MotorControl.Sensorless.EEMF.EEMFCalcProcess = SENSORLESS_CALC_PROCESS_EXE;
             }
         }
+        */
         //
         // do FOC calculations
         v->MotorControl.Process( &v->MotorControl, v->MotorCtrlMode);
