@@ -2209,17 +2209,17 @@ void drive_DoCurrentLoop(void)
 #endif
 
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
-	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
-	{
+//	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
+//	{
 		// Update Control Feedback
-		Axis[i].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[i];
-		Axis[i].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[i];
-		Axis[i].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[i];
-		Axis[i].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+		Axis[0].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[0];
+		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[0];
+		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[0];
+		Axis[0].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
 
 		// Do Current Loop Tasks
-		Axis[i].DoCurrentLoop(&Axis[i]);
-	}
+		Axis[0].DoCurrentLoop(&Axis[0]);
+//	}
 }
 
 void Session_DoPLCLoop(void)
