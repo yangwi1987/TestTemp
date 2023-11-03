@@ -554,12 +554,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 //	AdcStation1.ReadInjectionGroupValue( &AdcStation1, hadc );
 //	AdcStation1.MarkInjectionGroupReadFlag( &AdcStation1, hadc );
 	ADC_HANDLE_INJECTION_GROUP_MACRO( (&AdcStation1), hadc )
-
 	if( AdcStation1.AdcInjGroup == AdcStation1.AdcInjGroupFlag )
 	{
-#if USE_DIGITAL_FOIL_TO_MEASURE_CPU_LOAD_ADCINJ_CURRENT
-        HAL_GPIO_WritePin( GPIOE, FOIL_DI3_Pin, GPIO_PIN_SET );
-#endif
+
 #if MEASURE_CPU_LOAD_CURRENTLOOP || JUDGE_FUNCTION_DELAY
         uint32_t CurrentTimeStamp = DWT->CYCCNT;
         uint32_t EndTimeStamp = 0;
