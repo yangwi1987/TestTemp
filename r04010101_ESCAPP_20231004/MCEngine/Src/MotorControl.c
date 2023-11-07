@@ -17,7 +17,8 @@ PHASE_TO_STATOR_TYPE StatorCurrFbTmp = PHASE_TO_STATOR_DEFAULT;
 
 //__attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
-void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
+void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
+{
 
 	float VbusLimit = 0.0f;
 	float DevideVbus = 0.0f;
@@ -25,7 +26,7 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 	float CosValue = 0.0f;
 
 	//Assign the related feedback and limitation from Sensor to Control	: 1.6us
-	COORDINATE_TRANSFER_PHASE_TO_STATOR_MACRO( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) )
+	COORDINATE_TRANSFER_Phase_to_Stator_Calc( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) );
 
 	DevideVbus = 1.0f / p->SensorFb.Vbus;
 	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
@@ -41,7 +42,7 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 			p->Cmd.IdCmd = p->TorqueToIdq.IdCmd;
 			p->Cmd.IqCmd = p->TorqueToIdq.IqCmd;
 		}
-		MOTOR_CONTROL_FLUX_WEAKENING_FOR_CURRENT_CONTROL( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
+		FLUX_WEAKENING_Calc( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
 		p->CurrentControl.IdCmd = p->CurrentControl.FluxWeakening.IdCmd;
 		p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 
@@ -49,8 +50,9 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
 
 		// Iab to Idq : 9.4us = 11us - 1.6us
-		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_STATOR_TO_ROTOR_MACRO( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
+		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue );
+//		COORDINATE_TRANSFER_GetSinCos_LT((uint16_t)(p->CurrentControl.EleAngle * 651.8986f ), &SinValue, &CosValue);  //
+		COORDINATE_TRANSFER_Stator_to_Rotoe_Calc( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
 
 		//CtrlMode = CTRL_MODE_CURRENT_CONTROL;
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
@@ -81,18 +83,16 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 			p->CurrentControl.IqRegulator.Ui *= Vgain;
 
 		}
-
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
+//		COORDINATE_TRANSFER_GetSinCos_LT((uint16_t)((p->VoltCmd.EleCompAngle * 651.8986f )), &SinValue, &CosValue);
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
-		p->PwmDutyCmd.MinDuty = 0.0f;
-		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
-		p->PwmDutyCmd.MinDuty = 1.0f;
-//		GENERATE_PWM_DUTY_SVPWM_MACRO2( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
+//		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
+		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) * p->CurrentControl.PwmHz;
 		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
 		if ( p->PwmDutyCmd.MinDuty > 1.0f)
 		{
@@ -100,16 +100,15 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 			p->PwmDutyCmd.MinDuty = 0.0f;
 		}
 
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) )
-		COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) )
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
+		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
 		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
 		p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
 		p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
 		p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
 
 		//Set command
-		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
-		p->PwmDutyCmd.MinDuty = 0.0f;
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) );
 	}
 	else if( FunctionMode == FUNCTION_MODE_BOOTSTRAP )
 	{
@@ -123,7 +122,7 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 		BootrapDuty.Duty[0]=p->Cmd.BoostrapDuty;
 		BootrapDuty.Duty[1]=p->Cmd.BoostrapDuty;
 		BootrapDuty.Duty[2]=p->Cmd.BoostrapDuty;
-		p->PwmDutyCmd.Set180( &(BootrapDuty), &(p->PwmDutyCmd) );
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( &(BootrapDuty), &(p->PwmDutyCmd) );
 
 	}
 	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
@@ -138,7 +137,7 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 		p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
 		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_STATOR_TO_ROTOR_MACRO(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) )
+		COORDINATE_TRANSFER_Stator_to_Rotoe_Calc(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
 
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
 		p->CurrentControl.IqRegulator.CalcNoLimit( p->CurrentControl.IqCmd, p->CurrentControl.RotorCurrFb.Q, &(p->CurrentControl.IqRegulator) );
@@ -166,10 +165,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 		}
 
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
 
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
-		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
+		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
 		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
 		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
@@ -178,16 +177,16 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 			p->PwmDutyCmd.MaxDuty = 1.0f;
 			p->PwmDutyCmd.MinDuty = 0.0f;
 		}
-			COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) )
-			COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) )
-			p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
-			p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
-			p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
-			p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
+		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
+		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
+		p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
+		p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
+		p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
 
 
 		//Set command
-		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) );
 	}
 	else if ( FunctionMode == FUNCTION_MODE_VF_CONTROL )
 	{
@@ -215,9 +214,9 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 		}
 
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
 
-		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
+		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
 		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
 		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
@@ -226,15 +225,15 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode){
 			p->PwmDutyCmd.MaxDuty = 1.0f;
 			p->PwmDutyCmd.MinDuty = 0.0f;
 		}
-			COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) )
-			COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) )
-			p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
-			p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
-			p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
-			p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
+		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
+		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
+		p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
+		p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
+		p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
 
 		//Set command
-		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) );
 	}
 	else if ( FunctionMode == FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP )
 	{

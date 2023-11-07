@@ -34,8 +34,3 @@ void MotorControl_FluxWeakeningForCurrentControlClean( CURRENT_CONTROL_FLUX_WEAK
 	p->IdComp = 0.0f;
 	p->FluxWeakeningRegulator.Clean( &(p->FluxWeakeningRegulator) );
 }
-
-void MotorControl_FluxWeakeningForCurrentControlCalc( CURRENT_CONTROL_FLUX_WEAKENING_TYPE *p, float VcmdAmp, float VbusLimit, float OrgIdCmd, float OrgIqCmd)
-{
-	//It's replaced by MOTOR_CONTROL_FLUX_WEAKENING_FOR_CURRENT_CONTROL
-}

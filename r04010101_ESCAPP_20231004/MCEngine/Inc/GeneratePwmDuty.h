@@ -41,8 +41,15 @@ enum SIX_WAVE_TORQUE_POLARITY_ENUM
 	 SIX_WAVE_TORQUE_POLARITY_NEGATIVE,
 };
 
+typedef enum
+{
+	SVPWM = 0,
+	DPWM_H,
+	DPWM_L,
+	DPWM_ANGLE_SGIFT
+}DPWM_SELECT_e;
+
 typedef void (*pDutyCommand120Degree)( float, void*, uint16_t );
-typedef void (*pDutyCommand180Degree)( void*, void*);
 typedef uint16_t (*pDutyCommandInit)( float, float, float, void*);
 typedef void (*pDutyCommandClean)( void* );
 typedef void (*pSvpwmCalc)( float, float, float, void*);
@@ -76,7 +83,6 @@ typedef struct
 	float MaxDuty;
 	float MinDuty;
 	pDutyCommand120Degree Set120;
-	pDutyCommand180Degree Set180;
 	pDutyCommandInit Init;
 	pDutyCommandClean Clean;
 } DUTY_COMMAND_TYPE;
@@ -84,7 +90,7 @@ typedef struct
 typedef struct
 {
 	DUTY_TYPE Duty;
-	pSvpwmCalc Calc;
+	DPWM_SELECT_e DPWM_Select;
 } SVPWM_TYPE;
 
 typedef struct
@@ -113,10 +119,8 @@ typedef struct
 } SIX_WAVE_120_DUTY_TYPE;
 
 void GeneratePwmDuty_DutyCommand120Degree( float DutyCmd, DUTY_COMMAND_TYPE* p2, uint16_t Section);
-void GeneratePwmDuty_DutyCommand180Degree( DUTY_TYPE* p1, DUTY_COMMAND_TYPE* p2);
 uint16_t GeneratePwmDuty_DutyCommandInit( float PwmPeriod, float DeadTime, float MinTime, DUTY_COMMAND_TYPE* p);
 void GeneratePwmDuty_DutyCommandClean( DUTY_COMMAND_TYPE* p );
-void GeneratePwmDuty_SvpwmCalc( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p);
 void GeneratePwmDuty_SixWave120Calc( SIX_WAVE_120_DUTY_TYPE* p, float DivideVbus );
 void GeneratePwmDuty_CompensateDeadtimeByPhaseInit( COMPENSATION_DEADTIME_TYPE* p, float DeadtimeDutyP, float CornerCurrP, float DeadtimeDutyN, float CornerCurrN);
 void GeneratePwmDuty_CompensateDeadtimeByPhase( COMPENSATION_DEADTIME_TYPE* p, float Iu, float Iv, float Iw);
@@ -134,7 +138,6 @@ void GeneratePwmDuty_CompensateDeadtimeByPhase( COMPENSATION_DEADTIME_TYPE* p, f
 	1.0f,								\
 	0.0f,								\
 	(pDutyCommand120Degree)GeneratePwmDuty_DutyCommand120Degree,	\
-	(pDutyCommand180Degree)GeneratePwmDuty_DutyCommand180Degree,	\
 	(pDutyCommandInit)GeneratePwmDuty_DutyCommandInit,				\
 	(pDutyCommandClean)GeneratePwmDuty_DutyCommandClean,			\
 }
@@ -142,7 +145,7 @@ void GeneratePwmDuty_CompensateDeadtimeByPhase( COMPENSATION_DEADTIME_TYPE* p, f
 #define SVPWM_DEFAULT 			\
 {								\
 	DUTY_DEFAULT,				\
-	(pSvpwmCalc)GeneratePwmDuty_SvpwmCalc	\
+	SVPWM,                      \
 }
 
 #define SIX_WAVE_120_DUTY_DEFAULT	\
@@ -184,27 +187,16 @@ void GeneratePwmDuty_CompensateDeadtimeByPhase( COMPENSATION_DEADTIME_TYPE* p, f
 	(pfunGeneratePwmDuty_CompensateDeadtimeByPhase) GeneratePwmDuty_CompensateDeadtimeByPhase,	\
 }
 
-#define GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( p1, p2)				\
-	uint16_t CounterTmp = 0;											\
-	\
-	for ( CounterTmp = 0; CounterTmp < MOTOR_PHASE; CounterTmp++ )		\
-	{																	\
-		if ( p1->Duty[CounterTmp] > p2->MaxDuty )						\
-		{																\
-			p2->DutyLimitation.Duty[CounterTmp] = p2->MaxDuty;			\
-		}																\
-		else if ( p1->Duty[CounterTmp] < p2->MinDuty )					\
-		{																\
-			p2->DutyLimitation.Duty[CounterTmp] = p2->MinDuty;			\
-		}																\
-		else															\
-		{																\
-			p2->DutyLimitation.Duty[CounterTmp] = p1->Duty[CounterTmp];	\
-		}																\
-	}																	\
+__STATIC_FORCEINLINE void GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( DUTY_TYPE* p1, DUTY_COMMAND_TYPE* p2 )				\
+{
+	p2->DutyLimitation.Duty[PHASE_U] = LIMIT(p1->Duty[PHASE_U], p2->MinDuty, p2->MaxDuty);
+	p2->DutyLimitation.Duty[PHASE_V] = LIMIT(p1->Duty[PHASE_V], p2->MinDuty, p2->MaxDuty);
+	p2->DutyLimitation.Duty[PHASE_W] = LIMIT(p1->Duty[PHASE_W], p2->MinDuty, p2->MaxDuty);
 	p2->DutyLimitation.PwmMode = PWM_COMPLEMENTARY;						\
+}
 
-#define GENERATE_PWM_DUTY_SVPWM_MACRO( Alpha, Beta, DevideVbus, p)		\
+__STATIC_FORCEINLINE __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) GENERATE_PWM_DUTY_SVPWM_MACRO( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
+{
 	int16_t Section = 1;												\
 	float U = 0.0f;														\
 	float V = 0.0f;														\
@@ -254,5 +246,59 @@ void GeneratePwmDuty_CompensateDeadtimeByPhase( COMPENSATION_DEADTIME_TYPE* p, f
 	p->Duty.Duty[PHASE_U] = 0.5f + DevideVbus * U;						\
 	p->Duty.Duty[PHASE_V] = 0.5f + DevideVbus * V;						\
 	p->Duty.Duty[PHASE_W] = 0.5f + DevideVbus * W;						\
+}
+
+__STATIC_FORCEINLINE void GENERATE_PWM_DUTY_SVPWM_Calc( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
+{
+	float U = 0.0f;
+	float V = 0.0f;
+	float W = 0.0f;
+	float Max = 0.0f;
+	float Min = 0.0f;
+
+	U = Alpha;
+	V = -0.5f * Alpha + 0.866025403f * Beta;
+	W = -0.5f * Alpha - 0.866025403f * Beta;
+
+    if ( U > V)
+    {
+    	Max = U;
+    	Min = V;
+    }
+    else
+    {
+    	Max = V;
+    	Min = U;
+    }
+    if ( W > Max )
+    {
+    	Max = W;
+    }
+    else if ( W < Min )
+    {
+    	Min = W;
+    }
+
+    if ( p->DPWM_Select == SVPWM )
+    {
+    	float ZeroSequence = 0.0f;
+        ZeroSequence = 0.5f * ( Max + Min );
+    	p->Duty.Duty[PHASE_U] = 0.5f + DevideVbus * ( U - ZeroSequence );
+    	p->Duty.Duty[PHASE_V] = 0.5f + DevideVbus * ( V - ZeroSequence );
+    	p->Duty.Duty[PHASE_W] = 0.5f + DevideVbus * ( W - ZeroSequence );
+    }
+    else if ( p->DPWM_Select == DPWM_H )
+	{
+    	p->Duty.Duty[PHASE_U] = 1.0f + DevideVbus * ( U - Max );
+    	p->Duty.Duty[PHASE_V] = 1.0f + DevideVbus * ( V - Max );
+    	p->Duty.Duty[PHASE_W] = 1.0f + DevideVbus * ( W - Max );
+	}
+    else if ( p->DPWM_Select == DPWM_L )
+    {
+    	p->Duty.Duty[PHASE_U] = DevideVbus * ( U - Min );
+    	p->Duty.Duty[PHASE_V] = DevideVbus * ( V - Min );
+    	p->Duty.Duty[PHASE_W] = DevideVbus * ( W - Min );
+    }
+}
 
 #endif /* INC_GENERATEPWMDUTY_H_ */

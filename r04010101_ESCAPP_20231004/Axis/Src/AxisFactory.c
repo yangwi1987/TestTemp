@@ -9,8 +9,6 @@
 #include "UiApp.h"
 #include "AxisFactory.h"
 
-#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
-#define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
 
 static uint8_t CurrToPLCCnt = 0;
 extern uint16_t IsUseDigitalFoilSensor;
