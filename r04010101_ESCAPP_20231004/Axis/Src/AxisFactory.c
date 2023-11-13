@@ -300,42 +300,12 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             else
             {
                 v->MotorCtrlMode = CtrlUi.MotorCtrlMode;
-#if	USE_EEMF==USE_FUNCTION
-                if( (CtrlUi.MotorCtrlMode==FUNCTION_MODE_VF_CONTROL) || (CtrlUi.MotorCtrlMode==FUNCTION_MODE_IF_CONTROL) )
-                {
-
-                }
-                else
-                {
-                    v->MotorCtrlMode = ( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_YES ) ? FUNCTION_MODE_EEMF : v->MotorCtrlMode;
-                }
-#else
-                v->MotorCtrlMode = CtrlUi.MotorCtrlMode;
-#endif
-#if	USE_HFI_SIN==USE_FUNCTION
-                if( (CtrlUi.MotorCtrlMode==FUNCTION_MODE_VF_CONTROL) || (CtrlUi.MotorCtrlMode==FUNCTION_MODE_IF_CONTROL) )
-                {
-
-                }
-                else
-                {
-                    v->MotorCtrlMode = ( v->MotorControl.Sensorless.HFISin.Start == FUNCTION_YES ) ? FUNCTION_MODE_HFI_SIN : v->MotorCtrlMode;
-                }
-#else
-                v->MotorCtrlMode = CtrlUi.MotorCtrlMode;
-#endif
             }
 
             if( !ServoOnEnable )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
             }
-//            else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
-//            {
-//            	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-//            	v->MotorCtrlMode = FUNCTION_MODE_BOOTSTRAP;
-//            	v->MotorControl.Clean( &v->MotorControl );
-//            }
             break;
 
         case MOTOR_STATE_SHUTDOWN_START:
