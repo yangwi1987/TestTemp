@@ -2200,7 +2200,7 @@ void drive_DoPwmRcCatch(void)
 
 void drive_DoCurrentLoop(void)
 {
-	int i;
+//	int i;
 
 	AdcStation1.DoCurrentLoop( &AdcStation1 );
 #if USE_CALC_SUM_ROOT==USE_FUNCTION

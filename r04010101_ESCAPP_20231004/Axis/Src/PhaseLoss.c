@@ -25,7 +25,7 @@ void PhaseLoss_RunTimeDetect( PHASE_LOSS_TYPE *p )
 	if( p->PLCLoopVcmdAmp > MIN_VOLT_IN_PHASE_LOSS )
 	{
 		// Detect sum of each phase current below HFI speed
-		if( p->PLCLoopElecSpeedAbs < EEMF_START_SPEED )
+		if( p->PLCLoopElecSpeedAbs < PHASE_LOSS_SPEED )
 		{
 			if( (p->Avg1KhzCurrSqrU + p->Avg1KhzCurrSqrV + p->Avg1KhzCurrSqrW) < LEAST_SINGLE_PHASE_CURRENT_SQUARE )
 			{
