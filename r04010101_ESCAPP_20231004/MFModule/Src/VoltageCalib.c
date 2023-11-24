@@ -8,7 +8,7 @@
 
 #include "VoltageCalibration.h"
 
-#if BME
+
 uint16_t ReadVoltageAdcValue( VOLT_CALIB_DEFINE *v, AdcStation *a, uint32_t *Enable )
 {
 	if( *Enable > 0 )
@@ -35,4 +35,3 @@ uint16_t ReadVoltageAdcValue( VOLT_CALIB_DEFINE *v, AdcStation *a, uint32_t *Ena
 		return v->AvgValue;
 	}
 }
-#endif

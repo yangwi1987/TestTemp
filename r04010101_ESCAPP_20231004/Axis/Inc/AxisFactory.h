@@ -26,7 +26,12 @@
 #include "SpeedInfo.h"
 #include "ConstantParamAndUseFunction.h"
 #include "RcUartComm.h"
+#if BME
 #include "BMEApp.h"
+#endif
+#if E10
+#include "E10App.h"
+#endif
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);
 typedef void (*functypeAxis_DoCurrentLoop)(void*);
@@ -122,6 +127,7 @@ typedef union
 	uint16_t All;
 	FoilInfor_t Bit;
 }FoilInfor_u;
+
 #if BME
 typedef struct {
 	int16_t AxisID;
@@ -222,7 +228,109 @@ typedef struct {
 	(functypeAxis_Do10HzLoop)AxisFactory_Do10HzLoop, \
 	(functypeAxis_OnParamValueChanged)AxisFactory_OnParamValueChanged \
 }
-#endif
+#endif /* BME */
+
+#if E10
+typedef struct {
+	int16_t AxisID;
+	uint16_t PcuID;
+	uint16_t PIDCheckResult;
+	uint16_t ESCOperationState;
+	int16_t ServoOn;
+	int16_t ServoOnOffState;
+	uint16_t HasWarning; // 0: no warning, 1: warning exist
+	uint16_t HasNonCriAlarm; // 0: no non-critical alarm, 1: non-critical alarm exist
+	uint16_t HasCriAlarm; // 0: no critical alarm, 1: critical alarm exist
+	int16_t BootstrapCounter;
+	int16_t BootstrapMaxCounter;
+	int16_t BoostrapTimeMs;
+	int16_t MotorCtrlMode;
+	int16_t	CtrlUiEnable;
+	int16_t VCUServoOnCommand;
+	float ThrottleGain;
+	uint16_t ThrottleGainState;
+	uint16_t DcBusGainState;
+	int16_t PcuPowerState;
+	FoilInfor_u FoilState;
+	uint16_t MfOrRDFunctionDisable;
+	uint16_t TriggerLimpHome;
+	MOTOR_CONTROL_TYPE MotorControl;
+	PWM_RC_TYPE	PwmRc;
+	TorqCommandGenerator_t TorqCommandGenerator;
+	AlarmStack_t* pAlarmStack;
+	DriveParams_t *pDriveParams;
+	AdcStation  *pAdcStation;
+	PwmStation	*pPwmStation;
+	ExtranetCANStation_t *pCANStaion;
+	AlarmDetect_t AlarmDetect;
+	ThrottleMapping_t ThrotMapping;
+	FourQuadControl FourQuadCtrl;
+	MotorStall_t MotorStall;
+	ThermoStrategy_t ThermoStrategy;
+	STRUCT_CANTxInterface	*pCANTxInterface;
+	STRUCT_CANRxInterface	*pCANRxInterface;
+	PHASE_LOSS_TYPE	PhaseLoss;
+	SpeedInfo_t SpeedInfo;
+	AnalogFoilInfo_t AnalogFoilInfo;
+	DriveLockInfo_t DriveLockInfo;
+	functypeAxis_Init Init;
+	functypeAxis_DoCurrentLoop DoCurrentLoop;
+	functypeAxis_DoPLCLoop DoPLCLoop;
+	functypeAxis_Do100HzLoop Do100HzLoop;
+	functypeAxis_Do10HzLoop Do10HzLoop;
+	functypeAxis_OnParamValueChanged OnParamValueChanged;
+} Axis_t;
+
+#define AXIS_DEFAULT { \
+	0,      /*AxisID;             */ \
+	0,      /* PcuID;             */ \
+	0,      /* PIDCheckResult;    */ \
+	0,      /*ESCOperationState   */ \
+	0,      /*ServoOn;            */ \
+	0,      /*ServoOnOffState;    */ \
+	0,      /* HasWarning;        */ \
+	0,      /* HasNonCriAlarm;          */ \
+	0,      /* HasCriAlarm;          */ \
+	0,      /*BootstrapCounter;   */ \
+	100,	/*BootstrapMaxCounter;*/ \
+	10,     /*BoostrapTimeMs;     */ \
+	1,      /*MotorCtrlMode;      */ \
+	0,      /*CtrlUiEnable;       */ \
+	0,      /*VCUServoOnCommand;  */ \
+	0.0f,   /*ThrottleGain*/ \
+	0,      /*ThrottleGainState;*/ \
+	0,      /*DcBusGainState;   */ \
+	PWR_SM_INITIAL,    /*PcuPowerState;       */\
+	{0},                   /*    FoilState;       */\
+	1,	                   /* MfOrRDFunctionDisable;    */\
+	0,	                   /* TriggerLimpHome;    */\
+	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\
+	PWM_RC_TYPE_DEFAULT,   /*   	PwmRc;        */\
+	TORQ_COMMAND_GENERTATOR_DEFAULT, /*TorqCommandGenerator*/\
+	0, /* pAlarmStack; */\
+	0, /* *pDriveParams*/\
+	0, /*pAdcStation;  */\
+	0, /*pPwmStation;  */\
+	0, /*pCANStaion*/\
+	ALARM_DETECT_DEFAULT, \
+	THROTTLE_CALIB_DEFAULT, \
+	FOURQUADCONTROL_DEFAULT, \
+	MOTORSTALL_DEFAULT, \
+	THERMOSTRATEGY_DEFAULT, \
+	0,                             /*pCANTxInterface*/\
+	0,                             /*pCANRxInterface*/\
+	PHASE_LOSS_DEFAULT,	\
+	SPEED_INFO_DEFAULT,	\
+	ANALOG_FOIL_INFO_DEFAULT, \
+	DRIVE_LOCK_INFO_DERAULT, \
+	(functypeAxis_Init)AxisFactory_Init, \
+	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
+	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \
+	(functypeAxis_Do100HzLoop)AxisFactory_Do100HzLoop, \
+	(functypeAxis_Do10HzLoop)AxisFactory_Do10HzLoop, \
+	(functypeAxis_OnParamValueChanged)AxisFactory_OnParamValueChanged \
+}
+#endif /* E10 */
 
 #define ANALOG_FOIL_INFO_DEFAULT { \
 	0.0f, \

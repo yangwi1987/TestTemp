@@ -56,7 +56,7 @@ uint16_t IntFlash_Read ( IntFlashCtrl_t *v, uint16_t Idx, uint8_t *pDataOut )
 	uint8_t i = 0;
 	uint8_t j = 0;
 	uint8_t temp = 0;
-	uint8_t *pData;
+	const uint8_t *pData;
 	IntFlashInform_t *p;
 	p = (v->pInformTable + Idx);
 	for ( i = 0; i < p->pSetup->ElementNumber; i++ )
