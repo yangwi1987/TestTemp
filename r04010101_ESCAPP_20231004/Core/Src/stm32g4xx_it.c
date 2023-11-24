@@ -492,7 +492,6 @@ void TIM20_UP_IRQHandler(void)
 
 #if  JUDGE_FUNCTION_DELAY
 uint32_t CurrentTimeStamp = DWT->CYCCNT;
-uint32_t EndTimeStamp = 0;
 uint32_t delta = CurrentTimeStamp - TIM20INT_Judge_Delay.previousTimestamp;
 static uint8_t initial_ignore = 0;
 TIM20INT_Judge_Delay.deltaCnt = delta;
