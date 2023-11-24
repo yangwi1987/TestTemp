@@ -408,31 +408,33 @@ void AxisFactory_GetSetting( Axis_t *v )
     }   
 }
 
+#if BME
 void AxisFactory_GetScooterThrottle( Axis_t *v )
 {
     //Throttle detect code
-#if BME
     v->ThrotMapping.ThrottleDI = ENABLE;
-#if EVT
-    //	v->PwmRc.DutyCalc = (v->PwmRc.DutyRaw - 0.10f)*10.0f;
-    //	if( v->PwmRc.DutyCalc > 1.0f )
-    //	{
-    //		v->PwmRc.DutyCalc = 1.0f;
-    //	}
-    //	else if(v->PwmRc.DutyCalc < 0.0f )
-    //	{
-    //		v->PwmRc.DutyCalc = 0.0f;
-    //	}
-    //	else;
-#endif
+
     v->ThrotMapping.ThrottleRawIn = (float)(v->pCANRxInterface->ThrottleCmd)*0.01f;
-#endif
 
     v->ThrotMapping.ChangeTime = v->FourQuadCtrl.DriveChangeTime;
     v->ThrotMapping.Calc( &v->ThrotMapping );
     v->ThrotMapping.Ramp( &v->ThrotMapping );
     v->ThrotMapping.TnSelectDelay = v->ThrotMapping.TnSelect;
 }
+#elif E10
+void AxisFactory_GetScooterThrottle( Axis_t *v )
+{
+    //Throttle detect code
+    v->ThrotMapping.ThrottleDI = ENABLE;
+
+    v->ThrotMapping.ThrottleRawIn = (float)(v->pCANRxInterface->ThrottleCmd)*0.01f;
+
+    v->ThrotMapping.ChangeTime = v->FourQuadCtrl.DriveChangeTime;
+    v->ThrotMapping.Calc( &v->ThrotMapping );
+    v->ThrotMapping.Ramp( &v->ThrotMapping );
+    v->ThrotMapping.TnSelectDelay = v->ThrotMapping.TnSelect;
+}
+#endif
 
 void AxisFactory_GetUiStatus( Axis_t *v )
 {

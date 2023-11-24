@@ -55,9 +55,8 @@ dkms.conf
 # folders
 r04010101_ESCAPP_20231004/.settings/
 r04010101_ESCAPP_20231004/DebugBME/
+r04010101_ESCAPP_20231004/DebugE10/
 r04010101_ESCAPP_20231004/Release/
 .metadata/
 .vscode/settings.json
-r04010101_ESCAPP_20231004/trunk Debug OF11.launch
-r04010101_ESCAPP_20231004/trunk.launch
 r04010101_ESCAPP_20231004/.settings/

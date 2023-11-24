@@ -21,13 +21,13 @@ static void AlarmStack_FlagSet( AlarmStack_t *p, uint16_t AlarmID )
 	p->AlarmFlag[Array] |= (((uint16_t)1)<<Bit);
 }
 
-static void AlarmStack_FlagUnset( AlarmStack_t *p, uint16_t AlarmID )
-{
-	uint16_t Array = 0;
-	uint16_t Bit = 0;
-	ALARM_FLAG_POS_MACRO( AlarmID, Array, Bit )
-	p->AlarmFlag[Array] &= ~((uint16_t)((0x0001)<<Bit));
-}
+//static void AlarmStack_FlagUnset( AlarmStack_t *p, uint16_t AlarmID )
+//{
+//	uint16_t Array = 0;
+//	uint16_t Bit = 0;
+//	ALARM_FLAG_POS_MACRO( AlarmID, Array, Bit )
+//	p->AlarmFlag[Array] &= ~((uint16_t)((0x0001)<<Bit));
+//}
 
 uint16_t AlarmStack_FlagRead( AlarmStack_t *p, uint16_t AlarmID )
 {

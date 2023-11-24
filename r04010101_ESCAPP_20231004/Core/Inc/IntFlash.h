@@ -77,7 +77,7 @@ typedef enum
 
 typedef struct
 {
-	uint8_t const *const pStart;
+	const uint8_t  *const pStart;
 	const uint16_t ElementByteNumber;
 	const uint16_t ElementNumber;
 	const uint16_t DataByteNumber;
@@ -87,7 +87,7 @@ typedef struct
 typedef struct
 {
 	const IntFlashSetup_t *pSetup;
-	uint8_t *pLast;
+	const uint8_t * pLast;
 	uint16_t Status;
 	uint16_t NextIndex;
 } IntFlashInform_t;

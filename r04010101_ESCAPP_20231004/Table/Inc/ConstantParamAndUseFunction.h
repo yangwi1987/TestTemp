@@ -20,9 +20,6 @@
 #define Factor_to_cal_power_from_dq 1.5f
 #define Root_of_One_Third 0.577350269f
 
-#define POC UNUSE_FUNCTION
-#define EVT USE_FUNCTION
-
 #define Judge_function_delay UNUSE_FUNCTION
 #define Measure_CPU_Load UNUSE_FUNCTION
 #define Measure_CPU_Load_ADC_Inj UNUSE_FUNCTION

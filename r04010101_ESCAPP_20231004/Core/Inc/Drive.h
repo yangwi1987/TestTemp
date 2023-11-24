@@ -105,11 +105,7 @@ extern DAC_HandleTypeDef hdac1;
 extern CORDIC_HandleTypeDef hcordic;
 extern UART_HandleTypeDef huart5;
 extern TIM_HandleTypeDef htim2;
-#if BME&POC
-extern TIM_HandleTypeDef htim2;
-#elif BME&EVT
 extern TIM_HandleTypeDef htim5;
-#endif
 extern USART_HandleTypeDef husart2;
 extern CRC_HandleTypeDef hcrc;
 //extern UART_HandleTypeDef huart3;
