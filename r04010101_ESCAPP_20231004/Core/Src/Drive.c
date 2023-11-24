@@ -1425,13 +1425,12 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Dc_Bus_Voltage = AdcStation1.AdcTraOut.BatVdc;
 	/*
 	 * Move to housekeeping
-	 */
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current = sqrtf(( Axis[0].MotorControl.CurrentControl.RotorCurrFb.D * Axis[0].MotorControl.CurrentControl.RotorCurrFb.D ) + \
-			                                                                              ( Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q * Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q ));
-//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
-                                                                                           Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * Factor_to_cal_power_from_dq;
-	//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( Root_of_One_Third * AdcStation1.AdcTraOut.BatVdc );
-	/*
+	 *	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Current = sqrtf(( Axis[0].MotorControl.CurrentControl.RotorCurrFb.D * Axis[0].MotorControl.CurrentControl.RotorCurrFb.D ) + \
+	 *	                                                                              ( Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q * Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q ));
+	 *  v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Input_Power =  ( Axis[0].MotorControl.CurrentControl.IdCmd * Axis[0].MotorControl.VoltCmd.VdCmd + \
+     *                                                                                      Axis[0].MotorControl.CurrentControl.IqCmd * Axis[0].MotorControl.VoltCmd.VqCmd ) * Factor_to_cal_power_from_dq;
+	 *  v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Modulation_Index = Axis[0].MotorControl.VoltCmd.VcmdAmp / ( Root_of_One_Third * AdcStation1.AdcTraOut.BatVdc );
+	 *
 	 *
 	 */
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Direct_Axis_Current = Axis[0].MotorControl.CurrentControl.RotorCurrFb.D;
@@ -2913,12 +2912,11 @@ void DisableMcuModule( void )
 //    __HAL_RCC_TIM4_FORCE_RESET();
 
 	// Timer 5
-#if BME&EVT
     HAL_TIM_IC_Stop_IT(&htim5, TIM_CHANNEL_ALL);
     __HAL_TIM_DISABLE_IT( &htim5, TIM_IT_IDX );
     HAL_TIM_Base_DeInit( &htim5 );
     __HAL_RCC_TIM2_FORCE_RESET();
-#endif
+
     // Timer 6
     HAL_TIM_Base_Stop_IT( &htim6 );
     HAL_TIM_Base_MspDeInit( &htim6 );
