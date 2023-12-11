@@ -33,6 +33,7 @@
 #include "RcUartComm.h"
 #include "DiagnosticTroubleCode.h"
 #include "RemainingTime.h"
+#include "PositionSensor.h"
 
 #if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
 typedef struct
@@ -108,6 +109,7 @@ extern AdcStation AdcStation1;
 extern PwmStation PwmStation1;
 extern AlarmMgr_t AlarmMgr1;
 extern ExtranetCANStation_t ExtranetCANStation;
+extern PS_t PSStation1;
 
 extern FDCAN_HandleTypeDef hfdcan1;
 extern FDCAN_HandleTypeDef hfdcan2;
@@ -140,6 +142,7 @@ extern void drive_Do1HzLoop(void);
 extern void drive_DoTotalTime(void);
 extern void drive_DoHouseKeeping(void);
 extern void drive_DoPwmRcCatch(void);
+extern void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim);
 extern void drive_DoLoad_DataToAdcGain(void);
 extern void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a );

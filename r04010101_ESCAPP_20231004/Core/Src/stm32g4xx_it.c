@@ -94,6 +94,8 @@ extern ADC_HandleTypeDef hadc2;
 extern FDCAN_HandleTypeDef hfdcan1;
 extern FDCAN_HandleTypeDef hfdcan2;
 extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim5;
 extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim20;
@@ -393,6 +395,20 @@ void TIM2_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM3 global interrupt.
+  */
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
+
+  /* USER CODE END TIM3_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM5 global interrupt.
   */
 void TIM5_IRQHandler(void)
@@ -513,6 +529,8 @@ else
   HAL_TIM_IRQHandler(&htim20);
   /* USER CODE BEGIN TIM20_UP_IRQn 1 */
 #endif
+  PSStation1.CntFromABZ = TIM4->CNT;
+  PSStation1.Direction = ( TIM4->CR1 >> 4 )& 0x1;  //Read DIR bit
   USER_HAL_TIM_IRQHandler(&htim20);
   AdcStation1.AdcInjGroup = 0;		// Clear ADC Flag
 
@@ -729,5 +747,17 @@ void USER_HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
 	}
 }
 
+/**
+  * @brief  Input Capture callback in non blocking mode
+  * @param  htim : TIM IC handle
+  * @retval None
+  */
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+    if ( htim->Instance == TIM3 )
+	{
+    	drive_DoPwmPositionCatch(htim);
+	}
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
