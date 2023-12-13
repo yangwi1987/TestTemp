@@ -2930,15 +2930,14 @@ void DisableMcuModule( void )
     __HAL_RCC_TIM2_FORCE_RESET();
 
 	// Timer 3
-//    HAL_TIM_Base_Stop_IT( &htim3 );
-//	__HAL_TIM_DISABLE_IT( &htim3, TIM_IT_IDX );
-//    HAL_TIM_Base_MspDeInit( &htim3 );
-//	__HAL_RCC_TIM3_FORCE_RESET();
+    HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_ALL);
+    HAL_TIM_Base_MspDeInit( &htim3 );
+    __HAL_RCC_TIM3_FORCE_RESET();
 
 	// Timer 4
-//    HAL_TIM_Base_Stop_IT( &htim4 );
-//    HAL_TIM_Base_MspDeInit( &htim4 );
-//    __HAL_RCC_TIM4_FORCE_RESET();
+    HAL_TIM_Encoder_Stop( &htim4, TIM_CHANNEL_ALL );
+    HAL_TIM_Encoder_MspDeInit( &htim4 );
+    __HAL_RCC_TIM4_FORCE_RESET();
 
 	// Timer 5
     HAL_TIM_IC_Stop_IT(&htim5, TIM_CHANNEL_ALL);
