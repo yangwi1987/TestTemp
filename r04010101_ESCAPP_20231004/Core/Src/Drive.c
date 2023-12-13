@@ -2213,7 +2213,7 @@ void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
             /* Duty cycle computation */
             PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2) * 100)) / (float)IC1Val;
 
-            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC1Val) * 170.0f);
+            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC1Val) * 17.0f);
 
         }
         else

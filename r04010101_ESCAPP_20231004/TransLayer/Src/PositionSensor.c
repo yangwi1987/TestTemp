@@ -17,7 +17,7 @@ void PositionSensor_Init(PS_t* v)
  * Load pole pairs
  */
 	FILTER_INIT_BILINEAR_1ORDER_TYPE FilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
-	FilterSettingTmp.BandwithHz = 10.0f;
+	FilterSettingTmp.BandwithHz = 400.0f;
 	FilterSettingTmp.Period =  0.0001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	v->CalcMechSpeedLPF.Init(&(v->CalcMechSpeedLPF),&FilterSettingTmp);
@@ -30,13 +30,13 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       case PS_SM_INIT_POSITION_SENSOR:
       {
     	  static uint8_t init_cnt = 0;
-    	  if ( init_cnt < 100 )
+    	  if ( init_cnt < 100 )  //delay 100ms, TBD with EE
     	  {
     		  init_cnt++;
     	  }
-    	  else if(( v->DutyFromPwm  <= 95.0f ) && ( v->DutyFromPwm >= 5.0f))
+    	  else
     	  {
-        	  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
+              v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
     	  }
 
     	  break;
@@ -87,16 +87,17 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 				                                ( v->MechPosition - v->PreMechPosition ) * 10000.0f : \
 												( v->MechPosition - v->PreMechPosition - _2PI ) * 10000.0f;
 	}
+
 	v->PreMechPosition = v->MechPosition;
 	v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(v->CalcMechSpeedLPF), v->MechSpeedRaw);
+
+	v->ElecSpeed = v->MechSpeed  * DEFAULT_POLE_PAIRS;
+	v->ElecPosition = fmod( v->MechPosition * DEFAULT_POLE_PAIRS, _2PI );
 }
+
 static void PositionSensor_ReadPosViaPWM(PS_t* v)
 {
-    if (( v->DutyFromPwm <= 95.0f ) && ( v->DutyFromPwm >= 5.0f ))
-	{
-    	v->InitMechPosition = (( v->DutyFromPwm - 5.0f ) * _2PI ) / ( 95.0f - 5.0f );
-	}
-
+	v->InitMechPosition = (( v->DutyFromPwm - 5.0f ) * _2PI ) / ( 95.0f - 5.0f );
 }
 
 void PositionSensor_ReadPosIdle(PS_t* v)
