@@ -30,7 +30,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       case PS_SM_INIT_POSITION_SENSOR:
       {
     	  static uint8_t init_cnt = 0;
-    	  if ( init_cnt < 100 )  //delay 100ms, TBD with EE
+    	  if ( init_cnt < 500 )  //delay 500ms, TBD with EE
     	  {
     		  init_cnt++;
     	  }
@@ -46,7 +46,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
 		  PositionSensor_ReadPosViaPWM(v);
 		  v->MechPosition = v->InitMechPosition;
           htim4.Instance->CNT = v->MechPosition * DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI;
-//          HAL_NVIC_DisableIRQ(TIM3_IRQn);
+          HAL_NVIC_DisableIRQ(TIM3_IRQn);
     	  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
     	  v->DoCurrentLoop = (functypePositionSensor_DoCurrentLoop)&PositionSensor_ReadPosViaABZ;
     	  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_OPERATING_POSITION;
@@ -54,7 +54,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       }
       case PS_SM_PROCESSING_READ_OPERATING_POSITION:
       {
-		  PositionSensor_ReadPosViaPWM(v);
+//		  PositionSensor_ReadPosViaPWM(v);
     	  break;
       }
       case PS_SM_ERROR:
@@ -76,20 +76,21 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 
 	if ( v->Direction == PS_DIRECTION_UPCOUNTER )
 	{
-		v->MechSpeedRaw = ( v->MechPosition - v->PreMechPosition ) >= 0.0f ? \
+		v->MechSpeedRaw = ( v->MechPosition >= v->PreMechPosition ) ? \
 				                                ( v->MechPosition - v->PreMechPosition ) * 10000.0f : \
 												( v->MechPosition - v->PreMechPosition + _2PI ) * 10000.0f;
 
 	}
 	else
 	{
-		v->MechSpeedRaw = ( v->MechPosition - v->PreMechPosition ) <= 0.0f ? \
+		v->MechSpeedRaw = ( v->MechPosition <= v->PreMechPosition ) ? \
 				                                ( v->MechPosition - v->PreMechPosition ) * 10000.0f : \
 												( v->MechPosition - v->PreMechPosition - _2PI ) * 10000.0f;
 	}
 
-	v->PreMechPosition = v->MechPosition;
 	v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(v->CalcMechSpeedLPF), v->MechSpeedRaw);
+
+	v->PreMechPosition = v->MechPosition;
 
 	v->ElecSpeed = v->MechSpeed  * DEFAULT_POLE_PAIRS;
 	v->ElecPosition = fmod( v->MechPosition * DEFAULT_POLE_PAIRS, _2PI );
