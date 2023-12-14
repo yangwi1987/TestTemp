@@ -17,7 +17,8 @@ PHASE_TO_STATOR_TYPE StatorCurrFbTmp = PHASE_TO_STATOR_DEFAULT;
 
 //__attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
-void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
+__attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
+
 {
 
 	float VbusLimit = 0.0f;

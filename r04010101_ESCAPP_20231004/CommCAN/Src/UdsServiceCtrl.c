@@ -782,10 +782,10 @@ void UdsServiceCtrl_RequestTransferExit( NetWorkService_t *p, LinkLayerCtrlUnit_
 /*
  * User Code Begin
  */
-		if( p->TransferCtrl.ChecksumCalculate != 0 )
-		{
-			lChecksum = p->TransferCtrl.ChecksumCalculate( p->TransferCtrl.pStartMemAddr, p->TransferCtrl.LengthTotal);
-		}
+//		if( p->TransferCtrl.ChecksumCalculate != 0 )
+//		{
+//			lChecksum = p->TransferCtrl.ChecksumCalculate( p->TransferCtrl.pStartMemAddr, p->TransferCtrl.LengthTotal);
+//		}
 /*
  * User Code End
  */
