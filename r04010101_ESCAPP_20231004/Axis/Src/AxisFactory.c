@@ -235,12 +235,8 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
         v->ServoOn = 0;
         return;
     }
-    /*
-     * Jeff test
-     */
 
-
-    int ServoOnEnable = 1;//(v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
+    int ServoOnEnable = (v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
 
     switch( v->ServoOnOffState )
     {
