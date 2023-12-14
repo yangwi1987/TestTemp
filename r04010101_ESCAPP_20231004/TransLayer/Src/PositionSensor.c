@@ -29,14 +29,17 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
     {
       case PS_SM_INIT_POSITION_SENSOR:
       {
-    	  static uint8_t init_cnt = 0;
+    	  static uint16_t init_cnt = 0;
     	  if ( init_cnt < 500 )  //delay 500ms, TBD with EE
     	  {
     		  init_cnt++;
     	  }
     	  else
     	  {
-              v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
+    		  if (( v->DutyFromPwm > 4.5f ) && ( v->DutyFromPwm < 95.5f ))
+		      {
+                  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
+		      }
     	  }
 
     	  break;
@@ -45,7 +48,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       {
 		  PositionSensor_ReadPosViaPWM(v);
 		  v->MechPosition = v->InitMechPosition;
-          htim4.Instance->CNT = v->MechPosition * DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI;
+          htim4.Instance->CNT = (uint32_t)(v->MechPosition * (float)DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI);
           HAL_NVIC_DisableIRQ(TIM3_IRQn);
     	  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
     	  v->DoCurrentLoop = (functypePositionSensor_DoCurrentLoop)&PositionSensor_ReadPosViaABZ;
@@ -59,6 +62,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       }
       case PS_SM_ERROR:
       {
+    	  //TODO Eooro handling
     	  break;
       }
       default:
