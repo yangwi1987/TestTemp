@@ -107,5 +107,5 @@ static void PositionSensor_ReadPosViaPWM(PS_t* v)
 
 void PositionSensor_ReadPosIdle(PS_t* v)
 {
-
+	v->ElecPosition = fmod( v->MechPosition * DEFAULT_POLE_PAIRS, _2PI );
 }
