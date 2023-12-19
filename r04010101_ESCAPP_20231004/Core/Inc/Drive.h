@@ -33,6 +33,20 @@
 #include "RcUartComm.h"
 #include "DiagnosticTroubleCode.h"
 #include "RemainingTime.h"
+#include "PositionSensor.h"
+
+#if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
+typedef struct
+{
+	uint32_t previousTimestamp;
+	uint32_t deltaCnt;
+	uint32_t maxDelta;
+	float AveDelta;
+	float Intervals_us;
+	float Max_Intervals_us;
+	float Ave_Intervals_us;
+}Judge_Delay;
+#endif
 
 typedef struct {
 	uint32_t PWMCounter;
@@ -95,6 +109,7 @@ extern AdcStation AdcStation1;
 extern PwmStation PwmStation1;
 extern AlarmMgr_t AlarmMgr1;
 extern ExtranetCANStation_t ExtranetCANStation;
+extern PS_t PSStation1;
 
 extern FDCAN_HandleTypeDef hfdcan1;
 extern FDCAN_HandleTypeDef hfdcan2;
@@ -105,6 +120,8 @@ extern DAC_HandleTypeDef hdac1;
 extern CORDIC_HandleTypeDef hcordic;
 extern UART_HandleTypeDef huart5;
 extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim5;
 extern USART_HandleTypeDef husart2;
 extern CRC_HandleTypeDef hcrc;
@@ -127,6 +144,7 @@ extern void drive_Do1HzLoop(void);
 extern void drive_DoTotalTime(void);
 extern void drive_DoHouseKeeping(void);
 extern void drive_DoPwmRcCatch(void);
+extern void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim);
 extern void drive_DoLoad_DataToAdcGain(void);
 extern void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a );
