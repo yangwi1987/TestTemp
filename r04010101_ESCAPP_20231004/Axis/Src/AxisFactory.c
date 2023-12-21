@@ -370,7 +370,7 @@ void AxisFactory_GetSetting( Axis_t *v )
                 v->MotorControl.VfControl.Position.RpmAccel = DriveFnRegs[ FN_RPM_SLOPE_CMD - FN_BASE ];
                 v->MotorControl.VfControl.Position.RpmDecel = v->MotorControl.VfControl.Position.RpmAccel;
                 v->MotorControl.VfControl.Gain = ((float)(DriveFnRegs[ FN_RPM_GAIN_CMD - FN_BASE ])) * 0.01f;
-                v->MotorControl.IfControl.Position.EnablePositionCmd = DriveFnRegs[ FN_OPEN_POSITION_CMD_ENABLE - FN_BASE ];
+                v->MotorControl.VfControl.Position.EnablePositionCmd = DriveFnRegs[ FN_OPEN_POSITION_CMD_ENABLE - FN_BASE ];
                 break;
             }
             case FN_MF_FUNC_SEL_IF:
@@ -386,6 +386,8 @@ void AxisFactory_GetSetting( Axis_t *v )
             case FN_MF_FUNC_SEL_IDQ:
             {
             	CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
+            	DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] = 32768;
+            	DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] = 32768;
             	v->MotorControl.CurrentControl.EnableDirectIdqCmd = FUNCTION_ENABLE;
             	break;
             }
@@ -492,8 +494,8 @@ void AxisFactory_GetUiCmd( Axis_t *v )
         }
         case FN_MF_FUNC_SEL_IDQ:
         {
-        	v->MotorControl.Cmd.IdCmd = (float)DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] * 0.1f;
-        	v->MotorControl.Cmd.IqCmd = (float)DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] * 0.1f;
+        	v->MotorControl.Cmd.IdCmd = ((float)DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] - 32768) * 0.1f;
+        	v->MotorControl.Cmd.IqCmd = ((float)DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] - 32768) * 0.1f;
         	break;
         }
         case FN_MF_FUNC_SEL_ISTHETA:
