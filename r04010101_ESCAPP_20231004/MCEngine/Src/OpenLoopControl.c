@@ -206,6 +206,7 @@ void OpenLoopControl_VfControlCalcCmd( VF_CONTROL_TYPE *p, float RpmTarget )
 	}
 	else
 	{
+		p->VoltAmp = p->Gain * RpmTarget;
 		p->Position.VirtualEleAngle = p->Position.PositionCmd;
 	}
 }
