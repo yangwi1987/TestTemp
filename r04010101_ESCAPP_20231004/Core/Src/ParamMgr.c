@@ -89,8 +89,8 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	0, 		Reserved7},	// 69
 	{0, 	1, 		5},	        // 70 FN_OPEN_POSITION_CMD_ENABLE
 	{0, 	62832, 		5},	    // 71 FN_OPEN_POSITION_CMD
-	{0, 	65535, 		5},	// 72 FN_CURRENT_ID_CMD
-	{0, 	65535, 		5},	// 73 FN_CURRENT_IQ_CMD
+	{27768, 	37768, 		5},	// 72 FN_CURRENT_ID_CMD
+	{27768, 	37768, 		5},	// 73 FN_CURRENT_IQ_CMD
 	{0, 	5000, 		5},	// 74 FN_CURRENT_IS_CMD
 	{0, 	62832, 		5},	    // 75 FN_CURRENT_THETA_CMD
 	{0, 	0, 		Reserved7},	// 76
