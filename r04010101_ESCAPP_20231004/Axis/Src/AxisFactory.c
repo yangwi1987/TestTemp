@@ -502,7 +502,10 @@ void AxisFactory_GetUiCmd( Axis_t *v )
         {
         	float SinValue = 0.0f;
         	float CosValue = 0.0f;
-        	COORDINATE_TRANSFER_GET_SIN_COS( ((float)DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] * 0.0001f), SinValue, CosValue );
+ //       	COORDINATE_TRANSFER_GET_SIN_COS( ((float)DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] * 0.0001f), SinValue, CosValue );
+        	float tempThetaCmd = ((float)DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] * 0.0001f);
+        	SinValue = sinf(tempThetaCmd);
+        	CosValue = cosf(tempThetaCmd);
         	v->MotorControl.Cmd.IdCmd = (float)DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] * 0.1f * CosValue;
         	v->MotorControl.Cmd.IqCmd = (float)DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] * 0.1f * SinValue;
         	break;
