@@ -27,8 +27,10 @@ void TorqueToIdq_GetIdqCmd( TORQUE_TO_IDQ_TYPE *p, float TorqueTarget, float All
 		if ( TorqueTargetAbs < 0.0f ) TorqueTargetAbs = 0.0f;
 		p->OutputTqRatio = ( MaxTorqueTmp > 0.1f )? ( TorqueTargetAbs / MaxTorqueTmp * 100.0f ) : 100.0f ;
 
-		IdTmp = p->IdCmdLut.Calc(&(p->IdCmdLut),TorqueTargetAbs, AllowFluxRec);
-		IqTmp = p->IqCmdLut.Calc(&(p->IqCmdLut),TorqueTargetAbs, AllowFluxRec);
+//		IdTmp = p->IdCmdLut.Calc(&(p->IdCmdLut),TorqueTargetAbs, AllowFluxRec);
+//		IqTmp = p->IqCmdLut.Calc(&(p->IqCmdLut),TorqueTargetAbs, AllowFluxRec);
+		IdTmp = HiResoMotorTable_Get_Id(TorqueTargetAbs, AllowFluxRec);
+		IqTmp = HiResoMotorTable_Get_Iq(TorqueTargetAbs, AllowFluxRec);
 		p->IdCmd = IdTmp;
 		p->IqCmd = IqTmp * TorqueTargetSign;
 	}
