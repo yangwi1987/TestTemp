@@ -33,7 +33,7 @@ __STATIC_FORCEINLINE float HiResoMotorTable_Get_Id ( float TorqueTargetAbs, floa
     AllowFluxRecIndex = ( AllowFluxRec < HRMotorTable.HRIdCmdLutInfo.YMin ) ?
     		            (uint16_t)((AllowFluxRec- HRMotorTable.HRIdCmdLutInfo.YMin) / HRMotorTable.HRIdCmdLutInfo.YInterval) : 0;
 
-	return 	((float)HRMotorTable.HRIdCmdLutTable[TorqueTargetIndex][AllowFluxRecIndex]);
+	return 	((float)HRMotorTable.HRIdCmdLutTable[AllowFluxRecIndex][TorqueTargetIndex] * HRMotorTable.HRIdCmdLutInfo.Scale);
 }
 
 __STATIC_FORCEINLINE float HiResoMotorTable_Get_Iq ( float TorqueTargetAbs, float AllowFluxRec)
@@ -44,7 +44,7 @@ __STATIC_FORCEINLINE float HiResoMotorTable_Get_Iq ( float TorqueTargetAbs, floa
     TorqueTargetIndex = (uint16_t)((TorqueTargetAbs - HRMotorTable.HRIqCmdLutInfo.XMin) / HRMotorTable.HRIqCmdLutInfo.XInterval);
     AllowFluxRecIndex = (uint16_t)((AllowFluxRec- HRMotorTable.HRIqCmdLutInfo.YMin) / HRMotorTable.HRIqCmdLutInfo.YInterval) ;
 
-	return 	((float)HRMotorTable.HRIqCmdLutTable[TorqueTargetIndex][AllowFluxRecIndex]);
+	return 	((float)HRMotorTable.HRIqCmdLutTable[AllowFluxRecIndex][TorqueTargetIndex] * HRMotorTable.HRIqCmdLutInfo.Scale);
 }
 
 
