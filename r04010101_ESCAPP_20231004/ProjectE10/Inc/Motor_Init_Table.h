@@ -41,7 +41,7 @@ typedef struct
 	const int16_t IqCmdLutTable[31][40];
 	const int16_t AcCurrLimitLutTable[23][27];
 	const int16_t DcCurrLimitLutTable[41][26];
-	const int16_t MaxTorqueLutTable[23];
+	const int16_t MaxTorqueLutTable[31];
 	uint16_t Reserved_Table[3820];
 
 
