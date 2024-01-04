@@ -69,6 +69,9 @@ uint32_t Ave_CurrentLoop_Cnt = 0.0f;
 float Ave_CurrentLoop_Load_pct = 100.0f;
 
 float aveLoad_filter_coef = 0.001;
+
+uint32_t CurrentTimeStampCurrentLoop = 0;
+
 #endif
 
 /* USER CODE END PV */
@@ -507,6 +510,9 @@ else
 	initial_ignore++;
 }
 #endif
+#if MEASURE_CPU_LOAD_CURRENTLOOP
+  CurrentTimeStampCurrentLoop = DWT->CYCCNT;
+#endif
   CPUCounter.PWMCounter++;
 #if 0
   /* USER CODE END TIM20_UP_IRQn 0 */
@@ -580,8 +586,8 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 		drive_DoCurrentLoop();
 #if MEASURE_CPU_LOAD_CURRENTLOOP
         EndTimeStamp =  DWT->CYCCNT;
-        Max_CurrentLoop_Cnt = Max_CurrentLoop_Cnt > ( EndTimeStamp - CurrentTimeStamp ) ? Max_CurrentLoop_Cnt : ( EndTimeStamp - CurrentTimeStamp );
-        Ave_CurrentLoop_Cnt = Ave_CurrentLoop_Cnt - aveLoad_filter_coef * ( Ave_CurrentLoop_Cnt -  (float)( EndTimeStamp - CurrentTimeStamp ) );
+        Max_CurrentLoop_Cnt = Max_CurrentLoop_Cnt > ( EndTimeStamp - CurrentTimeStampCurrentLoop ) ? Max_CurrentLoop_Cnt : ( EndTimeStamp - CurrentTimeStampCurrentLoop );
+        Ave_CurrentLoop_Cnt = Ave_CurrentLoop_Cnt - aveLoad_filter_coef * ( Ave_CurrentLoop_Cnt -  (float)( EndTimeStamp - CurrentTimeStampCurrentLoop ) );
 #endif
 	}
 }
