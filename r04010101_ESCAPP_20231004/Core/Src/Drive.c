@@ -687,12 +687,13 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC001_Throttle_Raw:
         {
-        	int8_t tempReturnValue = Axis[0].pCANRxInterface->ThrottleCmd;
+        	int16_t tempReturnValue = (AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex]);
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
-    		pTx->Data[3] = tempReturnValue;
-    		pTx->LengthTotal = 4;
+    		pTx->Data[3] = tempReturnValue >> 8;
+    		pTx->Data[4] = tempReturnValue & 0xFF;
+    		pTx->LengthTotal = 5;
     	    tempRsp = NRC_0x00_PR;
         	break;
         }
@@ -1449,14 +1450,11 @@ void Drive_PcuPowerStateMachine( void )
 			{
 				/* Check if ESC can start to output Power if
 				 * 1. Safety sensor is connected (Digital input = low = 0) and
-				 * 2. Receive correct Battery status from BMS via CAN and
-				 * 3. RC and RF is properly connected */
-
+				 * 2. Receive correct Battery status from BMS via CAN and*/
 				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
 				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
-				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED)&&
 				   (Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0))
 
 				{
@@ -2033,10 +2031,11 @@ void drive_DoLoad_DataToAdcGain(void)
 	Axis[ 0 ].pAdcStation->ZeroCalibInjDone = ( Axis[ 0 ].pAdcStation->ZeroCalibInjChCount == 0 )? ADC_DONE:ADC_NONE;
 
 //  Throttle Gain and Zero Point load
-	if( Axis[0].ThrottleGainState == GAIN_STATE_NORMAL )
-	{
+	//TODO: use calibration values in the future
+//	if( Axis[0].ThrottleGainState == GAIN_STATE_NORMAL )
+//	{
 		Axis[ 0 ].pAdcStation->AdcExeThrotGain.FDta = Axis[ 0 ].ThrottleGain;
-	}else;
+//	}else;
 	Axis[ 0 ].pAdcStation->AdcExeThrotZero = ( DriveParams.SystemParams.ThrottleMinAdc > 0 )? DriveParams.SystemParams.ThrottleMinAdc: 0;
 	Axis[ 0 ].pAdcStation->AdcExeThrotMax = ( DriveParams.SystemParams.ThrottleMaxAdc > 2048 )? DriveParams.SystemParams.ThrottleMaxAdc: 4095;
 
@@ -2045,15 +2044,16 @@ void drive_DoLoad_DataToAdcGain(void)
 #if USE_THROTTLE_CALIBRATION == USE_FUNCTION
 void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a )
 {
-	if( ( d->SystemParams.ThrottleMaxAdc == 2300 ) && (d->SystemParams.ThrottleMinAdc == 130) )
-	{
-		Axis[0].ThrottleGainState = GAIN_STATE_EMPTY;
-		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
-	}
-	else if( d->SystemParams.ThrottleMaxAdc < d->SystemParams.ThrottleMinAdc )
+//	if( ( d->SystemParams.ThrottleMaxAdc == 4095 ) && (d->SystemParams.ThrottleMinAdc == 0) )
+//	{
+//		Axis[0].ThrottleGainState = GAIN_STATE_EMPTY;
+//		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
+//	}
+//	else
+		if( d->SystemParams.ThrottleMaxAdc < d->SystemParams.ThrottleMinAdc )
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_ABNORMAL;
-		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
+		Axis[0].ThrottleGain = 0;
 	}
 	else
 	{
@@ -2449,7 +2449,7 @@ void drive_Do10HzLoop(void)
 		Axis[i].Do10HzLoop(&Axis[i]);
 
 	}
-	RCCommCtrl._10HzLoop(&RCCommCtrl);
+//	RCCommCtrl._10HzLoop(&RCCommCtrl);
 
 	// Because ESC does not receive RECEIVED_BAT_ID_1 for 100 ms, CAN1Timeout.Counter will be greater than 10;
 	// Note: CAN1Timeout.Counter increase every 100Hz in AlarmDetect_Do100HzLoop function
@@ -2585,7 +2585,7 @@ void drive_DoHouseKeeping(void)
 	GlobalAlarmDetect_DoHouseKeeping();
 
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
-	RCCommCtrl.MsgDecoder(&RCCommCtrl);
+//	RCCommCtrl.MsgDecoder(&RCCommCtrl);
 	
 	//DTC process to ExtFlash
 	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)

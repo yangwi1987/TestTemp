@@ -325,6 +325,11 @@ void AdcStation_DoPLCLoop( AdcStation *v )
 		v->ThermoADCCatchValue[MOTOR_NTC_0_A0] = (*v->pTempADCValue[MOTOR_NTC_0_A0]);
 		v->ThermoADCCatcher = 0;
 	}
+	uint16_t temp_Throttle_AD = 0;
+	temp_Throttle_AD = (v->AdcDmaData[v->RegCh[FOIL_AD].AdcGroupIndex][v->RegCh[FOIL_AD].AdcRankIndex] > v->AdcExeThrotMax) ? v->AdcExeThrotMax : \
+			                (v->AdcDmaData[v->RegCh[FOIL_AD].AdcGroupIndex][v->RegCh[FOIL_AD].AdcRankIndex] < v->AdcExeThrotZero) ? v->AdcExeThrotZero :
+			                (v->AdcDmaData[v->RegCh[FOIL_AD].AdcGroupIndex][v->RegCh[FOIL_AD].AdcRankIndex]);
+	v->AdcTraOut.Throttle = v->AdcExeThrotGain.FDta * ( temp_Throttle_AD - v->AdcExeThrotZero );
 }
 
 void AdcStation_Do100HzLoop( AdcStation *v )

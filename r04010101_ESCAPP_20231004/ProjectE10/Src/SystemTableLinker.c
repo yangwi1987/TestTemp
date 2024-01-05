@@ -330,8 +330,8 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{	32268,		32767,		32268,		0x842,		&DriveParams.SystemParams.DrainFallingRamp},	//P0-97
 				{		0,			0,			0,			0,		0},	//P0-98
 				{		0,			0,			0,			0,		0},		//P0-99
-				{	 2000,		 3850,		 2300,		 0x41,		&DriveParams.SystemParams.ThrottleMaxAdc},	//P1-00
-				{		0,		  500,	 	  130,		 0x41,		&DriveParams.SystemParams.ThrottleMinAdc},	//P1-01
+				{	    0,		 4095,		 2436,		 0x41,		&DriveParams.SystemParams.ThrottleMaxAdc},	//P1-00
+				{		0,		 4095,	 	  405,		 0x41,		&DriveParams.SystemParams.ThrottleMinAdc},	//P1-01
 				{		0,		65535,			0,		 0x41,		&DriveParams.SystemParams.ThrottleScale[0]},	//P1-02
 				{		0,		65535,			0,	     0x41,		&DriveParams.SystemParams.ThrottleScale[1]},	//P1-03
 				{		0,		  100,		   10,		 0x52,		&DriveParams.SystemParams.ThrottleEmptyPt[0]},	//P1-04

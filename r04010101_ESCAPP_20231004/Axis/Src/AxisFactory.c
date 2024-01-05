@@ -425,9 +425,10 @@ void AxisFactory_GetScooterThrottle( Axis_t *v )
 void AxisFactory_GetScooterThrottle( Axis_t *v )
 {
     //Throttle detect code
+	//TODO: should refer break signal as well?
     v->ThrotMapping.ThrottleDI = ENABLE;
 
-    v->ThrotMapping.ThrottleRawIn = (float)(v->pCANRxInterface->ThrottleCmd)*0.01f;
+    v->ThrotMapping.ThrottleRawIn = v->pAdcStation->AdcTraOut.Throttle;
 
     v->ThrotMapping.ChangeTime = v->FourQuadCtrl.DriveChangeTime;
     v->ThrotMapping.Calc( &v->ThrotMapping );
