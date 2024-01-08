@@ -687,14 +687,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC001_Throttle_Raw:
         {
-        	int16_t tempReturnValue = (AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex]);
-    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-    	    pTx->Data[1] = pRx->Data[1];
-    	    pTx->Data[2] = pRx->Data[2];
-    		pTx->Data[3] = tempReturnValue >> 8;
-    		pTx->Data[4] = tempReturnValue & 0xFF;
-    		pTx->LengthTotal = 5;
-    	    tempRsp = NRC_0x00_PR;
+    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.ThrotADCRawRatio * 10000.0f);
         	break;
         }
         case DID_0xC002_Throttle_Position:
@@ -2036,8 +2029,9 @@ void drive_DoLoad_DataToAdcGain(void)
 //	{
 		Axis[ 0 ].pAdcStation->AdcExeThrotGain.FDta = Axis[ 0 ].ThrottleGain;
 //	}else;
-	Axis[ 0 ].pAdcStation->AdcExeThrotZero = ( DriveParams.SystemParams.ThrottleMinAdc > 0 )? DriveParams.SystemParams.ThrottleMinAdc: 0;
-	Axis[ 0 ].pAdcStation->AdcExeThrotMax = ( DriveParams.SystemParams.ThrottleMaxAdc > 2048 )? DriveParams.SystemParams.ThrottleMaxAdc: 4095;
+
+	Axis[ 0 ].pAdcStation->AdcExeThrotZero = (float)DriveParams.SystemParams.ThrottleMinRawRatio * 0.0001;
+	Axis[ 0 ].pAdcStation->AdcExeThrotMax = (float)DriveParams.SystemParams.ThrottleMaxRawRatio * 0.0001;
 
 }
 
@@ -2050,7 +2044,7 @@ void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a )
 //		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
 //	}
 //	else
-		if( d->SystemParams.ThrottleMaxAdc < d->SystemParams.ThrottleMinAdc )
+		if( d->SystemParams.ThrottleMaxRawRatio < d->SystemParams.ThrottleMinRawRatio )
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_ABNORMAL;
 		Axis[0].ThrottleGain = 0;
@@ -2058,7 +2052,7 @@ void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a )
 	else
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_NORMAL;
-		Axis[0].ThrottleGain = ( float )( 1.0f /( float )( d->SystemParams.ThrottleMaxAdc - d->SystemParams.ThrottleMinAdc ) );
+		Axis[0].ThrottleGain = ( float )( 10000.0f /( float )( d->SystemParams.ThrottleMaxRawRatio - d->SystemParams.ThrottleMinRawRatio ) );
 	}
 }
 #endif
