@@ -181,6 +181,10 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 		p->SixWave120Duty.DutyCmd = p->PwmDutyCmd.MinDuty + p->SixWave120Duty.DutyCmd;
 		p->PwmDutyCmd.Set120( p->SixWave120Duty.DutyCmd, &(p->PwmDutyCmd), p->SixWave120Duty.PwmStatus);
 	}
+	else if ( FunctionMode == FUNCTION_MODE_PWM )
+	{
+
+	}
 	else
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
