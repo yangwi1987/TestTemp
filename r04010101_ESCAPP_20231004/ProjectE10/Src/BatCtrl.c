@@ -162,16 +162,18 @@ void Bat_RcvedTodClear(void)
 
 void Bat_PwrOnReq(void)
 {
-	switch (BatCtrl.PwrOnSM)
+	switch (BatCtrl.MainSm)
 	{
-		case BAT_PWR_ON_SM_IDLE:
-		case BAT_PWR_ON_SM_FAIL:
-		case BAT_PWR_ON_SM_COMPLETE:
+		case BAT_MAIN_SM_IDLE:
+		case BAT_MAIN_ALARM:
+		case BAT_MAIN_PWR_OFF:
 			BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_IDLE;
 			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_START;
 			BatCtrl.MainSm = BAT_MAIN_PWR_ON;
 			break;
 
+		case BAT_MAIN_PWR_ON:		/*power on sequence is processing, do nothing*/
+		case BAT_MAIN_ACTIVATED:	/*not a valid entrance of power on sequence do nothing*/
 		default:
 			break;
 	}
@@ -179,16 +181,18 @@ void Bat_PwrOnReq(void)
 
 void Bat_PwrOffReq(void)
 {
-	switch (BatCtrl.PwrOffSM)
+	switch (BatCtrl.MainSm)
 	{
-		case BAT_PWR_OFF_SM_IDLE:
-		case BAT_PWR_OFF_SM_FAIL:
-		case BAT_PWR_OFF_SM_COMPLETE:
+		case BAT_MAIN_SM_IDLE:
+		case BAT_MAIN_ALARM:
+		case BAT_MAIN_PWR_ON:
+		case BAT_MAIN_ACTIVATED:
 			BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_START;
 			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_IDLE;
 			BatCtrl.MainSm = BAT_MAIN_PWR_OFF;
 			break;
 
+		case BAT_MAIN_PWR_OFF:	/* power off sequence is processing, do nothing */
 		default:
 			break;
 	}
