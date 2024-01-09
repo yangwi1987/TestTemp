@@ -14,8 +14,8 @@
  */
 
 uint8_t EscFrameCnt = 0;
-uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t );
-uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r );
+uint8_t CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t );
+uint8_t CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r );
 
 const CANProtocol ExtranetInformInSystemTableExample =
 {
@@ -25,8 +25,8 @@ const CANProtocol ExtranetInformInSystemTableExample =
     CANTXID_BMS_CONTROL_01, CANTXID_BMS_CONTROL_02, CANTXID_ESC_LOG_INFO_0, CANTXID_ESC_LOG_INFO_1, CANTXID_ESC_LOG_INFO_2,
 	  CANTXID_ESC_LOG_INFO_3, CANTXID_ESC_LOG_INFO_4 ,CANTXID_ESC_LOG_INFO_5, CANTXID_ESC_LOG_INFO_6, CANTXID_ESC_LOG_INFO_7,
   },
-  (pRxTranslate)BME060CAN_RxDataTranslate,
-  (pTxTranslate)BME060CAN_TxDataTranslate,
+  (pRxTranslate)CAN_RxDataTranslate,
+  (pTxTranslate)CAN_TxDataTranslate,
 };
 
 
@@ -55,7 +55,7 @@ void ByteOrderReverse(void *Dest, void *Src, uint8_t Size)
 }
 
 
-uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
+uint8_t CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
 {
   uint8_t	lStatus=ID_MATCH;
   uint16_t u16Temp = 0;
@@ -124,7 +124,7 @@ uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANR
   return lStatus;
 }
 
-uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
+uint8_t CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
 {
   uint8_t	lStatus = ID_MATCH;
   EscCanTxCmd_t *p;

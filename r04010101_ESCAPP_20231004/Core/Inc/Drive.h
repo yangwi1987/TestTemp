@@ -8,6 +8,7 @@
 #ifndef INC_DRIVE_H_
 #define INC_DRIVE_H_
 
+#include <BatCtrl.h>
 #include "UtilityBase.h"
 //#include <AsIc.h>
 //#include <PsbCtrl_PCU.h>
@@ -34,6 +35,7 @@
 #include "DiagnosticTroubleCode.h"
 #include "RemainingTime.h"
 
+
 typedef struct {
 	uint32_t PWMCounter;
 	uint32_t ADCCounter;
@@ -57,6 +59,7 @@ typedef enum{
 	VEHICLE_STATE_WARNING,
 	VEHICLE_STATE_LIMPHOME,
 	VEHICLE_STATE_ALARM,
+	VEHICLE_STATE_SHUTDOWN,
 	VEHICLE_STATE_POWER_OFF,
 }VEHICLE_STATE_e;
 
