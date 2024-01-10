@@ -35,7 +35,6 @@
 #include "DiagnosticTroubleCode.h"
 #include "RemainingTime.h"
 
-
 typedef struct {
 	uint32_t PWMCounter;
 	uint32_t ADCCounter;

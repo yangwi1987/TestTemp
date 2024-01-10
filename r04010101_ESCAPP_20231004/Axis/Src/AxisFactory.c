@@ -675,14 +675,17 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         if( v->FoilState.All== MAST_PADDLE )
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
+            v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
         }
         else if( v->FoilState.All== MAST_SURF )
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
+            v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
         }
         else if( v->FoilState.All== MAST_FOIL )
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
+            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
         }
         else
         {
@@ -695,14 +698,17 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         if( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxFoil  ) )  // Foil mode
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
+            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
         }
         else if ( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxSurf ) )	// Surf mode
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
+        v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
         }
         else	// PADDLE mode
         {
             v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
+        v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
         }
 #endif
     }

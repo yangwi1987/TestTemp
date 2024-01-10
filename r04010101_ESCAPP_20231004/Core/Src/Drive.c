@@ -1531,6 +1531,7 @@ void Drive_ESCStateMachine( void )
 			if( IsPcuInitReady == PcuInitState_Ready )
 			{
 				// clear error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				ESCMainState = ESC_OP_STANDBY;
 			}
 			break;
@@ -1541,21 +1542,25 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 //				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 //				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 //				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 1 ) // normal transitions
 			{
 				// clear error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				ESCMainState = ESC_OP_NORMAL;
 			}
 			else
@@ -1571,21 +1576,25 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 0 ) // normal transitions
 			{
 				// clear error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				ESCMainState = ESC_OP_STANDBY;
 			}
 			else
@@ -1601,11 +1610,13 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 
@@ -1613,6 +1624,7 @@ void Drive_ESCStateMachine( void )
 			else if( Axis[0].HasWarning == 0 )
 			{
 				// clear error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				if( Axis[0].ServoOn == 1 )
 				{
 					ESCMainState = ESC_OP_NORMAL;
@@ -1635,6 +1647,7 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else
@@ -1656,6 +1669,7 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 0 )
 			{
 				// set error BMS LED
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else
