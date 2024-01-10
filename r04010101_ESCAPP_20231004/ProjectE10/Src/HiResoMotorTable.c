@@ -7,6 +7,9 @@
 
 #include "HiResoMotorTable.h"
 
+LUT_INT16_2DIM_TYPE HRIdCmdLut = LUT_INT16_2DIM_DEFAULT;
+LUT_INT16_2DIM_TYPE HRIqCmdLut = LUT_INT16_2DIM_DEFAULT;
+
 __attribute__((__section__(".HrMorotTable"),used)) const HR_MOTOR_TABLE_TYPE HRMotorTable =
 {
 	.HRIdCmdLutTable=
@@ -43,27 +46,5 @@ __attribute__((__section__(".HrMorotTable"),used)) const HR_MOTOR_TABLE_TYPE HRM
     	.pTableStart = &HRMotorTable.HRIqCmdLutTable[0][0],
     }
 };
-
-//__STATIC_FORCEINLINE float HiResoMotorTable_Get_Id ( float TorqueTargetAbs, float AllowFluxRec)
-//{
-//    uint16_t TorqueTargetIndex = 0;
-//    uint16_t AllowFluxRecIndex = 0;
-//
-//    TorqueTargetIndex = (uint16_t)((TorqueTargetAbs - HRMotorTable.HRIdCmdLutInfo.XMin) / HRMotorTable.HRIdCmdLutInfo.XInterval);
-//    AllowFluxRecIndex = (uint16_t)((AllowFluxRec- HRMotorTable.HRIdCmdLutInfo.YMin) / HRMotorTable.HRIdCmdLutInfo.YInterval) ;
-//
-//	return 	((float)HRMotorTable.HRIdCmdLutTable[TorqueTargetIndex][AllowFluxRecIndex]);
-//}
-//
-//__STATIC_FORCEINLINE float HiResoMotorTable_Get_Iq ( float TorqueTargetAbs, float AllowFluxRec)
-//{
-//    uint16_t TorqueTargetIndex = 0;
-//    uint16_t AllowFluxRecIndex = 0;
-//
-//    TorqueTargetIndex = (uint16_t)((TorqueTargetAbs - HRMotorTable.HRIqCmdLutInfo.XMin) / HRMotorTable.HRIqCmdLutInfo.XInterval);
-//    AllowFluxRecIndex = (uint16_t)((AllowFluxRec- HRMotorTable.HRIqCmdLutInfo.YMin) / HRMotorTable.HRIqCmdLutInfo.YInterval) ;
-//
-//	return 	((float)HRMotorTable.HRIqCmdLutTable[TorqueTargetIndex][AllowFluxRecIndex]);
-//}
 
 
