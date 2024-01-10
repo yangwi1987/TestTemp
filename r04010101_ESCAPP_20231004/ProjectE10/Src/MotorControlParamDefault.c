@@ -15,7 +15,7 @@ extern const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault;
 const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 {
 #if MOTOR_STAGE==MOTOR_P0
-	.PmMotorFlux = 0.0051f,     // Wbㄝ120 degree C
+	.PmMotorFlux = 0.0051f,     // When 120 degree C
 	.PmMotorLd = 0.0000096f,		// 9.6 uh
 	.PmMotorLq = 0.0000136f,    // 13.6 uh
 	.PmMotorRes = 0.001f,			//1mohm

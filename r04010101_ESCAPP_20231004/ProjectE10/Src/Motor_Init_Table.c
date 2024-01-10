@@ -111,7 +111,7 @@ __attribute__((__section__(".Motor1Bin"),used)) const MOTOR_TABLE_TYPE MotorTabl
 		.XLength = 40,
 		.XInterval = 0.521911,
 		.XMin = 0,
-		.YLength = 23,
+		.YLength = 31,
 		.YInterval = 7.44581,
 		.YMin = 148.916204,
 		.Scale = 0.015625,
