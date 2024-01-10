@@ -165,7 +165,6 @@ void Bat_PwrOnReq(void)
 	switch (BatCtrl.MainSm)
 	{
 		case BAT_MAIN_SM_IDLE:
-		case BAT_MAIN_ALARM:
 		case BAT_MAIN_PWR_OFF:
 			BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_IDLE;
 			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_START;
@@ -173,7 +172,9 @@ void Bat_PwrOnReq(void)
 			break;
 
 		case BAT_MAIN_PWR_ON:		/*power on sequence is processing, do nothing*/
-		case BAT_MAIN_ACTIVATED:	/*not a valid entrance of power on sequence do nothing*/
+		case BAT_MAIN_SM_INIT:		/*not a valid entrance of power on sequence, do nothing*/
+		case BAT_MAIN_ALARM:		/*not a valid entrance of power on sequence, do nothing*/
+		case BAT_MAIN_ACTIVATED:	/*not a valid entrance of power on sequence, do nothing*/
 		default:
 			break;
 	}
@@ -192,7 +193,8 @@ void Bat_PwrOffReq(void)
 			BatCtrl.MainSm = BAT_MAIN_PWR_OFF;
 			break;
 
-		case BAT_MAIN_PWR_OFF:	/* power off sequence is processing, do nothing */
+		case BAT_MAIN_PWR_OFF:		/* power off sequence is processing, do nothing */
+		case BAT_MAIN_SM_INIT:		/*not a valid entrance of power on sequence, do nothing*/
 		default:
 			break;
 	}
