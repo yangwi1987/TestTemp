@@ -53,44 +53,5 @@ extern AcPwrInfo_t AcPwrInfo;
 
 /*==== AC Power info End ====*/
 
-/*=============== Button handle start ===============*/
-typedef enum BtnIdx_e
-{
-	BTN_IDX_KILL_SW = 0,
-	BTN_IDX_MAX,
-} BtnIdx_t;
-
-typedef enum BtnState_e
-{
-	BTN_STATE_LOW = 0,
-	BTN_STATE_HIGH,
-	BTN_STATE_INITIALIZING,
-} BtnState_t;
-
-typedef enum BtnEvent_e
-{
-	BTN_EVENT_INITIALIZING,
-	BTN_EVENT_IDLE,
-	BTN_EVENT_RISING,
-	BTN_EVENT_FALLING,
-} BtnEvent_t;
-
-typedef struct
-{
-	BtnEvent_t EvtRecord;	/* the last signal event detected */
-	int8_t Now;				/* The signal value read now */
-	BtnState_t Before;		/* The state before */
-	uint16_t TimeCnt;		/* Time counter */
-} BtnStateFb_t;
-
-extern void Btn_Reset (BtnIdx_t Idx);
-extern BtnEvent_t Btn_EvtRead(BtnIdx_t Idx);
-extern void Btn_SignalWrite(BtnIdx_t Idx, int8_t DataIn);
-extern BtnState_t Btn_StateRead(BtnIdx_t Idx);
-extern void Btn_Init();
-extern void Btn_Do100HzLoop();
-
-
-/*=============== Button handle End ===============*/
 
 #endif /* INC_BMEAPP_H_ */

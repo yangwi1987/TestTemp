@@ -1543,19 +1543,19 @@ void Drive_ESCStateMachine( void )
 			{
 				// set error BMS LED
 				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
-//				ESCMainState = ESC_OP_ALARM;
+				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
 				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
-//				ESCMainState = ESC_OP_LIMPHOME;
+				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
 				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
-//				ESCMainState = ESC_OP_WARNING;
+				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 1 ) // normal transitions
 			{
@@ -1686,11 +1686,6 @@ void Drive_ESCStateMachine( void )
 	}
 }
 
-__STATIC_FORCEINLINE void EnterVehicleInitializingState( void )
-{
-
-}
-
 __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 {
 	// todo set RC alarm flag
@@ -1727,16 +1722,6 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
 	// todo clear RC warning/limp/alarm flag
 }
 
-__STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
-{
-	BatStation.PwrOffReq();
-}
-
-__STATIC_FORCEINLINE void EnterVehiclePowerOffState( void )
-{
-
-}
-
 void Drive_VehicleStateMachine( void )
 {
 	switch( VehicleMainState )
@@ -1744,45 +1729,17 @@ void Drive_VehicleStateMachine( void )
 		case VEHICLE_STATE_INITIALIZING:
 
 			// normal transition
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+			if( ESCMainState == ESC_OP_STANDBY /* todo BMS precharge finish*/)
 			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
+				EnterVehicleStandbyState();
+				VehicleMainState = VEHICLE_STATE_STANDBY;
 			}
 
-			if( (ESCMainState == ESC_OP_STANDBY))
-			{
-				/* check if BMS power on sequence is complete */
-				switch(BatStation.MainSMGet())
-				{
-					case BAT_MAIN_ACTIVATED:
-						EnterVehicleStandbyState();
-						VehicleMainState = VEHICLE_STATE_STANDBY;
-						break;
-
-					case BAT_MAIN_ALARM:
-						EnterVehicleAlarmState();
-						VehicleMainState = VEHICLE_STATE_ALARM;
-						break;
-
-					case BAT_MAIN_SM_INIT:
-						break;
-
-					default:
-						BatStation.PwrOnReq();
-						break;
-				}
-			}
-
+			// action
+			// do CAN and RC initial communication at drive_Init
 			break;
 
 		case VEHICLE_STATE_STANDBY:
-
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-			}
 
 			// error situation
 			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
@@ -1818,12 +1775,6 @@ void Drive_VehicleStateMachine( void )
 		case VEHICLE_STATE_NORMAL:
 
 			// error situation
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-			}
-
 			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
@@ -1846,26 +1797,15 @@ void Drive_VehicleStateMachine( void )
 				EnterVehicleStandbyState();
 				VehicleMainState = VEHICLE_STATE_STANDBY;
 			}
-			else if(Btn_EvtRead(BTN_IDX_KILL_SW) == BTN_EVENT_RISING)
-			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-			}
 			else
 			{
 				// keep in the same state, action:
 				// allow full power output depending on driving mode
-
 			}
 			break;
 
 		case VEHICLE_STATE_WARNING:
 
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-			}
 			// error situation
 			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
@@ -1899,18 +1839,11 @@ void Drive_VehicleStateMachine( void )
 		case VEHICLE_STATE_LIMPHOME:
 
 			// error situation
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-			}
-
 			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
 			{
 				EnterVehicleAlarmState();
 				VehicleMainState = VEHICLE_STATE_ALARM;
 			}
-
 			else
 			{
 				// keep in the same state, action:
@@ -1922,11 +1855,6 @@ void Drive_VehicleStateMachine( void )
 
 		case VEHICLE_STATE_ALARM:
 
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-			{
-				EnterVehicleShutdownState();
-				VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-			}
 			// error situation
 			if( ESCMainState != ESC_OP_ALARM && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
 			{
@@ -1944,24 +1872,7 @@ void Drive_VehicleStateMachine( void )
 			break;
 
 		// abnormal PcuPowerState value
-		case VEHICLE_STATE_SHUTDOWN:
-
-			if(BatStation.MainSMGet() == BAT_MAIN_SM_IDLE || BatStation.MainSMGet() == BAT_MAIN_ALARM)
-			{
-				EnterVehiclePowerOffState();
-				VehicleMainState = VEHICLE_STATE_POWER_OFF;
-			}
-			break;
-
 		case VEHICLE_STATE_POWER_OFF:
-
-			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
-			{
-				EnterVehicleInitializingState();
-				VehicleMainState = VEHICLE_STATE_INITIALIZING;
-			}
-			break;
-
 		default:
 			break;
 
@@ -2093,7 +2004,6 @@ void drive_Init(void)
 
 	/*Init BAT control unit*/
 	BatStation.CanHandleLoad(&ExtranetCANStation);
-	Btn_Init();
 }
 
 void drive_DoLoad_DataToAdcGain(void)
@@ -2481,7 +2391,6 @@ void drive_Do100HzLoop(void)
 	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
 	BatStation.Do100HzLoop();
 
-	Btn_Do100HzLoop();
 }
 
 // Check if "any" component's temperature is higher then minimum temperature in relative derating table.

@@ -74,7 +74,15 @@ uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterf
 	  switch (IdIn)
 	  {
 	  	  case CAN_ID_DEV_CMD_START:
-	  		  Btn_SignalWrite(BTN_IDX_KILL_SW, *pDataIn);
+
+	  		  if(*(pDataIn + 0) == 0)
+	  		  {
+	  			  BatStation.PwrOnReq();
+	  		  }
+	  		  else
+	  		  {
+	  			  BatStation.PwrOffReq();
+	  		  }
 	  		  break;
 
 	  	  default:
@@ -120,6 +128,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       p->EscLogInfo0.EscMos1Temp = (uint8_t)(v->NTCTemp[1]+40);
       p->EscLogInfo0.EscMos2Temp = (uint8_t)(v->NTCTemp[2]+40);
       p->EscLogInfo0.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
+      p->EscLogInfo0.FoilPosition = v->FoilPos;
       p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
       p->EscLogInfo0.FoilSensorVolt = (int8_t)(v->Debugf[IDX_FOIL_SENSOR_VOLT]*10.0f);
       p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;
@@ -235,12 +244,13 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
         p->EscLogInfo6.PwrLv = r->PowerLevel;
         p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
 
+        /*todo: assign true value for signals*/
         i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_AC_POWER]);
         ByteOrderReverse((void*)&p->EscLogInfo6.AvgPwr , (void*)&i16Temp, 2);
-
+        /*todo: assign true value for signals*/
         i16Temp = (int16_t)(v->Debugf[IDX_INSTANT_AC_POWER]);
         ByteOrderReverse((void*)&p->EscLogInfo6.InstPwr , (void*)&i16Temp, 2);
-
+        /*todo: assign true value for signals*/
         u16Temp = (uint16_t)(v->Debugf[IDX_REMAIN_TIME]);
         ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&u16Temp, 2);
       }
