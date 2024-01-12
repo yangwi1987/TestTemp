@@ -359,7 +359,7 @@ typedef struct
   0.0f,	/*BatInstPwr*/		  \
 }                               \
 
-extern const CanIdConfig_t LscCanIdTableExtra[];
+extern const CanIdConfig_t CanIdTableExtra[];
 
 #endif /* INC_PROTOCOL_H_ */
 #endif /* E10 */

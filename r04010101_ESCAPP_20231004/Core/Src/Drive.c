@@ -1966,7 +1966,7 @@ void drive_Init(void)
 #endif
 	// Init CAN external
 	ExtranetCANStation.TxInfo.pAlarmStack = &AlarmStack[0];
-	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, LscCanIdTableExtra );
+	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, CanIdTableExtra );
 	ExtranetCANStation.Init( &ExtranetCANStation,&ExtranetInformInSystemTableExample, &hfdcan2);
 
 	// Init CAN internal

@@ -203,7 +203,7 @@ void Bat_PwrOffReq(void)
 void Bat_PwrOnCtrl(void)
 {
 	uint8_t i = 0;
-	BatPwrOnErr_t statusTemp = BAT_PWR_ON_ERR_OK;
+	BatPwrOnErr_t statusTemp = BAT_PWR_ON_ERR_UNDEFINED_STATE;
 
   switch (BatCtrl.PwrOnSM)
   {
@@ -217,7 +217,7 @@ void Bat_PwrOnCtrl(void)
 		BatCtrl.PwrOnToCnt = 0;
 		BatCtrl.PwrOnErr = BAT_PWR_ON_ERR_OK;
 		BatCtrl.PwrCtrlCmd = BAT_PWR_CTRL_OFF;
-		BatCtrl.BdCtrlCmd = BAT_BD_CTRL_OFF;
+		BatCtrl.BdCtrlCmd = BAT_BD_CTRL_ON;
 		break;
 
     case BAT_PWR_ON_SM_WAIT_FOR_VOLT:
@@ -343,7 +343,7 @@ void Bat_PwrOnCtrl(void)
 void Bat_PwrOffCtrl(void)
 {
 	uint8_t i = 0;
-	BatPwrOffErr_t statusTemp = BAT_PWR_OFF_ERR_OK;
+	BatPwrOffErr_t statusTemp = BAT_PWR_OFF_ERR_UNDEFINED_STATE;
 
 	switch(BatCtrl.PwrOffSM)
 	{

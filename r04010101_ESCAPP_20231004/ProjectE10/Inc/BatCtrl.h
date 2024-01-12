@@ -132,7 +132,7 @@ typedef struct
  =========================================*/
 typedef struct
 {
-	uint16_t CellTemp;				    /* unit = 'C*/
+	int16_t CellTemp;				    /* unit = 'C*/
 	BatMosFetStatus_u FetStatus;		/*  */
 	uint16_t ErrorFlags;			    /* unit = 0.01Ah*/
 	uint8_t Byte6;					    /* Reserved byte #6*/
