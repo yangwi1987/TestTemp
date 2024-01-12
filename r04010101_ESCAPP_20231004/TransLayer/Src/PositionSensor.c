@@ -36,6 +36,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
     	  }
     	  else
     	  {
+    		  //TODO: error handle if no valid duty with timeout
     		  if (( v->DutyFromPwm > 4.5f ) && ( v->DutyFromPwm < 95.5f ))
 		      {
                   v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
@@ -103,6 +104,7 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 static void PositionSensor_ReadPosViaPWM(PS_t* v)
 {
 	v->InitMechPosition = (( v->DutyFromPwm - 5.0f ) * _2PI ) / ( 95.0f - 5.0f );
+	v->InitMechPosition = v->InitMechPosition > _2PI ? _2PI : v->InitMechPosition < 0.0f ? 0.0f : v->InitMechPosition;
 }
 
 void PositionSensor_ReadPosIdle(PS_t* v)
