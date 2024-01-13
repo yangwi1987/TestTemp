@@ -966,7 +966,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC030_Tether_Cord_State                        :
         {
-        	UdsDIDTetherCordState_e tempTetherCordState = HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
+        	UdsDIDTetherCordState_e tempTetherCordState = 0;//HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1452,7 +1452,7 @@ void Drive_PcuPowerStateMachine( void )
 				 * 2. Receive correct Battery status from BMS via CAN and
 				 * 3. RC and RF is properly connected */
 
-				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
+				if(
 				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
@@ -1895,7 +1895,8 @@ void drive_Init(void)
 	uint16_t IoState;
 	uint16_t IoState_2;
 	// Start timer 2 and avoid first interrupt request.
-	HAL_TIM_Base_Start_TOTAL_TIME(&htim2);
+	HAL_TIM_Base_Start_TOTAL_TIME(&htim3);
+	HAL_TIM_Base_Start_TOTAL_TIME(&htim6);
 	ParamMgr1.OnParamValueChanged = &Drive_OnParamValueChanged;
 	IntranetCANStation.AccessParam = &AccessParam;
 	IntranetCANStation.pParamMgr = &ParamMgr1;
@@ -1936,11 +1937,11 @@ void drive_Init(void)
 	Axis[0].ThermoStrategy.Init( &Axis[0].ThermoStrategy, &SystemTable.WindingDeratingInfo, &SystemTable.MosDeratingInfo, &SystemTable.CapDeratingInfo, &AdcStation1 );
 
 	// Init Buffer IC (Pull low BUffer enable gpio)
-	IoState = HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin);
-	IoState_2 = HAL_GPIO_ReadPin( BUF_ENA_GPIO_Port, BUF_ENA_Pin);
+	IoState = HAL_GPIO_ReadPin( BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin);
+	IoState_2 = HAL_GPIO_ReadPin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin);
 	if( ( IoState == SIGNAL_HIGH ) && ( IoState_2 == SIGNAL_HIGH )  )
 	{
-		HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );
 		Axis[0].AlarmDetect.BufICEnable = PULL_LOW;
 	}
 	else
@@ -1982,7 +1983,7 @@ void drive_Init(void)
 	Drive_BinCheckWordCompare( &AppCheckWord );
 
 	// MCU LED light On
-	HAL_GPIO_WritePin( MCU_State_LED_GPIO_Port, MCU_State_LED_Pin, GPIO_PIN_SET );
+//	HAL_GPIO_WritePin( MCU_State_LED_GPIO_Port, MCU_State_LED_Pin, GPIO_PIN_SET );
 
 
 	IntFlashCtrl.Init ( &IntFlashCtrl );
@@ -1991,7 +1992,7 @@ void drive_Init(void)
 	ExtranetCANStation.ForceDisable = DISABLE;
 
 	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
-	RCCommCtrl.Init(&RCCommCtrl,&huart5,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
+	RCCommCtrl.Init(&RCCommCtrl,&huart3,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 
 	// DTC Init
 	DTCStation1.Init( &DTCStation1 );
@@ -2469,11 +2470,11 @@ void drive_DoTotalTime(void)
 	// When TIM2 ARPE = 0, ARR change directly. The setting influence the end of THIS CNT.
 	if( TotalTime1.BufferServoOnState == MOTOR_STATE_OFF)
 	{
-		TIM2->ARR = (15000-1); // 3 sec
+		TIM3->ARR = (15000-1); // 3 sec
 	}
 	else
 	{
-		TIM2->ARR = (150000-1); // 30 sec
+		TIM3->ARR = (150000-1); // 30 sec
 	}
 
 	// In THIS interrupt, time elapsed should consider last servo on/off state.
@@ -2784,9 +2785,6 @@ void DisableMcuModule( void )
 	/*
 	 * DeInit All Communication Function
 	 */
-	// CAN 1
-	HAL_FDCAN_DeactivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE);
-	HAL_FDCAN_MspDeInit(&hfdcan1);
 
 	// CAN 2
 	HAL_FDCAN_DeactivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO0_NEW_MESSAGE);
@@ -2794,7 +2792,7 @@ void DisableMcuModule( void )
 	__HAL_RCC_FDCAN_FORCE_RESET();
 
 	//UART
-//	HAL_UART_MspDeInit(&huart5);
+//	HAL_UART_MspDeInit(&huart3);
 //	__HAL_RCC_UART5_FORCE_RESET();
 
 	//USART
@@ -2831,27 +2829,15 @@ void DisableMcuModule( void )
      */
 
 	// Timer 2
-    HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_ALL);
-    __HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
-    HAL_TIM_Base_DeInit( &htim2 );
-    __HAL_RCC_TIM2_FORCE_RESET();
+    HAL_TIM_Base_Stop_IT( &htim2 );
+	__HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
+    HAL_TIM_Base_MspDeInit( &htim2 );
+	__HAL_RCC_TIM2_FORCE_RESET();
 
 	// Timer 3
-//    HAL_TIM_Base_Stop_IT( &htim3 );
-//	__HAL_TIM_DISABLE_IT( &htim3, TIM_IT_IDX );
-//    HAL_TIM_Base_MspDeInit( &htim3 );
-//	__HAL_RCC_TIM3_FORCE_RESET();
-
-	// Timer 4
-//    HAL_TIM_Base_Stop_IT( &htim4 );
-//    HAL_TIM_Base_MspDeInit( &htim4 );
-//    __HAL_RCC_TIM4_FORCE_RESET();
-
-	// Timer 5
-    HAL_TIM_IC_Stop_IT(&htim5, TIM_CHANNEL_ALL);
-    __HAL_TIM_DISABLE_IT( &htim5, TIM_IT_IDX );
-    HAL_TIM_Base_DeInit( &htim5 );
-    __HAL_RCC_TIM2_FORCE_RESET();
+    HAL_TIM_Base_Stop_IT( &htim3 );
+    HAL_TIM_Base_MspDeInit( &htim3 );
+	__HAL_RCC_TIM3_FORCE_RESET();
 
     // Timer 6
     HAL_TIM_Base_Stop_IT( &htim6 );
@@ -2863,10 +2849,10 @@ void DisableMcuModule( void )
     HAL_TIM_Base_MspDeInit( &htim7 );
     __HAL_RCC_TIM7_FORCE_RESET();
 
-    // Timer 16
-    HAL_TIM_Base_Stop_IT( &htim16 );
-    HAL_TIM_Base_MspDeInit( &htim16 );
-    __HAL_RCC_TIM16_FORCE_RESET();
+    // Timer 8
+    HAL_TIM_Base_Stop_IT( &htim8 );
+    HAL_TIM_Base_MspDeInit( &htim8 );
+    __HAL_RCC_TIM8_FORCE_RESET();
 
 	// Timer 20
 	HAL_TIM_Base_Stop_IT( &htim20 );
@@ -2876,18 +2862,17 @@ void DisableMcuModule( void )
 	/*
 	 * DeInit ADC & DAC
 	 */
-	//ADC
-	HAL_ADCEx_InjectedStop_IT(&hadc1);
-	HAL_ADC_MspDeInit(&hadc1);
-
-	// ADC 2
+	//ADC2
 	HAL_ADCEx_InjectedStop_IT(&hadc2);
 	HAL_ADC_MspDeInit(&hadc2);
 	__HAL_RCC_ADC12_FORCE_RESET();
-
 	// ADC 3
 	HAL_ADCEx_InjectedStop_IT(&hadc3);
 	HAL_ADC_MspDeInit(&hadc3);
+
+	// ADC 4
+	HAL_ADCEx_InjectedStop_IT(&hadc4);
+	HAL_ADC_MspDeInit(&hadc4);
 	__HAL_RCC_ADC345_FORCE_RESET();
 
 	//DAC

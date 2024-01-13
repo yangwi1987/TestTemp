@@ -273,7 +273,7 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 
 	if( v->BUF_IC_FB.AlarmInfo.AlarmEnable == ALARM_ENABLE )
 	{
-		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin ), HAL_GPIO_ReadPin( HWOCP_GPIO_Port, HWOCP_Pin ), v->AxisID );
+		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin ), HAL_GPIO_ReadPin( HWOCP_BKIN_GPIO_Port, HWOCP_BKIN_Pin ), v->AxisID );
 	}
 
 #if USE_FOIL_ABNORMAL_DETECT

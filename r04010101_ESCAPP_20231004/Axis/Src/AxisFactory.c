@@ -666,8 +666,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
     // Detect Digital Foil Position Sensor Read
-    v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
-    v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
+ //   v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
+ //   v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
 
     // Detect foil sensor by different hardware setting
     if(IsUseDigitalFoilSensor == 1) // use digitals foil sensor
@@ -846,11 +846,11 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     if( v->AlarmDetect.BufICEnable )
     {
-        HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_SET );		//Disable Buffer Enable
+        HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_SET );		//Disable Buffer Enable
     }
     else
     {
-        HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
+        HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
     }
 
     //check Drive lock state.
