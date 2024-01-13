@@ -169,15 +169,15 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_PCU_NTC_0_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1] * 10.0f );
 		break;
 
 	case DN_PCU_NTC_1_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2] * 10.0f );
 		break;
 
 	case DN_GATE_DRIVE_VOLT:	// 13V VOltage
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.V13 * 100.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.S13V8 * 100.0f );
 		break;
 
 	case DN_IA_CURR_RMS:
@@ -197,7 +197,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_FOIL_VOLTAGE:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
+//		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
 		break;
 
 	case DN_CURRENT_LIMIT :
@@ -205,7 +205,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DC_FOIL_ADC:
-		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
+//		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
 		break;
 
 	case DN_U_CURR_ADC:
@@ -763,7 +763,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC00E_ESC_Mosfets_Center_Temperature           :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1] );
         	break;
         }
         case DID_0xC00F_ESC_Mosfets_Center_Temperature_Minimum   :
@@ -778,7 +778,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC011_ESC_Mosfets_Side_Temperature             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2] );
         	break;
         }
         case DID_0xC012_ESC_Mosfets_Side_Temperature_Minimum     :
@@ -930,7 +930,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC02C_ESC_Internal_circuit_voltage             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.V13 );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.S13V8 );
         	break;
         }
         case DID_0xC02D_DC_Current_Limit                    :
@@ -951,11 +951,11 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC02F_Foil_Position_State                      :
         {
         	UdsDIDFoilPositionState_e tempFoilPosState = 0;
-        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
-                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
-        	                   (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinFoil ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxFoil )) ? Foil_Position_Foil : /*// Foil mode*/\
-                               (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinSurf ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxSurf ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
-                                                                                                                                                  // PADDLE mode
+//        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
+//                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
+//        	                   (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinFoil ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxFoil )) ? Foil_Position_Foil : /*// Foil mode*/\
+//                               (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinSurf ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxSurf ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
+                                                                                                                                                // PADDLE mode
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1063,7 +1063,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC03B_Foil_Position_Voltage                 :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+//        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
         	break;
         }
         case DID_0xC03C_ESC_Error_Code                 :
@@ -1377,15 +1377,15 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vq = Axis[0].MotorControl.VoltCmd.VqCmd;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.DC_Current_Limit
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Electrical_Angle  = Axis[0].MotorControl.CurrentControl.EleAngle;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100.0f;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 )) ? NTC_Break : \
                                                                                       ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) ? NTC_Short : NTC_Normal );
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Side_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 )) ? NTC_Break : \
@@ -2363,14 +2363,14 @@ void drive_Do100HzLoop(void)
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
-			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
+			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
-	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
 	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
@@ -2393,12 +2393,12 @@ void drive_Do100HzLoop(void)
 static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 {
 	uint8_t IsOverTempFlag = 0;
-	if( *(v->TempNow[MOS_NTC_CENTER]) > v->MosDerating.X.InputMin )
+	if( *(v->TempNow[MOS_NTC_1]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
 	}
-	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	else if( *(v->TempNow[MOS_NTC_2]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;

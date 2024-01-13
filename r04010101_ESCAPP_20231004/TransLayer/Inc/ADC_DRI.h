@@ -114,9 +114,13 @@ typedef struct{
 	float  Idc;
 	float  HwID1;
 	float  HwID2;
-	float  Throttle;
-	float  Foil;
-	float  V13;
+	float  ES5V;
+	float  E5V;
+	float  EA5V;
+	float  PreC;
+	float  S13V8;
+	float  Pedal_V1;
+	float  Pedal_V2;
 	float  PCU_NTC[3];
 	float  MOTOR_NTC;
 } ADC_TRA_DATA;
@@ -137,6 +141,10 @@ typedef union{
 	{0.0, 0.0}, \
 	{0.0, 0.0}, \
 	{0.0, 0.0}, \
+	0.0, \
+	0.0, \
+	0.0, \
+	0.0, \
 	0.0, \
 	0.0, \
 	0.0, \

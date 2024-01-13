@@ -18,20 +18,20 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcSetupTab =
 		{
 				// Group,		Group Enable,		DMAEna,			InjectedMode
-				{ADC_1,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
+				{ADC_1,			ADC_ENABLE,			ADC_ENABLE,		ADC_DISABLE		},
 				{ADC_2,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
-				{ADC_3,			ADC_ENABLE,			ADC_ENABLE,		ADC_DISABLE		},
-				{ADC_4,			ADC_DISABLE,		ADC_DISABLE,	ADC_DISABLE		},
-				{ADC_5,			ADC_DISABLE,		ADC_DISABLE,	ADC_DISABLE		}
+				{ADC_3,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
+				{ADC_4,			ADC_ENABLE,		    ADC_ENABLE,	    ADC_ENABLE		},
+				{ADC_5,			ADC_ENABLE,		    ADC_ENABLE,	    ADC_DISABLE		}
 		},
 
 		.AdcInjectionGroupTable =
 		{
 				//	Axis 1 Current
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,		Adc Rank, 			GainValue,
-				{ISE_U_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,			RANK_1,	  			AC_CURR_GAIN	},
-				{ISE_V_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,			RANK_1,	  			AC_CURR_GAIN	},
-				{ISE_W_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,			RANK_2,   			AC_CURR_GAIN    },
+				{ISE_U_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,			RANK_1,	  			AC_CURR_GAIN	},
+				{ISE_V_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_4,			RANK_1,	  			AC_CURR_GAIN	},
+				{ISE_W_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,			RANK_1,   			AC_CURR_GAIN    },
 				//	Axis 2 Current
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,		Adc Rank,			GainValue
 				{ISE_U_A1,		ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE, 		DEFAULT_GAIN	},
@@ -39,7 +39,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{ISE_W_A1,		ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE, 		DEFAULT_GAIN	},
 
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,		Adc Rank,			GainValue
-				{BAT_VDC,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,			RANK_3,				DC_VOLT_GAIN	},
+				{BAT_VDC,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,			RANK_2,				DC_VOLT_GAIN	},
 				{INJ_REVD_8,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE,		DEFAULT_GAIN	},
 				{INJ_REVD_9,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE,		DEFAULT_GAIN	}
 		},
@@ -47,15 +47,15 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcRegularGroupTable =
 		{
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,			Adc Rank,		GainValue
-				{FOIL_AD,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,				RANK_3,			FOIL_GAIN		},
-				{P13V_AD,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_1,			V13V_GAIN		},
-				{HW_ID1,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,				RANK_1,			DEFAULT_GAIN	},
-				{HW_ID2,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,				RANK_4,			DEFAULT_GAIN	},
-				{REG_REVD_4,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_5,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_6,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_7,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_8,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{HW_ID2,	    ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_4,		DEFAULT_GAIN		},
+				{ES5V_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_2,			DEFAULT_GAIN		},
+				{HW_ID1,    	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_3,			DEFAULT_GAIN	},
+				{E5V_FB,    	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,				RANK_1,			DEFAULT_GAIN	},
+				{EA5V_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_6,	        DEFAULT_GAIN	},
+				{PREC_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_4,	        DEFAULT_GAIN	},
+				{S13V8,     	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_5,	        DEFAULT_GAIN	},
+				{ACC_FB2,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_4,		        RANK_1,	        DEFAULT_GAIN	},
+				{ACC_FB1,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_5,        		RANK_1,        	DEFAULT_GAIN	},
 				{REG_REVD_9,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
 				{REG_REVD_10,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
 				{REG_REVD_11,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
@@ -66,14 +66,14 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		{
 				// PCU Thermal
 				//Name			ZeroFlagEnable,		TableIdx,		Channel Enable,	Adc Group,			Adc Rank
-				{MOS_NTC_CENTER,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_2			},	// MOS NTC Center
-				{MOS_NTC_SIDE,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_3			},	// MOS NTC Side
-				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_2,				RANK_1			},	// CAP NTC
+				{MOS_NTC_1,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_3,				RANK_2			},	// MOS NTC Center
+				{MOS_NTC_2,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_3,				RANK_3			},	// MOS NTC Side
+				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_3,				RANK_1			},	// CAP NTC
 				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
-				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_3,				RANK_2			},
+				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_1,				RANK_1			},
 				{MOTOR_NTC_1_A0,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				{MOTOR_NTC_2_A0,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 1 Thermal
@@ -94,20 +94,20 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.PwmStartUpTable_Axis1 =
 		{
 			//Name,			GroupEnable,	Group,		Channel,		Reserved
-			{ CH_PWM_UP, 	PWM_ENABLE, 	TIM_20,		TIM_CH2,		PWM_NONE	},
-			{ CH_PWM_UN, 	PWM_ENABLE,		TIM_20,		TIM_CH2, 		PWM_NONE	},
-			{ CH_PWM_VP, 	PWM_ENABLE,		TIM_20,		TIM_CH1, 		PWM_NONE	},
-			{ CH_PWM_VN, 	PWM_ENABLE,		TIM_20,		TIM_CH1, 		PWM_NONE	},
-			{ CH_PWM_WP, 	PWM_ENABLE,		TIM_20,		TIM_CH4, 		PWM_NONE	},
-			{ CH_PWM_WN, 	PWM_ENABLE,		TIM_20,		TIM_CH4, 		PWM_NONE	}
+			{ CH_PWM_UP, 	PWM_ENABLE, 	TIM_8,		TIM_CH4,		PWM_NONE	},
+			{ CH_PWM_UN, 	PWM_ENABLE,		TIM_8,		TIM_CH4, 		PWM_NONE	},
+			{ CH_PWM_VP, 	PWM_ENABLE,		TIM_8,		TIM_CH1, 		PWM_NONE	},
+			{ CH_PWM_VN, 	PWM_ENABLE,		TIM_8,		TIM_CH1, 		PWM_NONE	},
+			{ CH_PWM_WP, 	PWM_ENABLE,		TIM_8,		TIM_CH3, 		PWM_NONE	},
+			{ CH_PWM_WN, 	PWM_ENABLE,		TIM_8,		TIM_CH3, 		PWM_NONE	}
 		},
 
 		.Pwm_Tim_Initializer_Axis1 =
 		{
-			TIM20,								\
-			&htim20,							\
+			TIM8,								\
+			&htim8,							\
 			TIM_CHANNEL_1,						\
-			TIM_CHANNEL_2,						\
+			TIM_CHANNEL_3,						\
 			TIM_CHANNEL_4,						\
 			1,									\
 			TIM_COUNTERMODE_CENTERALIGNED1,		\

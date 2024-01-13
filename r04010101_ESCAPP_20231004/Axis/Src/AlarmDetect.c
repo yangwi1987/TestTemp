@@ -247,21 +247,21 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	if( v->AxisID == 1 )
 	{
 		AlarmDetect_Accumulation( v, &v->UVP_Bus, (int16_t)v->pAdcStation->AdcTraOut.BatVdc );
-		AlarmDetect_Accumulation( v, &v->UVP_13V, (int16_t)v->pAdcStation->AdcTraOut.V13 );
+		AlarmDetect_Accumulation( v, &v->UVP_13V, (int16_t)v->pAdcStation->AdcTraOut.S13V8 );
 
-		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_CENTER].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_CENTER].AdcRankIndex] );
-		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_CENTER);
-		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_1, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_SIDE].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_SIDE].AdcRankIndex] );
-		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_SIDE);
+		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_1].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_1].AdcRankIndex] );
+		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_1);
+		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_1, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_2].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_2].AdcRankIndex] );
+		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_2);
 		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_2, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[CAP_NTC].AdcGroupIndex][v->pAdcStation->ThermoCh[CAP_NTC].AdcRankIndex] );
 		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<CAP_NTC);
 		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_Motor_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOTOR_NTC_0_A0].AdcGroupIndex][v->pAdcStation->ThermoCh[MOTOR_NTC_0_A0].AdcRankIndex] );
 		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOTOR_NTC_0_A0);
 
-		Abnormal = AlarmDetect_Accumulation( v, &v->SHORT_NTC_PCU_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_CENTER].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_CENTER].AdcRankIndex] );
-		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_CENTER);
-		Abnormal = AlarmDetect_Accumulation( v, &v->SHORT_NTC_PCU_1, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_SIDE].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_SIDE].AdcRankIndex] );
-		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_SIDE);
+		Abnormal = AlarmDetect_Accumulation( v, &v->SHORT_NTC_PCU_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_1].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_1].AdcRankIndex] );
+		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_1);
+		Abnormal = AlarmDetect_Accumulation( v, &v->SHORT_NTC_PCU_1, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_2].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_2].AdcRankIndex] );
+		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<MOS_NTC_2);
 		Abnormal = AlarmDetect_Accumulation( v, &v->SHORT_NTC_PCU_2, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[CAP_NTC].AdcGroupIndex][v->pAdcStation->ThermoCh[CAP_NTC].AdcRankIndex] );
 		if ( Abnormal!= ALARM_TYPE_NONE ) v->pAdcStation->NTCIsAbnormal |= (((uint16_t)1)<<CAP_NTC);
 		Abnormal = AlarmDetect_Accumulation( v, &v->SHORT_NTC_Motor_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOTOR_NTC_0_A0].AdcGroupIndex][v->pAdcStation->ThermoCh[MOTOR_NTC_0_A0].AdcRankIndex] );
@@ -276,25 +276,6 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin ), HAL_GPIO_ReadPin( HWOCP_BKIN_GPIO_Port, HWOCP_BKIN_Pin ), v->AxisID );
 	}
 
-#if USE_FOIL_ABNORMAL_DETECT
-	// analog foil sensor should in 5~0V, and the input signal is between 5000~0000 (0.001V)
-	int16_t TempAnalogFoil0p001V; // in 0.001V
-	if(v->pAdcStation->AdcTraOut.Foil < 0.00001f)
-	{
-		TempAnalogFoil0p001V = 0; // 0.00000 * 1000 = 0
-	}
-	else if(v->pAdcStation->AdcTraOut.Foil > 4.99999f)
-	{
-		TempAnalogFoil0p001V = 5000; // 5.00000 * 1000 = 5000
-	}
-	else
-	{
-		TempAnalogFoil0p001V = v->pAdcStation->AdcTraOut.Foil * 1000.0f;
-	}
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_BREAK, TempAnalogFoil0p001V );
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_SHORT, TempAnalogFoil0p001V );
-#endif
-
 }
 
 void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
@@ -302,15 +283,15 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 	// System alarm detect while 1st motor
 	if( v->AxisID == 1 )
 	{
-		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOS_NTC_CENTER) ) == 0 )
+		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOS_NTC_1) ) == 0 )
 		{
-			AlarmDetect_Accumulation( v, &v->OTP_PCU_0, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER] );
-			AlarmDetect_Accumulation( v, &v->OTP_PCU_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_0, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1] );
 		}
-		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOS_NTC_SIDE) ) == 0 )
+		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOS_NTC_2) ) == 0 )
 		{
-			AlarmDetect_Accumulation( v, &v->OTP_PCU_1, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE] );
-			AlarmDetect_Accumulation( v, &v->OTP_PCU_1_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_1, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2] );
+			AlarmDetect_Accumulation( v, &v->OTP_PCU_1_WARNING, (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2] );
 		}
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<CAP_NTC) ) == 0 )
 		{
