@@ -123,6 +123,8 @@ typedef struct{
 	float  Pedal_V2;
 	float  PCU_NTC[3];
 	float  MOTOR_NTC;
+	float  MOTOR_NTC_1;
+	float  MOTOR_NTC_2;
 } ADC_TRA_DATA;
 
 typedef union{
@@ -153,7 +155,9 @@ typedef union{
 	0.0, \
 	0.0, \
 	{0.0f, 0.0f, 0.0f}, \
-	0.0 }
+	0.0f, \
+    0.0f, \
+	0.0f }
 
 typedef struct {
 	uint16_t NTCID;
