@@ -104,10 +104,6 @@ void HAL_MspInit(void)
   */
   HAL_PWR_EnablePVD();
 
-  /** Disable the internal Pull-Up in Dead Battery pins of UCPD peripheral
-  */
-  HAL_PWREx_DisableUCPDDeadBattery();
-
   /* USER CODE BEGIN MspInit 1 */
 
   /* USER CODE END MspInit 1 */
@@ -155,10 +151,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PB1     ------> ADC1_IN12
     PB11     ------> ADC1_IN14
     */
-    GPIO_InitStruct.Pin = Motor_NTC_ADC_Pin;
+    GPIO_InitStruct.Pin = MOTOR_NTC_0_AD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(Motor_NTC_ADC_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(MOTOR_NTC_0_AD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = HW_ID1_ADC_Pin|HW_ID2_ADC_Pin|ES5V_FB_ADC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
@@ -212,15 +208,23 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     }
 
     __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ADC2 GPIO Configuration
     PC1     ------> ADC2_IN7
+    PA7     ------> ADC2_IN4
+    PC5     ------> ADC2_IN11
     PB2     ------> ADC2_IN12
     */
-    GPIO_InitStruct.Pin = E5V_FB_ADC_Pin;
+    GPIO_InitStruct.Pin = E5V_FB_ADC_Pin|MOTOR_NTC_1_AD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(E5V_FB_ADC_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = MOTOR_NTC_2_AD_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(MOTOR_NTC_2_AD_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = ISE_W_AD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
@@ -457,7 +461,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PB1     ------> ADC1_IN12
     PB11     ------> ADC1_IN14
     */
-    HAL_GPIO_DeInit(Motor_NTC_ADC_GPIO_Port, Motor_NTC_ADC_Pin);
+    HAL_GPIO_DeInit(MOTOR_NTC_0_AD_GPIO_Port, MOTOR_NTC_0_AD_Pin);
 
     HAL_GPIO_DeInit(GPIOB, HW_ID1_ADC_Pin|HW_ID2_ADC_Pin|ES5V_FB_ADC_Pin);
 
@@ -490,9 +494,13 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 
     /**ADC2 GPIO Configuration
     PC1     ------> ADC2_IN7
+    PA7     ------> ADC2_IN4
+    PC5     ------> ADC2_IN11
     PB2     ------> ADC2_IN12
     */
-    HAL_GPIO_DeInit(E5V_FB_ADC_GPIO_Port, E5V_FB_ADC_Pin);
+    HAL_GPIO_DeInit(GPIOC, E5V_FB_ADC_Pin|MOTOR_NTC_1_AD_Pin);
+
+    HAL_GPIO_DeInit(MOTOR_NTC_2_AD_GPIO_Port, MOTOR_NTC_2_AD_Pin);
 
     HAL_GPIO_DeInit(ISE_W_AD_GPIO_Port, ISE_W_AD_Pin);
 

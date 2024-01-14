@@ -55,7 +55,7 @@ typedef struct
 /* USER CODE BEGIN PV */
 
 #if Judge_function_delay
-Judge_Delay TIM20INT_Judge_Delay = { 0 };
+Judge_Delay TIM8INT_Judge_Delay = { 0 };
 Judge_Delay CurrentLoop_Judge_Delay = { 0 };
 Judge_Delay PLCLoop_Judge_Delay = { 0 };
 Judge_Delay _100HzLoop_Judge_Delay = { 0 };
@@ -406,10 +406,10 @@ else
   CPUCounter.PWMCounter++;
 #if 0
   /* USER CODE END TIM8_UP_IRQn 0 */
-  HAL_TIM_IRQHandler(&hTIM8);
+  HAL_TIM_IRQHandler(&htim8);
   /* USER CODE BEGIN TIM8_UP_IRQn 1 */
 #endif
-  USER_HAL_TIM_IRQHandler(&hTIM8);
+  USER_HAL_TIM_IRQHandler(&htim8);
   AdcStation1.AdcInjGroup = 0;		// Clear ADC Flag
 
   /* USER CODE END TIM8_UP_IRQn 1 */
@@ -455,11 +455,11 @@ void TIM7_DAC_IRQHandler(void)
         _100HzLoop_Judge_Delay.Max_Intervals_us = (float)_100HzLoop_Judge_Delay.maxDelta / 170.0f;
     	CurrentLoop_Judge_Delay.Max_Intervals_us = (float)CurrentLoop_Judge_Delay.maxDelta / 170.0f;
     	PLCLoop_Judge_Delay.Max_Intervals_us = (float)PLCLoop_Judge_Delay.maxDelta / 170.0f;
-    	TIM20INT_Judge_Delay.Max_Intervals_us = (float)TIM20INT_Judge_Delay.maxDelta / 170.0f;
+    	TIM8INT_Judge_Delay.Max_Intervals_us = (float)TIM8INT_Judge_Delay.maxDelta / 170.0f;
         _100HzLoop_Judge_Delay.Ave_Intervals_us = (float)_100HzLoop_Judge_Delay.AveDelta / 170.0f;
     	CurrentLoop_Judge_Delay.Ave_Intervals_us = (float)CurrentLoop_Judge_Delay.AveDelta / 170.0f;
     	PLCLoop_Judge_Delay.Ave_Intervals_us = (float)PLCLoop_Judge_Delay.AveDelta / 170.0f;
-    	TIM20INT_Judge_Delay.Ave_Intervals_us = (float)TIM20INT_Judge_Delay.AveDelta / 170.0f;
+    	TIM8INT_Judge_Delay.Ave_Intervals_us = (float)TIM8INT_Judge_Delay.AveDelta / 170.0f;
     }
     else
     {
@@ -592,7 +592,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
-
 	AdcStation1.MarkRegularGroupReadFlag( &AdcStation1, hadc );
 
 	if( AdcStation1.AdcRegGroup == AdcStation1.AdcRegGroupFlag )
@@ -672,8 +671,8 @@ void USER_HAL_TIM_IRQHandler( TIM_HandleTypeDef *htim )
 	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC1);
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_1;
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
-	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC2);
-	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_2;
+	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC3);
+	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_3;
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
 	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC4);
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_4;

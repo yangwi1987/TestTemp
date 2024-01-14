@@ -76,8 +76,8 @@ void Error_Handler(void);
 #define E5V_FB_ADC_GPIO_Port GPIOC
 #define MP_PWM_TIM20_CH2_Pin GPIO_PIN_2
 #define MP_PWM_TIM20_CH2_GPIO_Port GPIOC
-#define Motor_NTC_ADC_Pin GPIO_PIN_3
-#define Motor_NTC_ADC_GPIO_Port GPIOC
+#define MOTOR_NTC_0_AD_Pin GPIO_PIN_3
+#define MOTOR_NTC_0_AD_GPIO_Port GPIOC
 #define MP_B_TIM2_CH1_Pin GPIO_PIN_0
 #define MP_B_TIM2_CH1_GPIO_Port GPIOA
 #define MP_A_TIM2_CH2_Pin GPIO_PIN_1
@@ -88,8 +88,12 @@ void Error_Handler(void);
 #define MP_Z_TIM2_ETR_GPIO_Port GPIOA
 #define HWOCP_BKIN_Pin GPIO_PIN_6
 #define HWOCP_BKIN_GPIO_Port GPIOA
+#define MOTOR_NTC_2_AD_Pin GPIO_PIN_7
+#define MOTOR_NTC_2_AD_GPIO_Port GPIOA
 #define ISEN_UFault_DI_Pin GPIO_PIN_4
 #define ISEN_UFault_DI_GPIO_Port GPIOC
+#define MOTOR_NTC_1_AD_Pin GPIO_PIN_5
+#define MOTOR_NTC_1_AD_GPIO_Port GPIOC
 #define HW_ID1_ADC_Pin GPIO_PIN_0
 #define HW_ID1_ADC_GPIO_Port GPIOB
 #define HW_ID2_ADC_Pin GPIO_PIN_1
