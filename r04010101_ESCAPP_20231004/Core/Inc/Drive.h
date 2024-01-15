@@ -48,19 +48,6 @@ typedef struct
 }Judge_Delay;
 #endif
 
-#if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
-typedef struct
-{
-	uint32_t previousTimestamp;
-	uint32_t deltaCnt;
-	uint32_t maxDelta;
-	float AveDelta;
-	float Intervals_us;
-	float Max_Intervals_us;
-	float Ave_Intervals_us;
-}Judge_Delay;
-#endif
-
 typedef struct {
 	uint32_t PWMCounter;
 	uint32_t ADCCounter;

@@ -536,6 +536,7 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 void AxisFactory_DoPLCLoop( Axis_t *v )
 {
     // Update Speed
+	v->SpeedInfo.MotorMechSpeedRad = PSStation1.MechSpeed;
 #if USE_HFI_SIN==USE_FUNCTION
     if( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_YES )
     {
