@@ -53,6 +53,7 @@ CPUCounter_t CPUCounter = CPU_COUNTER_DEFAULT;
 PwmStation PwmStation1 = PWM_STATION_DEFAULT;
 AdcStation AdcStation1 = ADC_STATION_DEFAULT;
 ExtranetCANStation_t ExtranetCANStation = EXTRANET_CAN_STATION_DEFAULT;
+PS_t PSStation1 = PS_DEFAULT;
 
 ExtFlash_t ExtFlash1 = EXT_FLASH_DEFAULT;
 uint16_t BootAppTrig __attribute__((section(".dta_ss.word1st"))) = 0;
@@ -2018,6 +2019,8 @@ void drive_Init(void)
 
 	// Init ADC from tables
 	AdcStation1.Init( &AdcStation1 );
+
+	PSStation1.Init( &PSStation1 );
 	/*
 	 * To calculate the throttle gain after read the external memory data
 	 */
@@ -2198,11 +2201,37 @@ void drive_DoPwmRcCatch(void)
 }
 #endif
 
+void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
+{
+	uint32_t IC1Val = 0;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    {
+          /* Get the Input Capture value */
+        IC1Val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+        if (IC1Val != 0)
+        {
+            /* Duty cycle computation */
+            PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2) * 100)) / (float)IC1Val;
+
+            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC1Val) * 17.0f);
+
+        }
+        else
+        {
+        	PSStation1.DutyFromPwm = 0;
+        	PSStation1.FreqFromPwm = 0;
+        }
+    }
+
+}
+
 void drive_DoCurrentLoop(void)
 {
 //	int i;
 
 	AdcStation1.DoCurrentLoop( &AdcStation1 );
+
+	PSStation1.DoCurrentLoop( &PSStation1 );
 #if USE_CALC_SUM_ROOT==USE_FUNCTION
 	MFStation1.CalSumRoot( &MFStation1, &AdcStation1, PcuAuthorityCtrl.SecureLvNow );
 #endif
@@ -2372,7 +2401,7 @@ void drive_DoPLCLoop(void)
 {
 	int i;
 	AdcStation1.DoPLCLoop( &AdcStation1 );
-
+	PSStation1.DoPLCLoop( &PSStation1 );
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
@@ -2901,15 +2930,14 @@ void DisableMcuModule( void )
     __HAL_RCC_TIM2_FORCE_RESET();
 
 	// Timer 3
-//    HAL_TIM_Base_Stop_IT( &htim3 );
-//	__HAL_TIM_DISABLE_IT( &htim3, TIM_IT_IDX );
-//    HAL_TIM_Base_MspDeInit( &htim3 );
-//	__HAL_RCC_TIM3_FORCE_RESET();
+    HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_ALL);
+    HAL_TIM_Base_MspDeInit( &htim3 );
+    __HAL_RCC_TIM3_FORCE_RESET();
 
 	// Timer 4
-//    HAL_TIM_Base_Stop_IT( &htim4 );
-//    HAL_TIM_Base_MspDeInit( &htim4 );
-//    __HAL_RCC_TIM4_FORCE_RESET();
+    HAL_TIM_Encoder_Stop( &htim4, TIM_CHANNEL_ALL );
+    HAL_TIM_Encoder_MspDeInit( &htim4 );
+    __HAL_RCC_TIM4_FORCE_RESET();
 
 	// Timer 5
     HAL_TIM_IC_Stop_IT(&htim5, TIM_CHANNEL_ALL);
