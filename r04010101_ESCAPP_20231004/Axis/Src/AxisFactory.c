@@ -355,6 +355,7 @@ void AxisFactory_CleanParameter( void )
 {
     CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
     DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
+    DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
 }
 
 void AxisFactory_GetSetting( Axis_t *v )
@@ -364,6 +365,11 @@ void AxisFactory_GetSetting( Axis_t *v )
         CtrlUi.MfFunMode = DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE];
         switch (CtrlUi.MfFunMode)
         {
+        	case FN_MF_FUNC_SEL_TORQUE_MODE:
+			{
+				CtrlUi.MotorCtrlMode = v->MotorControl.StartUpWay;
+				break;
+			}
             case FN_MF_FUNC_SEL_VF:
             {
                 CtrlUi.MotorCtrlMode = FUNCTION_MODE_VF_CONTROL;
@@ -390,6 +396,11 @@ void AxisFactory_GetSetting( Axis_t *v )
     }
     switch (CtrlUi.MfFunMode)
     {
+    	case FN_MF_FUNC_SEL_TORQUE_MODE:
+		{
+			v->CtrlUiEnable = ( DriveFnRegs[ FN_ENABLE - FN_BASE ] == FN_ENABLE_MF_START) ? 1 : 0;
+			break;
+		}
         case FN_MF_FUNC_SEL_VF:
         {
             v->CtrlUiEnable = ( DriveFnRegs[ FN_ENABLE - FN_BASE ] == FN_ENABLE_MF_START) ? 1 : 0;
@@ -440,14 +451,8 @@ void AxisFactory_GetUiStatus( Axis_t *v )
 {
     switch (CtrlUi.MfFunMode)
     {
+    	case FN_MF_FUNC_SEL_TORQUE_MODE:
         case FN_MF_FUNC_SEL_VF:
-        {
-            AxisFactory_GetScooterThrottle( v );
-            v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
-            v->FourQuadCtrl.Switch( &v->FourQuadCtrl );
-            v->VCUServoOnCommand = v->FourQuadCtrl.ServoCmdOut;
-            break;
-        }
         case FN_MF_FUNC_SEL_IF:
         {
             AxisFactory_GetScooterThrottle( v );
@@ -471,6 +476,59 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 {
     switch (CtrlUi.MfFunMode)
     {
+		case FN_MF_FUNC_SEL_TORQUE_MODE:
+		{
+			float NowTorqueCommand = 0.0f;
+			float PrevTempTorqueCommandOut = 0.0f;
+			static uint8_t IsTorqueCommandStable = 0;
+			static float TargetTorqueCommandOut = 0.0f;
+			static float TempTorqueCommandOut = 0.0f;
+
+			// Get Allow Flux
+			v->MotorControl.TorqueToIdq.GetAllowFluxRec( &(v->MotorControl.TorqueToIdq), v->MotorControl.SensorFb.EleSpeed, \
+			v->MotorControl.SensorFb.Vbus, v->MotorControl.PwmDutyCmd.MaxDuty, &(v->MotorControl.SensorFb.AllowFluxRec), &(v->TorqCommandGenerator.AllowFluxRec) );
+
+			// Renew the value of VbusUsed, VbusReal & MotorSpeed
+			v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
+			v->TorqCommandGenerator.VbusReal = v->MotorControl.TorqueToIdq.VbusReal;
+			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
+
+			// Decide the Torque Output
+			NowTorqueCommand = ((float)DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ]) * 0.1f;
+			if( TargetTorqueCommandOut != NowTorqueCommand )
+			{
+				TargetTorqueCommandOut = NowTorqueCommand;
+				TempTorqueCommandOut = TempTorqueCommandOut * 0.9f + TargetTorqueCommandOut * 0.1f;
+				IsTorqueCommandStable = 0;
+			}
+			else if( IsTorqueCommandStable == 0 )
+			{
+				// Deal with the float precision problem for TempTorqueCommandOut.
+				// EX: TorqueCmd = 0.5A, and TempTorqueCommandOut = 0.499999881 Finally.
+				PrevTempTorqueCommandOut = TempTorqueCommandOut;
+				TempTorqueCommandOut = TempTorqueCommandOut * 0.9f + TargetTorqueCommandOut * 0.1f;
+				IsTorqueCommandStable = ( TempTorqueCommandOut == PrevTempTorqueCommandOut ) ? 1 : 0;
+			}
+			else
+			{
+				TempTorqueCommandOut = NowTorqueCommand;
+			}
+			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
+			v->ThrotMapping.PercentageOut = 1.0f;
+
+			// Decide the AC Curr Limit
+			v->TorqCommandGenerator.AcCurrLimit = v->ThermoStrategy.ACCurrentLimitOut;
+
+			// Decide the DC Curr Limit
+			v->TorqCommandGenerator.DcCurrLimit = \
+				v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, v->pCANRxInterface->BatCurrentDrainLimit, \
+				v->MotorControl.TorqueToIdq.VbusReal, v->MotorControl.TorqueToIdq.VbusUsed );
+
+			v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl, v->ThrotMapping.PercentageOut );
+			v->MotorControl.TorqueToIdq.GetIdqCmd( &(v->MotorControl.TorqueToIdq), v->TorqCommandGenerator.Out, v->MotorControl.SensorFb.AllowFluxRec);
+			v->MotorControl.Cmd.SixWaveCurrCmd = v->MotorControl.TorqueToIdq.IqCmd;
+			break;
+		}
         case FN_MF_FUNC_SEL_VF:
         {
             v->MotorControl.Cmd.VfRpmTarget = DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ];
