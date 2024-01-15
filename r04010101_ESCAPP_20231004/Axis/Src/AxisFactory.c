@@ -558,6 +558,9 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
     v->DriveLockInfo.IsUseDriveLockFn = v->pDriveParams->PCUParams.DebugParam2;
     v->DriveLockInfo.TimeToStopDriving_InPLCLoop = v->pDriveParams->SystemParams.SecTimeThresholdForDriveLock * 1000;
     v->DriveLockInfo.RpmToStartCntDriveLock = v->pDriveParams->SystemParams.RpmToStartCntDriveLock;
+#if USE_HIGH_RESO_MOTOR_TABLE
+    HiResoMotorTable_Init();
+#endif
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )
