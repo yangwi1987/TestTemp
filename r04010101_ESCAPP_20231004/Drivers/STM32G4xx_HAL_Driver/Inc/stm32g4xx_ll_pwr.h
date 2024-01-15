@@ -6,12 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
   */
@@ -432,85 +433,87 @@ __STATIC_INLINE uint32_t LL_PWR_GetPowerMode(void)
 
 #if defined(PWR_CR3_UCPD_STDBY)
 /**
-  * @brief  Enable the USB Type-C and Power Delivery memorization in Standby mode.
-  * @note   This function must be called just before entering Standby mode.
-  * @rmtoll CR3          UCPD_STDBY    LL_PWR_EnableUCPDStandbyMode
+  * @brief  Enable (write 1) the USB Type-C and Power Delivery standby mode.
+  * @note Enable just before entering standby when using UCPD1.
+  * @rmtoll CR3          UCPD1_STDBY           LL_PWR_EnableUSBStandByModePD
   * @retval None
   */
-__STATIC_INLINE void LL_PWR_EnableUCPDStandbyMode(void)
+__STATIC_INLINE void LL_PWR_EnableUSBStandByModePD(void)
 {
   SET_BIT(PWR->CR3, PWR_CR3_UCPD_STDBY);
 }
 
 /**
-  * @brief  Disable the USB Type-C and Power Delivery memorization in Standby mode.
-  * @note   This function must be called after exiting Standby mode and before any
-  *         UCPD configuration update.
-  * @rmtoll CR3          UCPD_STDBY     LL_PWR_DisableUCPDStandbyMode
+  * @brief  Disable (write 0) USB Type-C and Power Delivery standby mode.
+  * @note Disable immediately after standby exit when using UCPD1,
+  *      (and before writing any UCPD1 registers).
+  * @rmtoll CR3          UCPD1_STDBY           LL_PWR_DisableUSBStandByModePD
   * @retval None
   */
-__STATIC_INLINE void LL_PWR_DisableUCPDStandbyMode(void)
+__STATIC_INLINE void LL_PWR_DisableUSBStandByModePD(void)
 {
   CLEAR_BIT(PWR->CR3, PWR_CR3_UCPD_STDBY);
 }
 
 /**
-  * @brief  Check the USB Type-C and Power Delivery Standby mode memorization state.
-  * @rmtoll CR3          UCPD_STDBY           LL_PWR_IsEnabledUCPDStandbyMode
+  * @brief  Check the USB Type-C and Power Delivery standby mode.
+  * @rmtoll CR3          UCPD1_STDBY           LL_PWR_IsEnabledUSBStandByModePD
   * @retval State of bit (1 or 0).
   */
-__STATIC_INLINE uint32_t LL_PWR_IsEnabledUCPDStandbyMode(void)
+__STATIC_INLINE uint32_t LL_PWR_IsEnabledUSBStandByModePD(void)
 {
 
-  return ((READ_BIT(PWR->CR3, PWR_CR3_UCPD_STDBY) == (PWR_CR3_UCPD_STDBY)) ? 1UL : 0UL);
+  return ((READ_BIT(PWR->CR3, PWR_CR3_UCPD_STDBY) == (PWR_CR3_UCPD_STDBY))?1UL:0UL);
 
 }
 #endif /* PWR_CR3_UCPD_STDBY */
 
 #if defined(PWR_CR3_UCPD_DBDIS)
 /**
-  * @brief  Enable the USB Type-C and power delivery dead battery pull-down behavior
-  *         on UCPD CC1 and CC2 pins.
-  * @note   After exiting reset, the USB Type-C dead battery behavior is enabled,
-  *         which may have a pull-down effect on CC1 and CC2 pins. It is recommended
-  *         to disable it in all cases, either to stop this pull-down or to hand over
-  *         control to the UCPD (which should therefore be initialized before doing the disable).
-  * @rmtoll CR3          UCPD_DBDIS           LL_PWR_EnableUCPDDeadBattery
+  * @brief  Enable (write 0) USB Type-C dead battery pull-down behavior
+  * on UCPD1_CC1 and UCPD1_CC2 pins.
+  * @note After exiting reset, the USB Type-C “dead battery” behavior will be enabled,
+  * which may have a pull-down effect on CC1 and CC2 pins. It is recommended to disable it
+  * in all cases, either to stop this pull-down or to hand over control to the UCPD1
+  * (which should therefore be initialized before doing the disable).
+  * @rmtoll CR3          PWR_CR3_UCPD_DBDIS           LL_PWR_EnableUSBDeadBattery
   * @retval None
   */
-__STATIC_INLINE void LL_PWR_EnableUCPDDeadBattery(void)
+__STATIC_INLINE void LL_PWR_EnableUSBDeadBattery(void)
 {
   CLEAR_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS);
 }
 
 /**
-  * @brief  Disable the USB Type-C and power delivery dead battery pull-down behavior
-  *         on UCPD CC1 and CC2 pins.
-  * @note   After exiting reset, the USB Type-C dead battery behavior is enabled,
-  *         which may have a pull-down effect on CC1 and CC2 pins. It is recommended
-  *         to disable it in all cases, either to stop this pull-down or to hand over
-  *         control to the UCPD (which should therefore be initialized before doing the disable).
-  * @rmtoll CR3          UCPD_DBDIS           LL_PWR_DisableUCPDDeadBattery
+  * @brief  Disable (write 1) USB Type-C dead battery pull-down behavior
+  *  on UCPD1_CC1 and UCPD1_CC2 pins.
+  * @note After exiting reset, the USB Type-C “dead battery” behavior will be enabled,
+  * which may have a pull-down effect on CC1 and CC2 pins. It is recommended to disable it
+  * in all cases, either to stop this pull-down or to hand over control to the UCPD1
+  * (which should therefore be initialized before doing the disable).
+  * @rmtoll CR3          PWR_CR3_UCPD_DBDIS           LL_PWR_DisableUSBDeadBattery
   * @retval None
   */
-__STATIC_INLINE void LL_PWR_DisableUCPDDeadBattery(void)
+__STATIC_INLINE void LL_PWR_DisableUSBDeadBattery(void)
 {
   SET_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS);
 }
 
 /**
-  * @brief  Check the USB Type-C and power delivery dead battery pull-down behavior
-  *         on UCPD CC1 and CC2 pins.
-  * @note   After exiting reset, the USB Type-C dead battery behavior is enabled,
-  *         which may have a pull-down effect on CC1 and CC2 pins. It is recommended
-  *         to disable it in all cases, either to stop this pull-down or to hand over
-  *         control to the UCPD (which should therefore be initialized before doing the disable).
-  * @rmtoll CR3          UCPD_DBDIS           LL_PWR_IsEnabledUCPDDeadBattery
-  * @retval State of feature (1 : enabled; 0 : disabled).
+  * @brief  Check USB Type-C dead battery pull-down behavior
+  *         on UCPD1_CC1 and UCPD1_CC2 pins.
+  * @note After exiting reset, the USB Type-C “dead battery” behavior will be enabled,
+  * which may have a pull-down effect on CC1 and CC2 pins. It is recommended to disable it
+  * in all cases, either to stop this pull-down or to hand over control to the UCPD1
+  * (which should therefore be initialized before doing the disable).
+  * @rmtoll CR3          PWR_CR3_UCPD_DBDIS           LL_PWR_IsEnabledUSBDeadBattery
+  * @retval State of bit.
   */
-__STATIC_INLINE uint32_t LL_PWR_IsEnabledUCPDDeadBattery(void)
+__STATIC_INLINE uint32_t LL_PWR_IsEnabledUSBDeadBattery(void)
 {
-  return ((READ_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS) == (PWR_CR3_UCPD_DBDIS)) ? 0UL : 1UL);
+
+  return ((READ_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS) == (PWR_CR3_UCPD_DBDIS))?1UL:0UL);
+
 }
 #endif /* PWR_CR3_UCPD_DBDIS */
 
@@ -595,7 +598,7 @@ __STATIC_INLINE uint32_t LL_PWR_IsEnabledVddIO2(void)
   * @param  PeriphVoltage This parameter can be one of the following values:
   *         @arg @ref LL_PWR_PVM_VDDA_COMP     (*)
   *         @arg @ref LL_PWR_PVM_VDDA_FASTDAC  (*)
-  *         @arg @ref LL_PWR_PVM_VDDA_ADC
+  *         @arg @ref LL_PWR_PVM_VDDA_ADC      
   *         @arg @ref LL_PWR_PVM_VDDA_OPAMP_DAC
   *
   *         (*) value not defined in all devices
@@ -615,7 +618,7 @@ __STATIC_INLINE void LL_PWR_EnablePVM(uint32_t PeriphVoltage)
   * @param  PeriphVoltage This parameter can be one of the following values:
   *         @arg @ref LL_PWR_PVM_VDDA_COMP     (*)
   *         @arg @ref LL_PWR_PVM_VDDA_FASTDAC  (*)
-  *         @arg @ref LL_PWR_PVM_VDDA_ADC
+  *         @arg @ref LL_PWR_PVM_VDDA_ADC      
   *         @arg @ref LL_PWR_PVM_VDDA_OPAMP_DAC
   *
   *         (*) value not defined in all devices
@@ -635,7 +638,7 @@ __STATIC_INLINE void LL_PWR_DisablePVM(uint32_t PeriphVoltage)
   * @param  PeriphVoltage This parameter can be one of the following values:
   *         @arg @ref LL_PWR_PVM_VDDA_COMP     (*)
   *         @arg @ref LL_PWR_PVM_VDDA_FASTDAC  (*)
-  *         @arg @ref LL_PWR_PVM_VDDA_ADC
+  *         @arg @ref LL_PWR_PVM_VDDA_ADC      
   *         @arg @ref LL_PWR_PVM_VDDA_OPAMP_DAC
   *
   *         (*) value not defined in all devices
@@ -749,6 +752,50 @@ __STATIC_INLINE uint32_t LL_PWR_IsEnabledInternWU(void)
 {
   return ((READ_BIT(PWR->CR3, PWR_CR3_EIWF) == (PWR_CR3_EIWF))?1UL:0UL);
 }
+
+#if defined (PWR_CR3_UCPD_DBDIS)
+/**
+  * @brief  Enable USB Type-C and Power Delivery Dead Battery disable
+  * @rmtoll CR3          UCPD_DBDIS          LL_PWR_EnableDeadBatteryPD
+  * @retval None
+  */
+__STATIC_INLINE void LL_PWR_EnableDeadBatteryPD(void)
+{
+  SET_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS);
+}
+
+/**
+  * @brief  Disable USB Type-C and Power Delivery Dead Battery disable
+  * @rmtoll CR3          UCPD_DBDIS          LL_PWR_DisableDeadBatteryPD
+  * @retval None
+  */
+__STATIC_INLINE void LL_PWR_DisableDeadBatteryPD(void)
+{
+  CLEAR_BIT(PWR->CR3, PWR_CR3_UCPD_DBDIS);
+}
+#endif /* PWR_CR3_UCPD_DBDIS */
+
+#if defined(PWR_CR3_UCPD_STDBY)
+/**
+  * @brief  Enable USB Type-C and Power Delivery standby mode.
+  * @rmtoll CR3          UCPD_STDBY          LL_PWR_EnableStandByModePD
+  * @retval None
+  */
+__STATIC_INLINE void LL_PWR_EnableStandByModePD(void)
+{
+  SET_BIT(PWR->CR3, PWR_CR3_UCPD_STDBY);
+}
+
+/**
+  * @brief  Disable USB Type-C and Power Delivery standby mode.
+  * @rmtoll CR3          UCPD_STDBY          LL_PWR_DisableStandByModePD
+  * @retval None
+  */
+__STATIC_INLINE void LL_PWR_DisableStandByModePD(void)
+{
+  CLEAR_BIT(PWR->CR3, PWR_CR3_UCPD_STDBY);
+}
+#endif /* PWR_CR3_UCPD_STDBY */
 
 /**
   * @brief  Enable pull-up and pull-down configuration
@@ -1566,16 +1613,6 @@ ErrorStatus LL_PWR_DeInit(void);
 /* Old functions name kept for legacy purpose, to be replaced by the          */
 /* current functions name.                                                    */
 #define LL_PWR_IsActiveFlag_VOSF  LL_PWR_IsActiveFlag_VOS
-#define LL_PWR_EnableUSBDeadBattery            LL_PWR_EnableUCPDDeadBattery
-#define LL_PWR_DisableUSBDeadBattery           LL_PWR_DisableUCPDDeadBattery
-#define LL_PWR_IsEnabledUSBDeadBattery         LL_PWR_IsEnabledUCPDDeadBattery
-#define LL_PWR_EnableDeadBatteryPD             LL_PWR_EnableUCPDDeadBattery
-#define LL_PWR_DisableDeadBatteryPD            LL_PWR_DisableUCPDDeadBattery
-#define LL_PWR_EnableUSBStandByModePD          LL_PWR_EnableUCPDStandbyMode
-#define LL_PWR_EnableStandByModePD             LL_PWR_EnableUCPDStandbyMode
-#define LL_PWR_DisableUSBStandByModePD         LL_PWR_DisableUCPDStandbyMode
-#define LL_PWR_DisableStandByModePD            LL_PWR_DisableUCPDStandbyMode
-#define LL_PWR_IsEnabledUSBStandByModePD       LL_PWR_IsEnabledUCPDStandbyMode
 /**
   * @}
   */
@@ -1600,3 +1637,4 @@ ErrorStatus LL_PWR_DeInit(void);
 
 #endif /* STM32G4xx_LL_PWR_H */
 
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
