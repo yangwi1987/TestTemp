@@ -490,7 +490,6 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 
 			// Renew the value of VbusUsed, VbusReal & MotorSpeed
 			v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
-			v->TorqCommandGenerator.VbusReal = v->MotorControl.TorqueToIdq.VbusReal;
 			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
 
 			// Decide the Torque Output

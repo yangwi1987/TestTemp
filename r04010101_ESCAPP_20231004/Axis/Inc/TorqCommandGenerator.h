@@ -25,7 +25,6 @@ typedef struct {
 	float AllowFluxRec;
 	float MotorSpeed;
 	float VbusUsed;
-	float VbusReal;
 	float TorqueCommandMax;
 	float TorqueCommandmin;
 	float TNTorqueAbs;
@@ -44,7 +43,6 @@ typedef struct {
 	10000.0f,				\
 	0.0f,					\
 	0.0f, 					\
-	0.0f,					\
 	0.0f,					\
 	50.0f, 					\
 	0.0f, 					\
