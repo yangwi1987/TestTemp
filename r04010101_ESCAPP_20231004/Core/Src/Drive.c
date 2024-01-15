@@ -85,7 +85,7 @@ void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
 extern const CANProtocol ExtranetInformInSystemTableExample;
 
 #if JUDGE_FUNCTION_DELAY
-extern Judge_Delay TIM20INT_Judge_Delay;
+extern Judge_Delay TIM8INT_Judge_Delay;
 extern Judge_Delay CurrentLoop_Judge_Delay;
 extern Judge_Delay PLCLoop_Judge_Delay;
 extern Judge_Delay _100HzLoop_Judge_Delay;
@@ -185,15 +185,15 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_PCU_NTC_0_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1] * 10.0f );
 		break;
 
 	case DN_PCU_NTC_1_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2] * 10.0f );
 		break;
 
 	case DN_GATE_DRIVE_VOLT:	// 13V VOltage
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.V13 * 100.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.S13V8 * 100.0f );
 		break;
 
 	case DN_IA_CURR_RMS:
@@ -213,7 +213,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_FOIL_VOLTAGE:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
+//		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
 		break;
 
 	case DN_CURRENT_LIMIT :
@@ -221,7 +221,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DC_FOIL_ADC:
-		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
+//		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
 		break;
 
 	case DN_U_CURR_ADC:
@@ -472,10 +472,10 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 #if JUDGE_FUNCTION_DELAY
     case DN_MAX_TIM20INT_INTERVAL   :
-		RetValue = (uint16_t)(TIM20INT_Judge_Delay.Max_Intervals_us * 100.0f);
+		RetValue = (uint16_t)(TIM8INT_Judge_Delay.Max_Intervals_us * 100.0f);
 		break;
     case DN_AVE_TIM20INT_INTERVAL   :
-		RetValue = (uint16_t)(TIM20INT_Judge_Delay.Ave_Intervals_us * 100.0f);
+		RetValue = (uint16_t)(TIM8INT_Judge_Delay.Ave_Intervals_us * 100.0f);
 		break;
     case DN_MAX_CURRENTLOOP_INTERVAL:
 		RetValue = (uint16_t)(CurrentLoop_Judge_Delay.Max_Intervals_us * 100.0f);
@@ -828,7 +828,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC00E_ESC_Mosfets_Center_Temperature           :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1] );
         	break;
         }
         case DID_0xC00F_ESC_Mosfets_Center_Temperature_Minimum   :
@@ -843,7 +843,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC011_ESC_Mosfets_Side_Temperature             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2] );
         	break;
         }
         case DID_0xC012_ESC_Mosfets_Side_Temperature_Minimum     :
@@ -995,7 +995,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC02C_ESC_Internal_circuit_voltage             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.V13 );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.S13V8 );
         	break;
         }
         case DID_0xC02D_DC_Current_Limit                    :
@@ -1016,11 +1016,11 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC02F_Foil_Position_State                      :
         {
         	UdsDIDFoilPositionState_e tempFoilPosState = 0;
-        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
-                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
-        	                   (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinFoil ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxFoil )) ? Foil_Position_Foil : /*// Foil mode*/\
-                               (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinSurf ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxSurf ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
-                                                                                                                                                  // PADDLE mode
+//        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
+//                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
+//        	                   (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinFoil ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxFoil )) ? Foil_Position_Foil : /*// Foil mode*/\
+//                               (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinSurf ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxSurf ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
+                                                                                                                                                // PADDLE mode
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1031,7 +1031,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC030_Tether_Cord_State                        :
         {
-        	UdsDIDTetherCordState_e tempTetherCordState = HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
+        	UdsDIDTetherCordState_e tempTetherCordState = 0;//HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1128,7 +1128,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC03B_Foil_Position_Voltage                 :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+//        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
         	break;
         }
         case DID_0xC03C_ESC_Error_Code                 :
@@ -1442,15 +1442,15 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vq = Axis[0].MotorControl.VoltCmd.VqCmd;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.DC_Current_Limit
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Electrical_Angle  = Axis[0].MotorControl.CurrentControl.EleAngle;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100.0f;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 )) ? NTC_Break : \
                                                                                       ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) ? NTC_Short : NTC_Normal );
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Side_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 )) ? NTC_Break : \
@@ -1517,7 +1517,7 @@ void Drive_PcuPowerStateMachine( void )
 				 * 2. Receive correct Battery status from BMS via CAN and
 				 * 3. RC and RF is properly connected */
 
-				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
+				if(
 				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
@@ -1960,7 +1960,8 @@ void drive_Init(void)
 	uint16_t IoState;
 	uint16_t IoState_2;
 	// Start timer 2 and avoid first interrupt request.
-	HAL_TIM_Base_Start_TOTAL_TIME(&htim2);
+	HAL_TIM_Base_Start_TOTAL_TIME(&htim3);
+	HAL_TIM_Base_Start_TOTAL_TIME(&htim6);
 	ParamMgr1.OnParamValueChanged = &Drive_OnParamValueChanged;
 	IntranetCANStation.AccessParam = &AccessParam;
 	IntranetCANStation.pParamMgr = &ParamMgr1;
@@ -2001,11 +2002,11 @@ void drive_Init(void)
 	Axis[0].ThermoStrategy.Init( &Axis[0].ThermoStrategy, &SystemTable.WindingDeratingInfo, &SystemTable.MosDeratingInfo, &SystemTable.CapDeratingInfo, &AdcStation1 );
 
 	// Init Buffer IC (Pull low BUffer enable gpio)
-	IoState = HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin);
-	IoState_2 = HAL_GPIO_ReadPin( BUF_ENA_GPIO_Port, BUF_ENA_Pin);
+	IoState = HAL_GPIO_ReadPin( BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin);
+	IoState_2 = HAL_GPIO_ReadPin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin);
 	if( ( IoState == SIGNAL_HIGH ) && ( IoState_2 == SIGNAL_HIGH )  )
 	{
-		HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );
 		Axis[0].AlarmDetect.BufICEnable = PULL_LOW;
 	}
 	else
@@ -2049,7 +2050,7 @@ void drive_Init(void)
 	Drive_BinCheckWordCompare( &AppCheckWord );
 
 	// MCU LED light On
-	HAL_GPIO_WritePin( MCU_State_LED_GPIO_Port, MCU_State_LED_Pin, GPIO_PIN_SET );
+//	HAL_GPIO_WritePin( MCU_State_LED_GPIO_Port, MCU_State_LED_Pin, GPIO_PIN_SET );
 
 
 	IntFlashCtrl.Init ( &IntFlashCtrl );
@@ -2058,7 +2059,7 @@ void drive_Init(void)
 	ExtranetCANStation.ForceDisable = DISABLE;
 
 	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
-	RCCommCtrl.Init(&RCCommCtrl,&huart5,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
+	RCCommCtrl.Init(&RCCommCtrl,&huart3,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 
 	// DTC Init
 	DTCStation1.Init( &DTCStation1 );
@@ -2455,14 +2456,14 @@ void drive_Do100HzLoop(void)
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
-			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
+			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
-	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
 	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
@@ -2485,12 +2486,12 @@ void drive_Do100HzLoop(void)
 static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 {
 	uint8_t IsOverTempFlag = 0;
-	if( *(v->TempNow[MOS_NTC_CENTER]) > v->MosDerating.X.InputMin )
+	if( *(v->TempNow[MOS_NTC_1]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
 	}
-	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	else if( *(v->TempNow[MOS_NTC_2]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
@@ -2562,11 +2563,11 @@ void drive_DoTotalTime(void)
 	// When TIM2 ARPE = 0, ARR change directly. The setting influence the end of THIS CNT.
 	if( TotalTime1.BufferServoOnState == MOTOR_STATE_OFF)
 	{
-		TIM2->ARR = (15000-1); // 3 sec
+		TIM3->ARR = (15000-1); // 3 sec
 	}
 	else
 	{
-		TIM2->ARR = (150000-1); // 30 sec
+		TIM3->ARR = (150000-1); // 30 sec
 	}
 
 	// In THIS interrupt, time elapsed should consider last servo on/off state.
@@ -2877,9 +2878,6 @@ void DisableMcuModule( void )
 	/*
 	 * DeInit All Communication Function
 	 */
-	// CAN 1
-	HAL_FDCAN_DeactivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE);
-	HAL_FDCAN_MspDeInit(&hfdcan1);
 
 	// CAN 2
 	HAL_FDCAN_DeactivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO0_NEW_MESSAGE);
@@ -2887,7 +2885,7 @@ void DisableMcuModule( void )
 	__HAL_RCC_FDCAN_FORCE_RESET();
 
 	//UART
-//	HAL_UART_MspDeInit(&huart5);
+//	HAL_UART_MspDeInit(&huart3);
 //	__HAL_RCC_UART5_FORCE_RESET();
 
 	//USART
@@ -2924,26 +2922,15 @@ void DisableMcuModule( void )
      */
 
 	// Timer 2
-    HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_ALL);
-    __HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
-    HAL_TIM_Base_DeInit( &htim2 );
-    __HAL_RCC_TIM2_FORCE_RESET();
+    HAL_TIM_Base_Stop_IT( &htim2 );
+	__HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
+    HAL_TIM_Base_MspDeInit( &htim2 );
+	__HAL_RCC_TIM2_FORCE_RESET();
 
 	// Timer 3
     HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_ALL);
     HAL_TIM_Base_MspDeInit( &htim3 );
     __HAL_RCC_TIM3_FORCE_RESET();
-
-	// Timer 4
-    HAL_TIM_Encoder_Stop( &htim4, TIM_CHANNEL_ALL );
-    HAL_TIM_Encoder_MspDeInit( &htim4 );
-    __HAL_RCC_TIM4_FORCE_RESET();
-
-	// Timer 5
-    HAL_TIM_IC_Stop_IT(&htim5, TIM_CHANNEL_ALL);
-    __HAL_TIM_DISABLE_IT( &htim5, TIM_IT_IDX );
-    HAL_TIM_Base_DeInit( &htim5 );
-    __HAL_RCC_TIM2_FORCE_RESET();
 
     // Timer 6
     HAL_TIM_Base_Stop_IT( &htim6 );
@@ -2955,10 +2942,10 @@ void DisableMcuModule( void )
     HAL_TIM_Base_MspDeInit( &htim7 );
     __HAL_RCC_TIM7_FORCE_RESET();
 
-    // Timer 16
-    HAL_TIM_Base_Stop_IT( &htim16 );
-    HAL_TIM_Base_MspDeInit( &htim16 );
-    __HAL_RCC_TIM16_FORCE_RESET();
+    // Timer 8
+    HAL_TIM_Base_Stop_IT( &htim8 );
+    HAL_TIM_Base_MspDeInit( &htim8 );
+    __HAL_RCC_TIM8_FORCE_RESET();
 
 	// Timer 20
 	HAL_TIM_Base_Stop_IT( &htim20 );
@@ -2968,18 +2955,22 @@ void DisableMcuModule( void )
 	/*
 	 * DeInit ADC & DAC
 	 */
-	//ADC
+	//ADC1
 	HAL_ADCEx_InjectedStop_IT(&hadc1);
 	HAL_ADC_MspDeInit(&hadc1);
-
-	// ADC 2
+	//ADC2
 	HAL_ADCEx_InjectedStop_IT(&hadc2);
 	HAL_ADC_MspDeInit(&hadc2);
 	__HAL_RCC_ADC12_FORCE_RESET();
-
+	// ADC 2
+	HAL_ADCEx_InjectedStop_IT(&hadc2);
+	HAL_ADC_MspDeInit(&hadc2);
 	// ADC 3
 	HAL_ADCEx_InjectedStop_IT(&hadc3);
 	HAL_ADC_MspDeInit(&hadc3);
+	// ADC 4
+	HAL_ADCEx_InjectedStop_IT(&hadc4);
+	HAL_ADC_MspDeInit(&hadc4);
 	__HAL_RCC_ADC345_FORCE_RESET();
 
 	//DAC

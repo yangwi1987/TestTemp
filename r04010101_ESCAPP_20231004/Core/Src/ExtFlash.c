@@ -97,9 +97,9 @@ void ExtFlash_NORD( ExtFlash_t *v, uint32_t Address, uint16_t TotalLen )
 	v->TxBuff[3] = (Address & 0x000000FF);
 
 	// send cmd
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_TransmitReceive(&hspi1, v->TxBuff, v->RxBuff, TotalLen, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 }
 
 void ExtFlash_PP( ExtFlash_t *v, uint32_t Address, uint8_t *pData, uint16_t TotalLen )
@@ -124,18 +124,18 @@ void ExtFlash_PP( ExtFlash_t *v, uint32_t Address, uint8_t *pData, uint16_t Tota
 	}
 
 	// send cmd
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_TransmitReceive(&hspi1, v->TxBuff, v->RxBuff, TotalLen, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 }
 
 void ExtFlash_WREN( void )
 {
 	uint8_t CMD = WREN;
 
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_Transmit(&hspi1, &CMD, WREN_LEN, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 }
 
 void ExtFlash_RDSR( ExtFlash_t *v )
@@ -143,9 +143,9 @@ void ExtFlash_RDSR( ExtFlash_t *v )
 	uint8_t TxTemp[RDSR_LEN] = {RDSR, 0};
 	uint8_t RxTemp[RDSR_LEN] = {0, 0};
 
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_TransmitReceive(&hspi1, TxTemp, RxTemp, RDSR_LEN, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	v->StatusRegister = RxTemp[1];
 }
@@ -169,9 +169,9 @@ void ExtFlash_SER( ExtFlash_t *v, uint32_t Address )
 	v->TxBuff[3] = (Address & 0x000000FF);
 
 	// send cmd
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_TransmitReceive(&hspi1, v->TxBuff, v->RxBuff, SER_LEN, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	// wait until Process done
 	v->RetryCount = 0;
@@ -207,9 +207,9 @@ void ExtFlash_BER64( ExtFlash_t *v, uint32_t Address )
 	v->TxBuff[3] = (Address & 0x000000FF);
 
 	// send cmd
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_TransmitReceive(&hspi1, v->TxBuff, v->RxBuff, SER_LEN, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	// wait until Process done
 	v->RetryCount = 0;
@@ -242,9 +242,9 @@ void ExtFlash_CER( ExtFlash_t *v )
 	v->TxBuff[0] = CER;
 
 	// send cmd
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_RESET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_RESET );
 	HAL_SPI_TransmitReceive(&hspi1, v->TxBuff, v->RxBuff, CER_LEN, TIMEOUT );
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	// wait until Process done
 	v->RetryCount = 0;
@@ -309,10 +309,10 @@ void ExtFlash_Init( ExtFlash_t *v )
 	uint32_t TempAddr = 0;
 
 	// Pull High SPI Hold Pin (Low-Active) to enable external flash memory
-	HAL_GPIO_WritePin( F_SPI_HOLD_GPIO_Port, F_SPI_HOLD_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_HOLD_DO_GPIO_Port, FLASH_HOLD_DO_Pin, GPIO_PIN_SET );
 
 	// Pull High SPI CS Pin
-	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
+	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	TempAddr = ExtFlash_SearchQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TotalTime_QW, FLASHERROR_NULL_TOTAL_TIME );
 	if( v->AlarmStatus & FLASHERROR_NULL_TOTAL_TIME )
