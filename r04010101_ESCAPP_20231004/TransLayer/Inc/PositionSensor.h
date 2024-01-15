@@ -81,7 +81,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v);
 void PositionSensor_DummyCurrentLoop(PS_t* v);
 void PositionSensor_ReadPosViaABZ(PS_t* v);
 void PositionSensor_ReadPosIdle(PS_t* v);
-extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim2;
 extern __IO float uwDutyCycle;
 
 #endif /* INC_POSITIONSENSOR_H_ */

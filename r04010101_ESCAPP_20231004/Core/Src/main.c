@@ -75,14 +75,6 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 
-TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
-TIM_HandleTypeDef htim8;
-
-ADC_HandleTypeDef hadc4;
-ADC_HandleTypeDef hadc5;
-
 //UART_HandleTypeDef huart3;
 
 /* USER CODE END PV */
@@ -108,8 +100,6 @@ static void MX_CORDIC_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_CRC_Init(void);
-static void MX_TIM4_Init(void);
-static void MX_TIM3_Init(void);
 static void MX_SPI4_Init(void);
 static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
@@ -180,28 +170,14 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  /*## Start the Input Capture in interrupt mode ##########################*/
-  if (HAL_TIM_IC_Start_IT(&htim20, TIM_CHANNEL_2) != HAL_OK)
-  {
-    /* Starting Error */
-    Error_Handler();
-  }
-
-  /*## Start the Input Capture in interrupt mode ##########################*/
-  if (HAL_TIM_IC_Start_IT(&htim20, TIM_CHANNEL_1) != HAL_OK)
-  {
-    /* Starting Error */
-    Error_Handler();
-  }
-
   drive_Init();
   __disable_irq();
   HAL_TIM_Base_Start(&htim6);
   HAL_TIM_Base_Start_IT(&htim7);
   __HAL_FLASH_CLEAR_FLAG( FLASH_FLAG_ALL_ERRORS );
 //  HAL_TIM_Base_Start(&htim16);
-//  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_1 );
-//  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_2 );
+  HAL_TIM_IC_Start_IT( &htim20, TIM_CHANNEL_1 );
+  HAL_TIM_IC_Start_IT( &htim20, TIM_CHANNEL_2 );
   __enable_irq();
 
 #if MEASURE_CPU_LOAD || JUDGE_FUNCTION_DELAY
