@@ -2204,17 +2204,17 @@ void drive_DoPwmRcCatch(void)
 
 void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
 {
-	uint32_t IC1Val = 0;
-    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+	uint32_t IC2Val = 0;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
     {
           /* Get the Input Capture value */
-        IC1Val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-        if (IC1Val != 0)
+        IC2Val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+        if (IC2Val != 0)
         {
             /* Duty cycle computation */
-            PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2) * 100)) / (float)IC1Val;
+            PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1) * 100)) / (float)IC2Val;
 
-            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC1Val) * 17.0f);
+            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC2Val) * 17.0f);
 
         }
         else
