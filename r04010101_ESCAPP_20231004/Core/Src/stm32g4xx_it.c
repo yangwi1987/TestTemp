@@ -396,8 +396,8 @@ else
 	initial_ignore++;
 }
 #endif
-  PSStation1.CntFromABZ = TIM4->CNT;
-  PSStation1.Direction = ( TIM4->CR1 >> 4 )& 0x1;  //Read DIR bit
+  PSStation1.CntFromABZ = TIM2->CNT;
+  PSStation1.Direction = ( TIM2->CR1 >> 4 )& 0x1;  //Read DIR bit
   CPUCounter.PWMCounter++;
 #if 0
   /* USER CODE END TIM8_UP_IRQn 0 */
