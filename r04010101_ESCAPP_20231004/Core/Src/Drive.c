@@ -2001,6 +2001,9 @@ void drive_Init(void)
 
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
+
+	/* Button control init */
+	Btn_Init();
 }
 
 void drive_DoLoad_DataToAdcGain(void)
@@ -2383,8 +2386,12 @@ void drive_Do100HzLoop(void)
 	{
 	    IsNotFirstLoop = 1;
 	}
+
+	Btn_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_ESCStateMachine();
+
+	Btn_Test01In100HzLoop();
 
 }
 
@@ -2900,3 +2907,5 @@ void DisableMcuModule( void )
 	HAL_CORDIC_MspInit(&hcordic);
 	__HAL_RCC_CORDIC_FORCE_RESET();
 }
+
+
