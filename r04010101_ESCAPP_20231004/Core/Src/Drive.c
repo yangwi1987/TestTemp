@@ -2391,8 +2391,6 @@ void drive_Do100HzLoop(void)
 	Drive_VehicleStateMachine();
 	Drive_ESCStateMachine();
 
-	Btn_Test01In100HzLoop();
-
 }
 
 // Check if "any" component's temperature is higher then minimum temperature in relative derating table.
@@ -2907,5 +2905,3 @@ void DisableMcuModule( void )
 	HAL_CORDIC_MspInit(&hcordic);
 	__HAL_RCC_CORDIC_FORCE_RESET();
 }
-
-

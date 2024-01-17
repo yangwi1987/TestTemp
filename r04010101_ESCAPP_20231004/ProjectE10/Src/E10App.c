@@ -7,9 +7,7 @@
 
 
 #include "E10App.h"
-#include "ExtranetCANStation.h"
 
-extern ExtranetCANStation_t ExtranetCANStation;
 AcPwrInfo_t AcPwrInfo = AC_POWER_INFO_DEFAULT;
 
 void AcPowerInfo_Reset(AcPwrInfo_t *p)
@@ -153,97 +151,6 @@ void Btn_Init()
     {
         Btn_Reset(i);
     }
-}
-
-
-
-void Btn_Test01In100HzLoop ( void )
-{
-	static uint16_t PeriodCnt = 0;
-	static uint16_t DutyTarget = 0;
-	BtnState_e StateTemp = 0;
-	BtnEvent_e EvtTemp = 0;
-	uint8_t signalTemp = 0;
-	STRUCT_CAN_DATA CanTemp;
-
-	if(DutyTarget < 30)
-	{
-		if(PeriodCnt <= DutyTarget)
-		{
-			signalTemp = 1;
-		}
-		else
-		{
-			signalTemp = 0;
-
-		}
-		Btn_SignalWrite(BTN_IDX_KILL_SW, signalTemp);
-		StateTemp = Btn_StateRead(BTN_IDX_KILL_SW);
-		EvtTemp =Btn_EvtRead(BTN_IDX_KILL_SW);
-		PeriodCnt++;
-
-		CanTemp.ID.All = 0;
-		CanTemp.Size = 3;
-		CanTemp.ID.StdFrame.StdID = 0x788;
-		CanTemp.Data[0] =signalTemp;
-		CanTemp.Data[1] =StateTemp;
-		CanTemp.Data[2] =EvtTemp;
-		CanTemp.Data[3] = 0;
-		CanTemp.Data[4] = 0;
-		CanTemp.Data[5] = 0;
-		CanTemp.Data[6] = 0;
-		CanTemp.Data[7] = 0;
-
-		ExtranetCANStation.TxQ.EnQ(&ExtranetCANStation.TxQ, &CanTemp);
-
-		if(PeriodCnt == 50)
-		{
-			PeriodCnt = 0;
-			DutyTarget++;
-		}
-	}
-}
-
-void Btn_Test02In100HzLoop ( void )
-{
-	static uint16_t PeriodCnt = 0;
-	BtnState_e StateTemp = 0;
-	BtnEvent_e EvtTemp = 0;
-	uint8_t signalTemp = 0;
-	STRUCT_CAN_DATA CanTemp;
-
-	if(PeriodCnt < 1000)
-	{
-
-		if(400 < PeriodCnt && PeriodCnt < 600)
-		{
-			signalTemp = 1;
-		}
-		else
-		{
-			signalTemp = 0;
-		}
-
-		Btn_SignalWrite(BTN_IDX_KILL_SW, signalTemp);
-		StateTemp = Btn_StateRead(BTN_IDX_KILL_SW);
-		EvtTemp =BtnTable[BTN_IDX_KILL_SW].EvtRecord;
-
-		CanTemp.ID.All = 0;
-		CanTemp.Size = 3;
-		CanTemp.ID.StdFrame.StdID = 0x788;
-		CanTemp.Data[0] =signalTemp;
-		CanTemp.Data[1] =StateTemp;
-		CanTemp.Data[2] =EvtTemp;
-		CanTemp.Data[3] = 0;
-		CanTemp.Data[4] = 0;
-		CanTemp.Data[5] = 0;
-		CanTemp.Data[6] = 0;
-		CanTemp.Data[7] = 0;
-
-		ExtranetCANStation.TxQ.EnQ(&ExtranetCANStation.TxQ, &CanTemp);
-
-		PeriodCnt++;
-	}
 }
 
 /*=============== Button handle End ===============*/
