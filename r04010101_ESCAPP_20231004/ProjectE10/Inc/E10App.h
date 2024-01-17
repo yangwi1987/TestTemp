@@ -98,9 +98,6 @@ extern void Btn_SignalWrite (BtnIdx_e Idx, int8_t DataIn);
 extern BtnState_e Btn_StateRead (BtnIdx_e Idx);
 extern void Btn_Init (void);
 extern void Btn_Do100HzLoop (void);
-extern void Btn_Test01In100HzLoop ( void );
-extern void Btn_Test02In100HzLoop ( void );
-extern uint8_t BtnTestArr[];
 
 /*=============== Button handle End ===============*/
 

@@ -46,7 +46,7 @@ static BtnStateFb_t BtnTable[BTN_IDX_MAX];
 void Btn_Reset (BtnIdx_e Idx)
 {
     BtnTable[Idx].Before = BTN_STATE_INITIALIZING;
-    BtnTable[Idx].Now = BTN_STATE_INITIALIZING;
+    BtnTable[Idx].Now = 0;
     BtnTable[Idx].SignalTimeCnt = 0;
     BtnTable[Idx].EvtRecord = BTN_EVENT_INITIALIZING;
 }
