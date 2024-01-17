@@ -161,6 +161,12 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->BUF_IC_FB.Counter = 0;
 	v->UVP_13V.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_UNDER_VOLTAGE_13V];
 	v->UVP_13V.Counter = 0;
+	v->UVP_E5V.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_UNDER_VOLTAGE_E5V];
+	v->UVP_E5V.Counter = 0;
+	v->UVP_ES5V.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_UNDER_VOLTAGE_ES5V];
+	v->UVP_ES5V.Counter = 0;
+	v->UVP_EA5V.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_UNDER_VOLTAGE_EA5V];
+	v->UVP_EA5V.Counter = 0;
 	v->POWER_TRANSISTOR_OC.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_POWER_TRANSISTOR_OC];
 	v->POWER_TRANSISTOR_OC.Counter = 0;
 	v->CAN0Timeout.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_CAN0_TIMEOUT];
@@ -168,10 +174,10 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->POWER_TRANSISTOR_OC.Counter = 0;
 	v->CAN1Timeout.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_CAN1_TIMEOUT];
 	v->CAN1Timeout.Counter = 0;
-	v->PEDAL_SENSOR_BREAK.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_PEDAL_BREAK];
-	v->PEDAL_SENSOR_BREAK.Counter = 0;
-	v->PEDAL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_PEDAL_SHORT];
-	v->PEDAL_SENSOR_SHORT.Counter = 0;
+	v->ACC_PEDAL_SENSOR_BREAK.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_ACC_PEDAL_BREAK];
+	v->ACC_PEDAL_SENSOR_BREAK.Counter = 0;
+	v->ACC_PEDAL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_ACC_PEDAL_SHORT];
+	v->ACC_PEDAL_SENSOR_SHORT.Counter = 0;
 
 	// set threshold from external flash (P3-00~P3-99) for alarm detected by AlarmDetect_Accumulation
 	// This function sholud be executed after ParamMgr1.Init, P3-00 is index 0. Max P3-99 is index 0x63
@@ -182,11 +188,14 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	SetAlarmThreshold(&v->OVP_Bus, ALARMID_OVER_VOLTAGE_BUS);
 	SetAlarmThreshold(&v->UVP_Bus, ALARMID_UNDER_VOLTAGE_BUS);
 	SetAlarmThreshold(&v->UVP_13V, ALARMID_UNDER_VOLTAGE_13V);
+	SetAlarmThreshold(&v->UVP_E5V, ALARMID_UNDER_VOLTAGE_E5V);
+	SetAlarmThreshold(&v->UVP_ES5V, ALARMID_UNDER_VOLTAGE_ES5V);
+	SetAlarmThreshold(&v->UVP_EA5V, ALARMID_UNDER_VOLTAGE_EA5V);
 	//SetAlarmThreshold(&v->OCP_Iu, ALARMID_IU_OCP);
 	//SetAlarmThreshold(&v->OCP_Iv, ALARMID_IV_OCP);
 	//SetAlarmThreshold(&v->OCP_Iw, ALARMID_IW_OCP);
-	SetAlarmThreshold(&v->PEDAL_SENSOR_BREAK, ALARMID_PEDAL_BREAK);
-	SetAlarmThreshold(&v->PEDAL_SENSOR_SHORT, ALARMID_PEDAL_SHORT);
+	SetAlarmThreshold(&v->ACC_PEDAL_SENSOR_BREAK, ALARMID_ACC_PEDAL_BREAK);
+	SetAlarmThreshold(&v->ACC_PEDAL_SENSOR_SHORT, ALARMID_ACC_PEDAL_SHORT);
 	SetAlarmThreshold(&v->OTP_PCU_0, ALARMID_OT_PCU_0);
 	SetAlarmThreshold(&v->OTP_PCU_1, ALARMID_OT_PCU_1);
 	SetAlarmThreshold(&v->OTP_PCU_2, ALARMID_OT_PCU_2);
@@ -264,8 +273,11 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	}
 
 	/*
-	AlarmDetect_Accumulation( v, &v->PEDAL_SENSOR_BREAK, v->pAdcStation->AdcTraOut );
-	AlarmDetect_Accumulation( v, &v->PEDAL_SENSOR_SHORT, v->pAdcStation->AdcTraOut );
+	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_BREAK, v->pAdcStation->AdcTraOut );
+	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_SHORT, v->pAdcStation->AdcTraOut );
+	AlarmDetect_Accumulation( v, &v->UVP_E5V, v->pAdcStation->AdcTraOut );
+	AlarmDetect_Accumulation( v, &v->UVP_ES5V, v->pAdcStation->AdcTraOut );
+	AlarmDetect_Accumulation( v, &v->UVP_EA5V, v->pAdcStation->AdcTraOut );
 */
 
 }

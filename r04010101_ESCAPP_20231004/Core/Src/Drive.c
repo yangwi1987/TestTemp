@@ -1257,8 +1257,8 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P0219_Motor_Overspeed;
 	        	break;
 		    }
-		    case ALARMID_PEDAL_BREAK:
-		    case ALARMID_PEDAL_SHORT:
+		    case ALARMID_ACC_PEDAL_BREAK:
+		    case ALARMID_ACC_PEDAL_SHORT:
 		    {
 		    	tempDTC_Number = DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal;
 	        	break;
@@ -2264,7 +2264,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
 	pAxis->MotorStall.Enable = ALARM_ENABLE;
-	pAxis->AlarmDetect.PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
 void DisableAlarmWhenSessionChange(Axis_t *pAxis)
@@ -2275,7 +2275,7 @@ void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
 	pAxis->MotorStall.Enable = ALARM_DISABLE;
-	pAxis->AlarmDetect.PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Session_DoWhileSessionChange(void)
