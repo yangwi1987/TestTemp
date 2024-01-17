@@ -355,7 +355,7 @@ void AxisFactory_CleanParameter( void )
 {
     CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
     DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
-    DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
+    DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] = 32768;
 }
 
 void AxisFactory_GetSetting( Axis_t *v )
@@ -368,6 +368,7 @@ void AxisFactory_GetSetting( Axis_t *v )
         	case FN_MF_FUNC_SEL_TORQUE_MODE:
 			{
 				CtrlUi.MotorCtrlMode = v->MotorControl.StartUpWay;
+				DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] = 32768;
 				break;
 			}
             case FN_MF_FUNC_SEL_VF:
@@ -478,11 +479,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
     {
 		case FN_MF_FUNC_SEL_TORQUE_MODE:
 		{
-			float NowTorqueCommand = 0.0f;
-			float PrevTempTorqueCommandOut = 0.0f;
-			static uint8_t IsTorqueCommandStable = 0;
-			static float TargetTorqueCommandOut = 0.0f;
-			static float TempTorqueCommandOut = 0.0f;
+			float TempTorqueCommandOut = 0.0f;
 
 			// Get Allow Flux
 			v->MotorControl.TorqueToIdq.GetAllowFluxRec( &(v->MotorControl.TorqueToIdq), v->MotorControl.SensorFb.EleSpeed, \
@@ -492,26 +489,9 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 			v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
 			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
 
-			// Decide the Torque Output
-			NowTorqueCommand = ((float)DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ]) * 0.1f;
-			if( TargetTorqueCommandOut != NowTorqueCommand )
-			{
-				TargetTorqueCommandOut = NowTorqueCommand;
-				TempTorqueCommandOut = TempTorqueCommandOut * 0.9f + TargetTorqueCommandOut * 0.1f;
-				IsTorqueCommandStable = 0;
-			}
-			else if( IsTorqueCommandStable == 0 )
-			{
-				// Deal with the float precision problem for TempTorqueCommandOut.
-				// EX: TorqueCmd = 0.5A, and TempTorqueCommandOut = 0.499999881 Finally.
-				PrevTempTorqueCommandOut = TempTorqueCommandOut;
-				TempTorqueCommandOut = TempTorqueCommandOut * 0.9f + TargetTorqueCommandOut * 0.1f;
-				IsTorqueCommandStable = ( TempTorqueCommandOut == PrevTempTorqueCommandOut ) ? 1 : 0;
-			}
-			else
-			{
-				TempTorqueCommandOut = NowTorqueCommand;
-			}
+			// Decide the Torque Output( TO DO: Negative Torque )
+			TempTorqueCommandOut = ((float)( DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768 )) * 0.1f;
+			TempTorqueCommandOut = ( TempTorqueCommandOut >= 0.0f ) ? TempTorqueCommandOut : 0.0f;
 			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
 			v->ThrotMapping.PercentageOut = 1.0f;
 
