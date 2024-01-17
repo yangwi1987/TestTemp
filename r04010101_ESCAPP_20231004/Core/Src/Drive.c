@@ -952,10 +952,6 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC02F_Foil_Position_State                      :
         {
         	UdsDIDFoilPositionState_e tempFoilPosState = 0;
-        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
-                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
-        	                   (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinFoil ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxFoil )) ? Foil_Position_Foil : /*// Foil mode*/\
-                               (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinSurf ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxSurf ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
                                                                                                                                                   // PADDLE mode
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
@@ -1219,11 +1215,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P0563_System_voltage_high;
 	        	break;
 		    }
-		    case ALARMID_RC_INVALID:
-		    {
-		    	tempDTC_Number = DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module;
-	        	break;
-		    }
 		    case ALARMID_POWER_TRANSISTOR_OC:
 		    {
 		    	continue;
@@ -1266,8 +1257,8 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P0219_Motor_Overspeed;
 	        	break;
 		    }
-		    case ALARMID_FOIL_BREAK:
-		    case ALARMID_FOIL_SHORT:
+		    case ALARMID_PEDAL_BREAK:
+		    case ALARMID_PEDAL_SHORT:
 		    {
 		    	tempDTC_Number = DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal;
 	        	break;
@@ -1323,11 +1314,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    case ALARMID_OT_MOTOR_0_WARNING :
 		    {
 		    	tempDTC_Number = DTC_RecordNumber_P1F14_Motor_High_temperature_warning;
-	        	break;
-		    }
-		    case ALARMID_MOTOR_REVERSE :
-		    {
-		    	tempDTC_Number = DTC_RecordNumber_P021A_Motor_Reverse;
 	        	break;
 		    }
 		    default:
@@ -2278,7 +2264,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
 	pAxis->MotorStall.Enable = ALARM_ENABLE;
-	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
 void DisableAlarmWhenSessionChange(Axis_t *pAxis)
@@ -2289,7 +2275,7 @@ void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
 	pAxis->MotorStall.Enable = ALARM_DISABLE;
-	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Session_DoWhileSessionChange(void)

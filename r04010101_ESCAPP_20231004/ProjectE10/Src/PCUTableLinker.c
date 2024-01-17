@@ -273,7 +273,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved316},	//P3-16 ALARMID_POWER_TRANSISTOR_OC
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved317},	//P3-17 ALARMID_BUFFER_IC_ERROR
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved318},	//P3-18 ALARMID_PHASE_LOSS
-				{		1,		THRE_MAX,		8000,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
+				{		1,		THRE_MAX,		14000,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
 				{		1,		THRE_MAX,		62,				0x45,		&DriveParams.PCUParams.Reserved320},	//P3-20 ALARMID_OVER_VOLTAGE_BUS
 				{		1,		THRE_MAX,		36,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
 				{		1,		THRE_MAX,		10,				0x45,		&DriveParams.PCUParams.Reserved322},	//P3-22 ALARMID_UNDER_VOLTAGE_13V
@@ -283,13 +283,13 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved326},	//P3-26 ALARMID_FLASH_UNINITIALIZED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved327},	//P3-27 ALARMID_FLASH_READ_FAILED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved328},	//P3-28 ALARMID_FLASH_DAMAGED
-				{		1,		1000,		    100,    		0x45,		&DriveParams.PCUParams.Reserved329},	//P3-29 ALARMID_MOTOR_REVERSE
+				{		0,		0,		0,		0,		0},	//P3-29
 				{		0,		0,		0,		0,		0},	//P3-30
 				{		0,		0,		0,		0,		0},	//P3-31
 				{		0,		0,		0,		0,		0},	//P3-32
 				{		0,		0,		0,		0,		0},	//P3-33
-				{		1,		THRE_MAX,		125,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_FOIL_BREAK in 0.001V
-				{		1,		THRE_MAX,		4752,		0x45,		&DriveParams.PCUParams.Reserved335},	//P3-35 ALARMID_FOIL_SHORT in 0.001V
+				{		1,		THRE_MAX,		125,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_PEDAL_BREAK in 0.001V
+				{		1,		THRE_MAX,		4752,		0x45,		&DriveParams.PCUParams.Reserved335},	//P3-35 ALARMID_PEDAL_SHORT in 0.001V
 				{		0,		0,		0,		0,		0},	//P3-36
 				{		0,		0,		0,		0,		0},	//P3-37
 				{		0,		0,		0,		0,		0},	//P3-38
@@ -352,7 +352,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-95
 				{		0,		0,		0,		0,		0},	//P3-96
 				{		0,		0,		0,		0,		0},	//P3-97
-				{		1,		THRE_MAX,		9,		0x45,		&DriveParams.PCUParams.Reserved398},	//P3-98 ALARMID_RC_INVALID
+				{		0,		0,		0,		0,		0},	//P3-98
 				{		0,		0,		0,		0,		0}	//P3-99
 		},
 

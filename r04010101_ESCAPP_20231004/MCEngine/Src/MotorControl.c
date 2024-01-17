@@ -511,43 +511,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	//Compensation Deadtime
 	p->CompDuty.Init(&(p->CompDuty),0.0125f,5.0f,0.0125f,5.0f);
 
-
-	//Sensorless
-	SensorlessSetting_t SensorlessSetting = SENSORLESS_SETTING_DEFAULT;
-
-	SensorlessSetting.Polepair = pSetting->PmMotorPolepair;
-	SensorlessSetting.Ld = pSetting->PmMotorLd;
-	SensorlessSetting.Lq = pSetting->PmMotorLq;
-	SensorlessSetting.Res = pSetting->PmMotorRes;
-	SensorlessSetting.J = pSetting->PmMotorJ;
-	SensorlessSetting.Period = pSetting->PwmPeriod;
-	SensorlessSetting.EEMFAngleObserverHz1 = 10.0f;
-	SensorlessSetting.EEMFAngleObserverHz2 = 50.0f;
-	SensorlessSetting.EEMFAngleObserverHz3 = 110.0f;
-	SensorlessSetting.HFISinVamp = DriveParams.SystemParams.HFIInjVol;
-	SensorlessSetting.HFISinAngleObserverHz1 = 10.0f;
-	SensorlessSetting.HFISinAngleObserverHz2 = 50.0f;
-	SensorlessSetting.HFISinAngleObserverHz3 = 110.0f;
-	SensorlessSetting.HFISinLPFHz = 500.0f;
-	SensorlessSetting.HFISinBPFHz = 1000.0f;
-	SensorlessSetting.HFISinBPFQ = 0.5f;
-	SensorlessSetting.AngleInitFixedCmdFirstTime = 0.3f;
-	SensorlessSetting.AngleInitFixedCmdSecondTime = 0.7f;
-	/*
-	 * assume d-axis align alpha-axis is 0 deg
-	 * Id = Is * COS(theta),  Id = Is * SIM(theta),
-	 * Set Is = 50 A, First theta = 120 deg, Second theta = 210 deb
-	 */
-	SensorlessSetting.AngleInitFixedCmdFirstId = -25.0f;        // 50 * COS(120 deg)
-	SensorlessSetting.AngleInitFixedCmdFirstIq = 43.30127f;     // 50 * SIN(120 deg)
-	SensorlessSetting.AngleInitFixedCmdSecondId = -43.30127f;   // 50 * COS(210 deg)
-	SensorlessSetting.AngleInitFixedCmdSecondIq = -25.0f;       // 50 * SIN(210 deg)
-	SensorlessSetting.AngleInitFixedCmdDelayTimeSec = (float)(DriveParams.SystemParams.IinitialAlignDelay) * 0.1f;
-	p->Sensorless.Init(&(p->Sensorless),&SensorlessSetting);
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
-#if USE_HFI_SIN==1
-	p->StartUpWay = FUNCTION_MODE_HFI_SIN;
-#endif
 	return CONTROL_INIT_OK;
 }
 

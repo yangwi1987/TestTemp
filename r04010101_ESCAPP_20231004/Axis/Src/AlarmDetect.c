@@ -168,21 +168,10 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->POWER_TRANSISTOR_OC.Counter = 0;
 	v->CAN1Timeout.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_CAN1_TIMEOUT];
 	v->CAN1Timeout.Counter = 0;
-	v->RC_INVALID.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_RC_INVALID];
-	v->RC_INVALID.Counter = 0;
-#if USE_FOIL_ABNORMAL_DETECT
-	v->FOIL_SENSOR_BREAK.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_FOIL_BREAK];
-	v->FOIL_SENSOR_BREAK.Counter = 0;
-	v->FOIL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_FOIL_SHORT];
-	v->FOIL_SENSOR_SHORT.Counter = 0;
-	if(IsUseDigitalFoilSensor==1)
-	{
-		v->FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-		v->FOIL_SENSOR_SHORT.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-	}
-#endif
-	v->Motor_Reverse.AlarmInfo 	 = SystemTable.AlarmTableInfo[ALARMID_MOTOR_REVERSE];
-	v->Motor_Reverse.Counter = 0;
+	v->PEDAL_SENSOR_BREAK.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_PEDAL_BREAK];
+	v->PEDAL_SENSOR_BREAK.Counter = 0;
+	v->PEDAL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_PEDAL_SHORT];
+	v->PEDAL_SENSOR_SHORT.Counter = 0;
 
 	// set threshold from external flash (P3-00~P3-99) for alarm detected by AlarmDetect_Accumulation
 	// This function sholud be executed after ParamMgr1.Init, P3-00 is index 0. Max P3-99 is index 0x63
@@ -196,8 +185,8 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	//SetAlarmThreshold(&v->OCP_Iu, ALARMID_IU_OCP);
 	//SetAlarmThreshold(&v->OCP_Iv, ALARMID_IV_OCP);
 	//SetAlarmThreshold(&v->OCP_Iw, ALARMID_IW_OCP);
-	SetAlarmThreshold(&v->FOIL_SENSOR_BREAK, ALARMID_FOIL_BREAK);
-	SetAlarmThreshold(&v->FOIL_SENSOR_SHORT, ALARMID_FOIL_SHORT);
+	SetAlarmThreshold(&v->PEDAL_SENSOR_BREAK, ALARMID_PEDAL_BREAK);
+	SetAlarmThreshold(&v->PEDAL_SENSOR_SHORT, ALARMID_PEDAL_SHORT);
 	SetAlarmThreshold(&v->OTP_PCU_0, ALARMID_OT_PCU_0);
 	SetAlarmThreshold(&v->OTP_PCU_1, ALARMID_OT_PCU_1);
 	SetAlarmThreshold(&v->OTP_PCU_2, ALARMID_OT_PCU_2);
@@ -214,8 +203,6 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	SetAlarmThreshold(&v->SHORT_NTC_PCU_1, ALARMID_SHORT_NTC_PCU_1);
 	SetAlarmThreshold(&v->SHORT_NTC_PCU_2, ALARMID_SHORT_NTC_PCU_2);
 	SetAlarmThreshold(&v->SHORT_NTC_Motor_0, ALARMID_SHORT_NTC_MOTOR_0);
-	SetAlarmThreshold(&v->RC_INVALID, ALARMID_RC_INVALID);
-	SetAlarmThreshold(&v->Motor_Reverse, ALARMID_MOTOR_REVERSE);
 
 	v->Do100HzLoop = (functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop;
 }
@@ -276,24 +263,10 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin ), HAL_GPIO_ReadPin( HWOCP_GPIO_Port, HWOCP_Pin ), v->AxisID );
 	}
 
-#if USE_FOIL_ABNORMAL_DETECT
-	// analog foil sensor should in 5~0V, and the input signal is between 5000~0000 (0.001V)
-	int16_t TempAnalogFoil0p001V; // in 0.001V
-	if(v->pAdcStation->AdcTraOut.Foil < 0.00001f)
-	{
-		TempAnalogFoil0p001V = 0; // 0.00000 * 1000 = 0
-	}
-	else if(v->pAdcStation->AdcTraOut.Foil > 4.99999f)
-	{
-		TempAnalogFoil0p001V = 5000; // 5.00000 * 1000 = 5000
-	}
-	else
-	{
-		TempAnalogFoil0p001V = v->pAdcStation->AdcTraOut.Foil * 1000.0f;
-	}
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_BREAK, TempAnalogFoil0p001V );
-	AlarmDetect_Accumulation( v, &v->FOIL_SENSOR_SHORT, TempAnalogFoil0p001V );
-#endif
+	/*
+	AlarmDetect_Accumulation( v, &v->PEDAL_SENSOR_BREAK, v->pAdcStation->AdcTraOut );
+	AlarmDetect_Accumulation( v, &v->PEDAL_SENSOR_SHORT, v->pAdcStation->AdcTraOut );
+*/
 
 }
 
@@ -325,19 +298,9 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 		AlarmDetect_Accumulation( v, &v->CAN1Timeout, 1 );
 	}
 	// Axis alarm detect
-	if ( v->pSpeedInfo->MotorMechSpeedRPM > 0.0f)
-	{
-		AlarmDetect_Accumulation( v, &v->OSP, (int16_t) v->pSpeedInfo->MotorMechSpeedRPM );
-	}
-	else
-	{
-		AlarmDetect_Accumulation( v, &v->Motor_Reverse, (int16_t) ( -v->pSpeedInfo->MotorMechSpeedRPM ));
-	}
+
+	AlarmDetect_Accumulation( v, &v->OSP, (int16_t) v->pSpeedInfo->MotorMechSpeedRPM );
 
 
-	// PWM RC SIGNAL ABNORMAL, check if RC have connected to RF after ESC power on.
-	if( RCCommCtrl.RcHaveConnectedFlag == 1){
-		AlarmDetect_Accumulation( v, &v->RC_INVALID, RCCommCtrl.TimeoutCnt );
-	}
 }
 
