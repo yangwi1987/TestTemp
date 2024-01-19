@@ -6,7 +6,9 @@
  */
 #if E10
 #include "Protocol.h"
-#include "ICANInterface.h"\
+#include "ICANInterface.h"
+#include <BatCtrl.h>
+#include "E10App.h"
 //uint8_t VcuEnableFlag=0;
 /*
  * "ExtranetInformInSystemTableExample" will be stored in system table bin
@@ -14,35 +16,39 @@
  */
 
 uint8_t EscFrameCnt = 0;
-uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t );
-uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r );
+uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t );
+uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r );
+
+
 
 const CANProtocol ExtranetInformInSystemTableExample =
 {
   50,
   10,
   {
-    CANTXID_BMS_CONTROL_01, CANTXID_BMS_CONTROL_02, CANTXID_ESC_LOG_INFO_0, CANTXID_ESC_LOG_INFO_1, CANTXID_ESC_LOG_INFO_2,
-	  CANTXID_ESC_LOG_INFO_3, CANTXID_ESC_LOG_INFO_4 ,CANTXID_ESC_LOG_INFO_5, CANTXID_ESC_LOG_INFO_6, CANTXID_ESC_LOG_INFO_7,
+	  CANTXID_ESC_LOG_INFO_0, CANTXID_ESC_LOG_INFO_1, CANTXID_ESC_LOG_INFO_2, CANTXID_ESC_LOG_INFO_3, CANTXID_ESC_LOG_INFO_4,
+	  CANTXID_ESC_LOG_INFO_5, CANTXID_ESC_LOG_INFO_6, CANTXID_ESC_LOG_INFO_7, 0, 0
   },
-  (pRxTranslate)BME060CAN_RxDataTranslate,
-  (pTxTranslate)BME060CAN_TxDataTranslate,
+  (pRxTranslate)CAN_RxDataTranslate,
+  (pTxTranslate)CAN_TxDataTranslate,
 };
+
 
 
 /*
  * "LscCanIdTableExtra" will be stored in system table bin
  */
-const CanIdConfig_t LscCanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
+const CanIdConfig_t CanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
 {
   //	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
-  {CANRXID_BMS_STATUS_01,	CANRXID_BMS_STATUS_02,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
-  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
+  {CAN_ID_BMS_FILTER,	CAN_ID_BMS_MASK,	{{(uint8_t)FDCAN_FILTER_MASK,CAN_ID_CONIFG_TYPE_EXTENDED,CAN_ID_CONFIG_USED,0,0}}},
+  {CAN_ID_DEV_CMD_START,	CAN_ID_DEV_CMD_END,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_EXTENDED,CAN_ID_CONFIG_USED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
 };
+
 
 void ByteOrderReverse(void *Dest, void *Src, uint8_t Size)
 {
@@ -55,76 +61,43 @@ void ByteOrderReverse(void *Dest, void *Src, uint8_t Size)
 }
 
 
-uint8_t BME060CAN_RxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
+
+
+
+uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
 {
   uint8_t	lStatus=ID_MATCH;
-  uint16_t u16Temp = 0;
-  int16_t i16Temp = 0;
-  EscCanRxInfo_t *p;
 
-  p = (EscCanRxInfo_t*)pDataIn;
 
-  switch (pIdIn)
+  if(IdIn>=CAN_ID_DEV_CMD_START && IdIn <= CAN_ID_DEV_CMD_END)
   {
-    case CANRXID_BMS_STATUS_01 :
-    {
+	  switch (IdIn)
+	  {
+	  	  case CAN_ID_DEV_CMD_START:
 
-      v->BmsReportInfo.LimpFlag = p->BmsStatus01.LimpFlag;
-      v->BmsReportInfo.WarningFlag = p->BmsStatus01.WarningFlag;
-      v->BmsReportInfo.AlarmFlag = p->BmsStatus01.AlarmFlag;
-      v->BmsReportInfo.BmsShutdownRequest = p->BmsStatus01.BmsShutdownRequest;
-      v->BmsReportInfo.Soc = p->BmsStatus01.Soc;
+	  		  if(*(pDataIn + 0) == 0)
+	  		  {
+	  			  BatStation.PwrOnReq();
+	  		  }
+	  		  else
+	  		  {
+	  			  BatStation.PwrOffReq();
+	  		  }
+	  		  break;
 
-      u16Temp = p->BmsStatus01.DischargeCurrentLimit_h;
-      u16Temp <<= 4;
-      u16Temp += p->BmsStatus01.DischargeCurrentLimit_l;
-      v->BmsReportInfo.DCCurrentLimit = ((float)u16Temp);
-
-      u16Temp = p->BmsStatus01.TerminalVoltage_h;
-      u16Temp <<= 2;
-      u16Temp += p->BmsStatus01.TerminalVoltage_l;
-      v->BmsReportInfo.DcVolt = ((float)u16Temp * 0.1);
-
-      i16Temp = p->BmsStatus01.Current_h;
-      i16Temp <<= 8;
-      i16Temp += p->BmsStatus01.Current_l;
-
-      if(i16Temp < 8192)
-      {
-    	  v->BmsReportInfo.Current = ((float)i16Temp * 0.05);
-      }
-      else
-      {
-    	  v->BmsReportInfo.Current = ((float)(i16Temp - 16384) * 0.05);
-      }
-
-      v->BmsReportInfo.MaxCellTemp = ((int16_t)p->BmsStatus01.MaxCellTemp - 40);
-      v->BmsReportInfo.BatInstPwr = v->BmsReportInfo.Current * v->BmsReportInfo.DcVolt;
-
-      v->ReceivedCANID |= RECEIVED_BAT_ID_1;  /* For BMS CAN timeout usage */
-
-      break;
-    }
-
-    case CANRXID_BMS_STATUS_02 :
-    {
-      v->BmsReportInfo.MainSm = p->BmsStatus02.BmsActiveState;
-      v->BmsReportInfo.PrchSM = p->BmsStatus02.PreCHGState;
-      v->BmsReportInfo.BmsFrameCnt = p->BmsStatus02.BmsFrameCnt;
-
-      break;
-    }
-
-    default :
-    {
-      lStatus = ID_NO_MATCH;
-      break;
-    }
+	  	  default:
+	  		  break;
+	  }
+  }
+  else
+  {
+	  BatStation.CanMsgLoad(IdIn, pDataIn);
+	  v->ReceivedCANID |= RECEIVED_BAT_ID_1;
   }
   return lStatus;
 }
 
-uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
+uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
 {
   uint8_t	lStatus = ID_MATCH;
   EscCanTxCmd_t *p;
@@ -140,28 +113,8 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
 
   p = (EscCanTxCmd_t*)pDataIn;
 
-  switch (pIdIn)
+  switch (IdIn)
   {
-    case CANTXID_BMS_CONTROL_01:
-    {
-      p->BmsCtrl01.ShutdownRequest = v->BmsCtrlCmd.ShutDownReq;
-
-      /* These two signals are not available now, put dummy value */
-      p->BmsCtrl01.ConnectionRequest = BMS_CTRL_NO_REQ;
-      p->BmsCtrl01.DisconnectionRequest = BMS_CTRL_NO_REQ;
-
-      break;
-    }
-
-    case CANTXID_BMS_CONTROL_02:
-    {
-      p->BmsCtrl02.LedCtrl.All = v->BmsCtrlCmd.LedCtrlCmd.All;
-      p->BmsCtrl02.EscFrameCnt = EscFrameCnt;
-      EscFrameCnt++;
-
-      break;
-    }
-
     case CANTXID_ESC_LOG_INFO_0:
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 0)
@@ -311,11 +264,9 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
-        p->EscLogInfo7.BmsMainSm = r->BmsReportInfo.MainSm;
-        p->EscLogInfo7.BmsPrchSm = r->BmsReportInfo.PrchSM;
-        p->EscLogInfo7.BatSoc = r->BmsReportInfo.Soc;
-        p->EscLogInfo7.BatPackLedCtrl.All = v->BmsCtrlCmd.LedCtrlCmd.All;
-
+    	  p->DataU8[0] = BatStation.MainSMGet();
+    	  p->DataU8[1] = BatStation.PwrOffSMGet();
+    	  p->DataU8[2] = BatStation.PwrOnSMGet();
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
       else

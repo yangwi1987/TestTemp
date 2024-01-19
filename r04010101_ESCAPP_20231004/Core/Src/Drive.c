@@ -1969,7 +1969,7 @@ void drive_Init(void)
 #endif
 	// Init CAN external
 	ExtranetCANStation.TxInfo.pAlarmStack = &AlarmStack[0];
-	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, LscCanIdTableExtra );
+	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, CanIdTableExtra );
 	ExtranetCANStation.Init( &ExtranetCANStation,&ExtranetInformInSystemTableExample, &hfdcan2);
 
 	// Init CAN internal
@@ -2004,6 +2004,9 @@ void drive_Init(void)
 
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
+
+	/*Init BAT control unit*/
+	BatStation.CanHandleLoad(&ExtranetCANStation);
 }
 
 void drive_DoLoad_DataToAdcGain(void)
@@ -2414,6 +2417,8 @@ void drive_Do100HzLoop(void)
 	}
 	Drive_VehicleStateMachine();
 	Drive_ESCStateMachine();
+	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
+	BatStation.Do100HzLoop();
 
 }
 
