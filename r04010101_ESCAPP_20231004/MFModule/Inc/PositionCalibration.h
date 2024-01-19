@@ -58,11 +58,11 @@ typedef enum
 	PS_CALI_SEL_NONE = 0,
 	PS_CALI_SEL_AUTO_ZERO_OFFSET,
 	PS_CALI_SEL_LINEARIZATION,
-}PS_CALI_SEL;
+}PS_CALI_SEL_e;
 
 typedef struct
 {
-	PS_CALI_SEL Calibration_Metho_Select;
+	PS_CALI_SEL_e Calibration_Metho_Select;
 	PS_CALI_ZERO_OFFSET_SM_e Zero_Offset_State;
 	PS_CALI_LINEAR_SM_e Linear_State;
 	PS_CALI_FIND0_SM_e Find_Mech_Zero_State;
