@@ -14,7 +14,7 @@ static uint32_t LinearElePosCmd[32] = { 9817,	19635,	29452,	39270,	49087,	58905,
 float LinearPointsMechPosRad[32] = { 0.0f };
 
 static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u );
-static void PositionCalibration__Linear_Process(PS_t *u );
+static void PositionCalibration_Linear_Process(PS_t *u );
 static void PositionCalibration_Start_IF_Control(void);
 static void PositionCalibration_Rotate_Until_Across_Mech_Zero( float MechPosition );
 static void PositionCalibration_STOP_IF_Control(void);
@@ -38,11 +38,11 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             }
             case PS_CALI_SEL_LINEARIZATION:
             {
-            	PositionCalibration__Linear_Process(u);
-            	if ( PS_CALI_Vars._Linear_State == PS_CALI__LINEAR_SM_FINISHED )
+            	PositionCalibration_Linear_Process(u);
+            	if ( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_FINISHED )
             	{
             		*PosCaliSel = 0;
-            		PS_CALI_Vars._Linear_State = PS_CALI__LINEAR_SM_NONE;
+            		PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_NONE;
             	}
             	break;
             }
@@ -117,20 +117,20 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
     }
 }
 
-static void PositionCalibration__Linear_Process(PS_t *u )
+static void PositionCalibration_Linear_Process(PS_t *u )
 {
 	static uint16_t Positioning_Cnt = 0;
 	static uint8_t LinearPointNow = 0;
-    switch ( PS_CALI_Vars._Linear_State )
+    switch ( PS_CALI_Vars.Linear_State )
     {
-        case PS_CALI__LINEAR_SM_NONE:
+        case PS_CALI_LINEAR_SM_NONE:
         {
         	Positioning_Cnt = 0;
         	PositionCalibration_Start_IF_Control();
-        	PS_CALI_Vars._Linear_State = PS_CALI__LINEAR_SM_FIND_MECH_ZERO;
+        	PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_MECH_ZERO;
         	break;
         }
-        case PS_CALI__LINEAR_SM_FIND_MECH_ZERO:
+        case PS_CALI_LINEAR_SM_FIND_MECH_ZERO:
         {
         	if ( Positioning_Cnt < DEFAULT_DELAT_TIME_FOR_FINDING_ZERO_POS )
         	{
@@ -141,7 +141,7 @@ static void PositionCalibration__Linear_Process(PS_t *u )
         		PositionCalibration_Rotate_Until_Across_Mech_Zero( u->MechPosition );
         		if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_END )
         		{
-        			PS_CALI_Vars._Linear_State = PS_CALI__LINEAR_SM_FIND_POINTS;
+        			PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_POINTS;
         		}
         		else if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_POSITIONING )
         		{
@@ -150,12 +150,12 @@ static void PositionCalibration__Linear_Process(PS_t *u )
         		else if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_ERROR )
         		{
         			PositionCalibration_STOP_IF_Control();
-        			PS_CALI_Vars._Linear_State = PS_CALI__LINEAR_SM_ERROR;
+        			PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_ERROR;
         		}
         	}
         	break;
         }
-        case PS_CALI__LINEAR_SM_FIND_POINTS:
+        case PS_CALI_LINEAR_SM_FIND_POINTS:
         {
         	if ( Positioning_Cnt < DEFAULT_DELAT_TIME_FOR_FINDING_ZERO_POS )
         	{
@@ -176,16 +176,16 @@ static void PositionCalibration__Linear_Process(PS_t *u )
         			PositionCalibration_STOP_IF_Control();
                		LinearPointNow = 0;
             		Positioning_Cnt = 0;
-            		PS_CALI_Vars._Linear_State = PS_CALI__LINEAR_SM_FINISHED;  //TODO: use communication to configure position sensor in the future.
+            		PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FINISHED;  //TODO: use communication to configure position sensor in the future.
         		}
         	}
         	break;
         }
-        case PS_CALI__LINEAR_SM_SEND_RESULT:
+        case PS_CALI_LINEAR_SM_SEND_RESULT:
         {
         	break;
         }
-        case PS_CALI__LINEAR_SM_ERROR:
+        case PS_CALI_LINEAR_SM_ERROR:
         {
         	break;
         }
