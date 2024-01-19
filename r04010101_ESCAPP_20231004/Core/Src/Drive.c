@@ -1999,11 +1999,13 @@ void drive_Init(void)
 	// Register alarm depend on AlarmTableInfo table and error status of each module.
 	GlobalAlarmDetect_init();
 
+	/* Button control init */
+	Btn_Init();
+	
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
 
-	/* Button control init */
-	Btn_Init();
+
 }
 
 void drive_DoLoad_DataToAdcGain(void)
