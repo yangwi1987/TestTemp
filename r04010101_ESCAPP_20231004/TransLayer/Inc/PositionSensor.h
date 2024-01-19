@@ -17,7 +17,7 @@
 #define DEFAULT_POLE_PAIRS 5 //read from param int the future
 #define DEFAULT_ABZ_RESOLUTION_PER_ELE_REVOLUSTION DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / DEFAULT_POLE_PAIRS //819.2 steps per elec revolution, which means 0.439 degrees
 
-typedef void (*functypePositionSensor_Init)(void*);
+typedef void (*functypePositionSensor_Init)(void*, uint16_t, uint16_t);
 typedef void (*functypePositionSesnor_DoPLCLoop)(void*);
 typedef void (*functypePositionSensor_DoCurrentLoop)(void*);
 
@@ -50,6 +50,7 @@ typedef struct
 	float PreMechPosition;
 	float InitMechPosition;
 	float MechPosCompCoefBySpeed;
+	float MechPosZeroOffset;
 	FILTER_BILINEAR_1ORDER_TYPE CalcMechSpeedLPF;
 	functypePositionSensor_Init Init;
 	functypePositionSesnor_DoPLCLoop DoPLCLoop;
@@ -60,23 +61,24 @@ typedef struct
 	0,\
 	0,\
 	PS_DIRECTION_UPCOUNTER,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
-	0.0f,\
+	0.0f,/*	float MechSpeedRaw;     // rad/s*/\
+	0.0f,/*	float ElecSpeed;     // rad/s   */\
+	0.0f,/*	float MechSpeed;     // rad/s   */\
+	0.0f,/*	float ElecPosition;     // rad  */\
+	0.0f,/*	float MechPosition;     // rad  */\
+	0.0f,/*	float DutyFromPwm;              */\
+	0.0f,/*	float FreqFromPwm;              */\
+	0.0f,/*	float PreMechPosition;          */\
+	0.0f,/*	float InitMechPosition;         */\
+	0.0f,/*	float MechPosCompCoefBySpeed;   */\
+	0.0f,/*	float MechPosZeroOffset;        */\
 	FILTER_BILINEAR_1ORDER_DEFAULT,\
 	(functypePositionSensor_Init)PositionSensor_Init,\
 	(functypePositionSesnor_DoPLCLoop)PositionSesnor_DoPLCLoop,\
 	(functypePositionSensor_DoCurrentLoop)PositionSensor_ReadPosIdle,\
 }
 
-void PositionSensor_Init(PS_t* v);
+void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCompCoefBySpeed);
 void PositionSesnor_DoPLCLoop(PS_t* v);
 void PositionSensor_DummyCurrentLoop(PS_t* v);
 void PositionSensor_ReadPosViaABZ(PS_t* v);

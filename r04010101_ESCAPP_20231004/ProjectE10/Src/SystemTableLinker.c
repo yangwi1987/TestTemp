@@ -367,8 +367,8 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{	    3,	  	   51,		  36,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenFoil0p1V},	//P1-34
 				{	    3,	  	   51,		  28,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenFoil0p1V},	//P1-35
 				{		0,			0,			0,			0,		0},	//P1-36
-				{		0,			0,			0,			0,		0},	//P1-37
-				{		0,			0,			0,			0,		0},	//P1-38
+				{	    1352,	64184,		32768,		0x85A,		&DriveParams.SystemParams.MechPositionZeroOffset},	//P1-37
+				{		0,		65535,			0,		 0x5A,		&DriveParams.SystemParams.MechPositionCompCoefBySpeed},	//P1-38
 				{		0,			0,			0,			0,		0},	//P1-39
 				{	    0,	  	   7,		  5,		 0x45,		&DriveParams.SystemParams.ParamMgrSecurity},	//P1-40
 				{		0,			0,			0,			0,		0},	//P1-41

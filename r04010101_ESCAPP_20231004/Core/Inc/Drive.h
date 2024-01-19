@@ -34,6 +34,7 @@
 #include "DiagnosticTroubleCode.h"
 #include "RemainingTime.h"
 #include "PositionSensor.h"
+#include "PositionCalibration.h"
 
 #if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
 typedef struct

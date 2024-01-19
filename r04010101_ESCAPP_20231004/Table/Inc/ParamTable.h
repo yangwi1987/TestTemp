@@ -152,8 +152,8 @@ typedef struct {
 	uint16_t MaxAnaFoilSenFoil0p1V;	//P1-34
 	uint16_t MinAnaFoilSenFoil0p1V;	//P1-35
 	uint16_t Reserved136;	//P1-36
-	uint16_t Reserved137;	//P1-37
-	uint16_t Reserved138;	//P1-38
+	uint16_t MechPositionZeroOffset;	//P1-37
+	uint16_t MechPositionCompCoefBySpeed;	//P1-38
 	uint16_t Reserved139;	//P1-39
 	uint16_t ParamMgrSecurity;	//P1-40
 	uint16_t Reserved141;	//P1-41

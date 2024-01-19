@@ -9,7 +9,7 @@
 
 static void PositionSensor_ReadPosViaPWM(PS_t* v);
 
-void PositionSensor_Init(PS_t* v)
+void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCompCoefBySpeed)
 {
 /*
  * To do:
@@ -21,6 +21,9 @@ void PositionSensor_Init(PS_t* v)
 	FilterSettingTmp.Period =  0.0001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	v->CalcMechSpeedLPF.Init(&(v->CalcMechSpeedLPF),&FilterSettingTmp);
+
+	v->MechPosZeroOffset = (float)( MechPosZeroOffset - 32768 ) * 0.0001f;
+	v->MechPosCompCoefBySpeed = (float)(MechPosCompCoefBySpeed) * 0.0001f;
 }
 
 void PositionSesnor_DoPLCLoop(PS_t* v)
@@ -77,7 +80,15 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 {
 	float tempMechPosCompensation = 0.0f;
 	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
-	v->MechPosition = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION + tempMechPosCompensation;
+	v->MechPosition = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION + tempMechPosCompensation + v->MechPosZeroOffset;
+	if ( v->MechPosition >= _2PI )
+	{
+		v->MechPosition = v->MechPosition - _2PI;
+	}
+	else if ( v->MechPosition < 0.0f )
+	{
+		v->MechPosition = v->MechPosition + _2PI;
+	}
 
 	if ( v->Direction == PS_DIRECTION_UPCOUNTER )
 	{
