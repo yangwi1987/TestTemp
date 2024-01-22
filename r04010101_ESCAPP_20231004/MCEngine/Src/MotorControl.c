@@ -54,7 +54,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		// Iab to Idq : 9.4us = 11us - 1.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue );
 //		COORDINATE_TRANSFER_GetSinCos_LT((uint16_t)(p->CurrentControl.EleAngle * 651.8986f ), &SinValue, &CosValue);  //
-		COORDINATE_TRANSFER_Stator_to_Rotoe_Calc( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
+		COORDINATE_TRANSFER_Stator_to_Rotor_Calc( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
 
 		//CtrlMode = CTRL_MODE_CURRENT_CONTROL;
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
@@ -130,8 +130,8 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
 	{
 		p->IfControl.Calc( &(p->IfControl), p->Cmd.IfRpmTarget );
-		p->CurrentControl.IdCmd = 0.0f;
-		p->CurrentControl.IqCmd = p->IfControl.CurrAmp;
+		p->CurrentControl.IdCmd = p->IfControl.CurrAmp;
+		p->CurrentControl.IqCmd = 0.0f;
 
 		p->CurrentControl.EleAngle = p->IfControl.Position.VirtualEleAngle;
 		p->CurrentControl.EleSpeed = p->IfControl.Position.VirtualEleSpeed;
@@ -139,7 +139,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
 		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_Stator_to_Rotoe_Calc(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
+		COORDINATE_TRANSFER_Stator_to_Rotor_Calc(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
 
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
 		p->CurrentControl.IqRegulator.CalcNoLimit( p->CurrentControl.IqCmd, p->CurrentControl.RotorCurrFb.Q, &(p->CurrentControl.IqRegulator) );
