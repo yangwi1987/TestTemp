@@ -31,7 +31,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 
 	DevideVbus = 1.0f / p->SensorFb.Vbus;
 	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
-	if( (FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL) || (FunctionMode == 0 ))
+	if (( FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL ))
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
 		if ( p->CurrentControl.EnableDirectIdqCmd == FUNCTION_ENABLE)
