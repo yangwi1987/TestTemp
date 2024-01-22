@@ -2033,7 +2033,7 @@ void drive_Init(void)
 #endif
 	// Init CAN external
 	ExtranetCANStation.TxInfo.pAlarmStack = &AlarmStack[0];
-	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, LscCanIdTableExtra );
+	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, CanIdTableExtra );
 	ExtranetCANStation.Init( &ExtranetCANStation,&ExtranetInformInSystemTableExample, &hfdcan2);
 
 	// Init CAN internal
@@ -2066,6 +2066,12 @@ void drive_Init(void)
 	// Register alarm depend on AlarmTableInfo table and error status of each module.
 	GlobalAlarmDetect_init();
 
+	/* Button control init */
+	Btn_Init();
+	
+	/*Init BAT control unit*/
+	BatStation.CanHandleLoad(&ExtranetCANStation);
+  
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
 }
@@ -2479,8 +2485,12 @@ void drive_Do100HzLoop(void)
 	{
 	    IsNotFirstLoop = 1;
 	}
+
+	Btn_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_ESCStateMachine();
+	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
+	BatStation.Do100HzLoop();
 
 }
 

@@ -322,7 +322,15 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
 void AxisFactory_CleanParameter( void )
 {
     CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
+    DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] = 32768;
     DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
+    DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ] = 0;
+    DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = 0;
+    DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] = 32768;
+    DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] = 32768;
+    DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] = 0;
+    DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] = 0;
+
 }
 
 void AxisFactory_GetSetting( Axis_t *v )
@@ -332,12 +340,19 @@ void AxisFactory_GetSetting( Axis_t *v )
         CtrlUi.MfFunMode = DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE];
         switch (CtrlUi.MfFunMode)
         {
+        	case FN_MF_FUNC_SEL_TORQUE_MODE:
+			{
+				CtrlUi.MotorCtrlMode = v->MotorControl.StartUpWay;
+				DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] = 32768;
+				break;
+			}
             case FN_MF_FUNC_SEL_VF:
             {
                 CtrlUi.MotorCtrlMode = FUNCTION_MODE_VF_CONTROL;
                 v->MotorControl.VfControl.Position.RpmAccel = DriveFnRegs[ FN_RPM_SLOPE_CMD - FN_BASE ];
                 v->MotorControl.VfControl.Position.RpmDecel = v->MotorControl.VfControl.Position.RpmAccel;
                 v->MotorControl.VfControl.Gain = ((float)(DriveFnRegs[ FN_RPM_GAIN_CMD - FN_BASE ])) * 0.01f;
+                v->MotorControl.VfControl.Position.EnablePositionCmd = DriveFnRegs[ FN_OPEN_POSITION_CMD_ENABLE - FN_BASE ];
                 break;
             }
             case FN_MF_FUNC_SEL_IF:
@@ -347,7 +362,22 @@ void AxisFactory_GetSetting( Axis_t *v )
                 v->MotorControl.IfControl.Position.RpmDecel = v->MotorControl.IfControl.Position.RpmAccel;
                 v->MotorControl.IfControl.Gain = ((float)(DriveFnRegs[ FN_RPM_GAIN_CMD - FN_BASE ])) * 0.01f;
                 v->MotorControl.IfControl.CurrLimit = ((float)(DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ])) * 0.1f;
+                v->MotorControl.IfControl.Position.EnablePositionCmd = DriveFnRegs[ FN_OPEN_POSITION_CMD_ENABLE - FN_BASE ];
                 break;
+            }
+            case FN_MF_FUNC_SEL_IDQ:
+            {
+            	CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
+            	DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] = 32768;
+            	DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] = 32768;
+            	v->MotorControl.CurrentControl.EnableDirectIdqCmd = FUNCTION_ENABLE;
+            	break;
+            }
+            case FN_MF_FUNC_SEL_ISTHETA:
+            {
+            	CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
+            	v->MotorControl.CurrentControl.EnableDirectIdqCmd = FUNCTION_ENABLE;
+            	break;
             }
             default:
             {
@@ -358,12 +388,11 @@ void AxisFactory_GetSetting( Axis_t *v )
     }
     switch (CtrlUi.MfFunMode)
     {
+    	case FN_MF_FUNC_SEL_TORQUE_MODE:
         case FN_MF_FUNC_SEL_VF:
-        {
-            v->CtrlUiEnable = ( DriveFnRegs[ FN_ENABLE - FN_BASE ] == FN_ENABLE_MF_START) ? 1 : 0;
-            break;
-        }
         case FN_MF_FUNC_SEL_IF:
+        case FN_MF_FUNC_SEL_IDQ:
+        case FN_MF_FUNC_SEL_ISTHETA:
         {
             v->CtrlUiEnable = ( DriveFnRegs[ FN_ENABLE - FN_BASE ] == FN_ENABLE_MF_START) ? 1 : 0;
             break;
@@ -408,15 +437,11 @@ void AxisFactory_GetUiStatus( Axis_t *v )
 {
     switch (CtrlUi.MfFunMode)
     {
+    	case FN_MF_FUNC_SEL_TORQUE_MODE:
         case FN_MF_FUNC_SEL_VF:
-        {
-            AxisFactory_GetScooterThrottle( v );
-            v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
-            v->FourQuadCtrl.Switch( &v->FourQuadCtrl );
-            v->VCUServoOnCommand = v->FourQuadCtrl.ServoCmdOut;
-            break;
-        }
         case FN_MF_FUNC_SEL_IF:
+        case FN_MF_FUNC_SEL_IDQ:
+        case FN_MF_FUNC_SEL_ISTHETA:
         {
             AxisFactory_GetScooterThrottle( v );
             v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
@@ -439,15 +464,66 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 {
     switch (CtrlUi.MfFunMode)
     {
+		case FN_MF_FUNC_SEL_TORQUE_MODE:
+		{
+			float TempTorqueCommandOut = 0.0f;
+
+			// Get Allow Flux
+			v->MotorControl.TorqueToIdq.GetAllowFluxRec( &(v->MotorControl.TorqueToIdq), v->MotorControl.SensorFb.EleSpeed, \
+			v->MotorControl.SensorFb.Vbus, v->MotorControl.PwmDutyCmd.MaxDuty, &(v->MotorControl.SensorFb.AllowFluxRec), &(v->TorqCommandGenerator.AllowFluxRec) );
+
+			// Renew the value of VbusUsed, VbusReal & MotorSpeed
+			v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
+			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
+
+			// Decide the Torque Output( TO DO: Negative Torque )
+			TempTorqueCommandOut = ((float)( DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768 )) * 0.1f;
+			TempTorqueCommandOut = ( TempTorqueCommandOut >= 0.0f ) ? TempTorqueCommandOut : 0.0f;
+			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
+			v->ThrotMapping.PercentageOut = 1.0f;
+
+			// Decide the AC Curr Limit
+			v->TorqCommandGenerator.AcCurrLimit = v->ThermoStrategy.ACCurrentLimitOut;
+
+			// Decide the DC Curr Limit
+			v->TorqCommandGenerator.DcCurrLimit = \
+				v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, v->pCANRxInterface->BatCurrentDrainLimit, \
+				v->MotorControl.TorqueToIdq.VbusReal, v->MotorControl.TorqueToIdq.VbusUsed );
+
+			v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl, v->ThrotMapping.PercentageOut );
+			v->MotorControl.TorqueToIdq.GetIdqCmd( &(v->MotorControl.TorqueToIdq), v->TorqCommandGenerator.Out, v->MotorControl.SensorFb.AllowFluxRec);
+			v->MotorControl.Cmd.SixWaveCurrCmd = v->MotorControl.TorqueToIdq.IqCmd;
+			break;
+		}
         case FN_MF_FUNC_SEL_VF:
         {
             v->MotorControl.Cmd.VfRpmTarget = DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ];
+            v->MotorControl.VfControl.Position.PositionCmd = (float)DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] * 0.0001f;
             break;
         }
         case FN_MF_FUNC_SEL_IF:
         {
             v->MotorControl.Cmd.IfRpmTarget = DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ];
+            v->MotorControl.IfControl.Position.PositionCmd = (float)DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] * 0.0001f;
             break;
+        }
+        case FN_MF_FUNC_SEL_IDQ:
+        {
+        	v->MotorControl.Cmd.IdCmd = ((float)DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] - 32768) * 0.1f;
+        	v->MotorControl.Cmd.IqCmd = ((float)DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] - 32768) * 0.1f;
+        	break;
+        }
+        case FN_MF_FUNC_SEL_ISTHETA:
+        {
+        	float SinValue = 0.0f;
+        	float CosValue = 0.0f;
+ //       	COORDINATE_TRANSFER_GET_SIN_COS( ((float)DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] * 0.0001f), SinValue, CosValue );
+        	float tempThetaCmd = ((float)DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] * 0.0001f);
+        	SinValue = sinf(tempThetaCmd);
+        	CosValue = cosf(tempThetaCmd);
+        	v->MotorControl.Cmd.IdCmd = (float)DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] * 0.1f * CosValue;
+        	v->MotorControl.Cmd.IqCmd = (float)DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] * 0.1f * SinValue;
+        	break;
         }
         default:
         {
@@ -497,6 +573,9 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
     v->DriveLockInfo.IsUseDriveLockFn = v->pDriveParams->PCUParams.DebugParam2;
     v->DriveLockInfo.TimeToStopDriving_InPLCLoop = v->pDriveParams->SystemParams.SecTimeThresholdForDriveLock * 1000;
     v->DriveLockInfo.RpmToStartCntDriveLock = v->pDriveParams->SystemParams.RpmToStartCntDriveLock;
+#if USE_HIGH_RESO_MOTOR_TABLE
+    HiResoMotorTable_Init();
+#endif
 }
 
 void AxisFactory_DoCurrentLoop( Axis_t *v )

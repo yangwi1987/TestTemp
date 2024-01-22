@@ -33,7 +33,7 @@ const CANProtocol ExtranetInformInSystemTableExample =
 /*
  * "LscCanIdTableExtra" will be stored in system table bin
  */
-const CanIdConfig_t LscCanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
+const CanIdConfig_t CanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
 {
   //	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
   {CANRXID_BMS_STATUS_01,	CANRXID_BMS_STATUS_02,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},

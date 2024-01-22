@@ -36,16 +36,17 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//CmdFrom = CMD_FROM_FOC_CTRL;
 		if ( p->CurrentControl.EnableDirectIdqCmd == FUNCTION_ENABLE)
 		{
-			//do nothing
+			p->CurrentControl.IdCmd = p->Cmd.IdCmd;
+			p->CurrentControl.IqCmd = p->Cmd.IqCmd;
 		}
 		else
 		{
 			p->Cmd.IdCmd = p->TorqueToIdq.IdCmd;
 			p->Cmd.IqCmd = p->TorqueToIdq.IqCmd;
+			FLUX_WEAKENING_Calc( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
+			p->CurrentControl.IdCmd = p->CurrentControl.FluxWeakening.IdCmd;
+			p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 		}
-		FLUX_WEAKENING_Calc( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
-		p->CurrentControl.IdCmd = p->CurrentControl.FluxWeakening.IdCmd;
-		p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 
 		p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
 		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;

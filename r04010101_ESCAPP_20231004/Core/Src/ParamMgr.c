@@ -22,7 +22,7 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	10,		1}, 		// 2-FN_MF_FUNC_SEL
 	{0, 	5, 		6}, 		// 3-FN_RD_FUNC_SEL
 	{0, 	100, 	6}, 		// 4-FN_THRO_COMMAND
-	{0, 	1000, 	6}, 		// 5-FN_TORQ_COMMAND
+	{32768, 33768, 	1}, 		// 5-FN_TORQ_COMMAND
 	{0, 	32000, 	6}, 		// 6-FN_AC_CURR_LIMIT
 	{0, 	32000, 	6}, 		// 7-FN_DC_CURR_LIMIT
 	{0, 	200, 	6}, 		// 8-FN_MAX_TORQUE
@@ -87,12 +87,12 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	0, 		Reserved7},	// 67
 	{0, 	0, 		Reserved7},	// 68
 	{0, 	0, 		Reserved7},	// 69
-	{0, 	0, 		Reserved7},	// 70
-	{0, 	0, 		Reserved7},	// 71
-	{0, 	0, 		Reserved7},	// 72
-	{0, 	0, 		Reserved7},	// 73
-	{0, 	0, 		Reserved7},	// 74
-	{0, 	0, 		Reserved7},	// 75
+	{0, 	1, 		5},	        // 70 FN_OPEN_POSITION_CMD_ENABLE
+	{0, 	62832, 		5},	    // 71 FN_OPEN_POSITION_CMD
+	{27768, 	37768, 		5},	// 72 FN_CURRENT_ID_CMD
+	{27768, 	37768, 		5},	// 73 FN_CURRENT_IQ_CMD
+	{0, 	5000, 		5},	// 74 FN_CURRENT_IS_CMD
+	{0, 	62832, 		5},	    // 75 FN_CURRENT_THETA_CMD
 	{0, 	0, 		Reserved7},	// 76
 	{0, 	0, 		Reserved7},	// 77
 	{0, 	0, 		Reserved7},	// 78

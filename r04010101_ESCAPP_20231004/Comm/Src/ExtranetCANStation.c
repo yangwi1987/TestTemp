@@ -67,7 +67,14 @@ uint8_t ExtranetCANStation_RxHandlePacket( ExtranetCANStation_t *v )
 	lStatus = v->RxQ.DeQ( &v->RxQ, &CANDataTemp);
 	if( lStatus != QUEUE_EMPTY )
 	{
-		lId = CANDataTemp.ID.StdFrame.StdID;
+		if(CANDataTemp.ID.StdFrame.XTD == 0)
+		{
+			lId = CANDataTemp.ID.StdFrame.StdID;
+		}
+		else
+		{
+			lId = CANDataTemp.ID.ExtFrame.ExtID;
+		}
 		lStatus = v->pProtocol->RxTranslate( lId, CANDataTemp.Data, &v->RxInfo, &v->TxInfo  );
 	}
 	return lStatus;
