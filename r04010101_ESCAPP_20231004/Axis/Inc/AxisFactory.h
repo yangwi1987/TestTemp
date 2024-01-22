@@ -31,6 +31,7 @@
 #endif
 #if E10
 #include "E10App.h"
+#include "HiResoMotorTable.h"
 #endif
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);

@@ -69,7 +69,9 @@ MEMORY
 	MOTOR1_BIN(wr)		:ORIGIN = 	0x800C800	,LENGTH = 	20K
 	MOTOR2_BIN(wr)		:ORIGIN = 	0x8011800	,LENGTH = 	20K
 	PARAM_BACKUP(wr)	:ORIGIN = 	0x8016800	,LENGTH = 	8K
-	RESERVED_1(wr)		:ORIGIN = 	0x8018800	,LENGTH = 	158K
+	RESERVED_0(wr)		:ORIGIN = 	0x8018800	,LENGTH = 	38K
+	HR_MOTOR_TABLE(wr)  :ORIGIN = 	0x8022000	,LENGTH = 	120K
+/*	RESERVED_1(wr)		:ORIGIN = 	0x803B000	,LENGTH = 	20K*/
 	
 	
 	APP_HEADER_INFO(rx)	:ORIGIN =   0x8040000   ,LENGTH =   512
@@ -131,14 +133,29 @@ SECTIONS
 
 	} >PARAM_BACKUP = 0xFF
 
-
-	.Reserved1Out :
+	.Reserved0Out :
 	{
 		. = ALIGN(4);
-		*(.Reserved1);
-		. = ORIGIN(RESERVED_1)+LENGTH(RESERVED_1)-1;
+		*(.Reserved0);
+		. = ORIGIN(RESERVED_0)+LENGTH(RESERVED_0)-1;
 	    BYTE(0xFF);
-	}>RESERVED_1 = 0xFF
+	}>RESERVED_0 = 0xFF
+	
+		.HrMorotTableOut :                                    
+	{                                                         
+		. = ALIGN(4);                                         
+		*(.HrMorotTable);                                     
+		. = ORIGIN(HR_MOTOR_TABLE)+LENGTH(HR_MOTOR_TABLE)-1;  
+	    BYTE(0xFF);                                           
+	}>HR_MOTOR_TABLE = 0xFF                                   
+
+/*	.Reserved1Out :                                    */
+/*	{                                                  */
+/*		. = ALIGN(4);                                  */
+/*		*(.Reserved1);                                 */
+/*		. = ORIGIN(RESERVED_1)+LENGTH(RESERVED_1)-1;   */
+/*	    BYTE(0xFF);                                    */
+/*	}>RESERVED_1 = 0xFF                                */
 	
 	.AppHeaderInfoSpace :
 	{
@@ -250,7 +267,8 @@ SECTIONS
     _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
-
+    *(.ram_function)
+    *(.ram_function*)       
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
     

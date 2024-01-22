@@ -9,6 +9,7 @@
 #define INC_TORQUETOIDQ_H_
 
 #include "Filter.h"
+#include "HiResoMotorTable.h"
 
 enum GET_IDQ_ENUM
 {
