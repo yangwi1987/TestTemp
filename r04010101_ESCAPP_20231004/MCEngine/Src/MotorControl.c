@@ -45,8 +45,8 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
 	{
 		p->IfControl.Calc( &(p->IfControl), p->Cmd.IfRpmTarget );
-		p->CurrentControl.IdCmd = 0.0f;
-		p->CurrentControl.IqCmd = p->IfControl.CurrAmp;
+		p->CurrentControl.IdCmd = p->IfControl.CurrAmp;
+		p->CurrentControl.IqCmd = 0.0f;
 
 		p->CurrentControl.EleAngle = p->IfControl.Position.VirtualEleAngle;
 		p->CurrentControl.EleSpeed = p->IfControl.Position.VirtualEleSpeed;
@@ -186,16 +186,17 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 		//CmdFrom = CMD_FROM_FOC_CTRL;
 		if ( p->CurrentControl.EnableDirectIdqCmd == FUNCTION_ENABLE)
 		{
-			//do nothing
+			p->CurrentControl.IdCmd = p->Cmd.IdCmd;
+			p->CurrentControl.IqCmd = p->Cmd.IqCmd;
 		}
 		else
 		{
 			p->Cmd.IdCmd = p->TorqueToIdq.IdCmd;
 			p->Cmd.IqCmd = p->TorqueToIdq.IqCmd;
+			MOTOR_CONTROL_FLUX_WEAKENING_FOR_CURRENT_CONTROL( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
+			p->CurrentControl.IdCmd = p->CurrentControl.FluxWeakening.IdCmd;
+			p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 		}
-		MOTOR_CONTROL_FLUX_WEAKENING_FOR_CURRENT_CONTROL( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
-		p->CurrentControl.IdCmd = p->CurrentControl.FluxWeakening.IdCmd;
-		p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 
 		//PosFb = POS_FB_EEMF;
 		if( FunctionMode == FUNCTION_MODE_EEMF )

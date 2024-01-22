@@ -233,6 +233,44 @@ float Filter_BilinearBPFCalc( FilterBilinearBPF_t *p, float X );
 	Out = Y;																		\
 }
 
+__STATIC_FORCEINLINE float Filter_Bilinear1OrderCalc_LPF_inline(FILTER_BILINEAR_1ORDER_TYPE *p, float X)
+{
+	float Y=0.0f;
+	if ( p->Times != FILTER_TIMES_FIRST)
+	{
+		Y = p->PreviousY - p->Gain * (( 2 * p->PreviousY ) - X - p->PreviousX );
+	}
+	else
+	{
+		Y = 0.0f;
+		p->Times = FILTER_TIMES_ABOVE_TWICE;
+	}
+	p->PreviousY = Y;
+	p->PreviousX = X;
+
+	return Y;
+}
+
+__STATIC_FORCEINLINE float Filter_Bilinear1OrderCalc_HPF_inline(FILTER_BILINEAR_1ORDER_TYPE *p, float X)
+{
+	float Y=0.0f;
+	if ( p->Times != FILTER_TIMES_FIRST)
+	{
+		Y = p->PreviousY - p->Gain * (( 2 * p->PreviousY ) - X - p->PreviousX );
+	}
+	else
+	{
+		Y = 0.0f;
+		p->Times = FILTER_TIMES_ABOVE_TWICE;
+	}
+	p->PreviousY = Y;
+	p->PreviousX = X;
+
+	Y = X - Y;
+
+	return Y;
+}
+
 #define FILTER_BILINEAR_BPF_CALC_MACRO( p, X, Y )	\
 {							\
 	if ( p->Times < 2 )		\

@@ -44,6 +44,8 @@ typedef struct
 	float RpmAccel;
 	float RpmDecel;
 	float Rpm;
+	float PositionCmd;
+	uint8_t EnablePositionCmd;
 }	VIRTUAL_POSITION_TYPE;
 
 typedef struct
@@ -82,7 +84,9 @@ void OpenLoopControl_VfControlCalcCmd( VF_CONTROL_TYPE *p, float RpmTarget );
 	0.0f,							\
 	0.0f,							\
 	0.0f,							\
-	0.0f							\
+	0.0f,							\
+	0.0f,							\
+	0							\
 }
 
 #define IF_CONTROL_DEFAULT				\

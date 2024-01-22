@@ -143,10 +143,20 @@ uint16_t OpenLoopControl_IfControlInit( IF_CONTROL_TYPE *p, float Period, float 
 
 void OpenLoopControl_IfControlCalcCmd( IF_CONTROL_TYPE *p, float RpmTarget )
 {
-	OpenLoopControl_OpenLoopControlCalcVirtualPosition( &(p->Position), RpmTarget );
-	p->CurrAmp = p->Gain * p->Position.Rpm;
-	p->CurrAmp = ( p->CurrAmp > p->CurrLimit ) ? p->CurrLimit : p->CurrAmp;
-	p->CurrAmp = ( p->CurrAmp < -(p->CurrLimit) ) ? -(p->CurrLimit) : p->CurrAmp;
+	if ( p->Position.EnablePositionCmd == 0 )
+	{
+	    OpenLoopControl_OpenLoopControlCalcVirtualPosition( &(p->Position), RpmTarget );
+	    p->CurrAmp = p->Gain * p->Position.Rpm;
+		p->CurrAmp = ( p->CurrAmp > p->CurrLimit ) ? p->CurrLimit : p->CurrAmp;
+		p->CurrAmp = ( p->CurrAmp < -(p->CurrLimit) ) ? -(p->CurrLimit) : p->CurrAmp;
+	}
+	else
+	{
+		p->Position.VirtualEleAngle = p->Position.PositionCmd;
+		p->CurrAmp = p->CurrLimit;
+	}
+
+
 }
 /********************************************************************************************************************************
 *********************************************************************************************************************************
@@ -189,8 +199,16 @@ uint16_t OpenLoopControl_VfControlInit( VF_CONTROL_TYPE *p, float Period, float 
 
 void OpenLoopControl_VfControlCalcCmd( VF_CONTROL_TYPE *p, float RpmTarget )
 {
-	OpenLoopControl_OpenLoopControlCalcVirtualPosition( &(p->Position), RpmTarget );
-	p->VoltAmp = p->Gain * p->Position.Rpm;
+	if ( p->Position.EnablePositionCmd == 0 )
+	{
+	    OpenLoopControl_OpenLoopControlCalcVirtualPosition( &(p->Position), RpmTarget );
+	    p->VoltAmp = p->Gain * p->Position.Rpm;
+	}
+	else
+	{
+		p->VoltAmp = p->Gain * RpmTarget;
+		p->Position.VirtualEleAngle = p->Position.PositionCmd;
+	}
 }
 /********************************************************************************************************************************
 *********************************************************************************************************************************
