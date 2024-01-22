@@ -616,16 +616,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 {
     // Update Speed
 	v->SpeedInfo.MotorMechSpeedRad = PSStation1.MechSpeed;
-#if USE_HFI_SIN==USE_FUNCTION
-    if( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_YES )
-    {
-        v->SpeedInfo.MotorMechSpeedRad = v->MotorControl.Sensorless.EEMF.AngleObserver.SpeedTmp * v->SpeedInfo.DividePolepair;
-    }
-    else
-    {
-        v->SpeedInfo.MotorMechSpeedRad = v->MotorControl.Sensorless.HFISin.AngleObserver.SpeedTmp * v->SpeedInfo.DividePolepair;
-    }
-#endif
     v->SpeedInfo.MotorMechSpeedRPM = v->SpeedInfo.MotorMechSpeedRad * RAD_2_RPM;
     v->SpeedInfo.ElecSpeed = v->SpeedInfo.MotorMechSpeedRad * (float)v->SpeedInfo.Polepair;
     v->SpeedInfo.MotorMechSpeedRPMAbs = ABS(v->SpeedInfo.MotorMechSpeedRPM);
