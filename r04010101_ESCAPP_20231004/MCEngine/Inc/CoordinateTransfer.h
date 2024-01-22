@@ -88,7 +88,7 @@ __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Phase_to_Stator_Calc( float U, flo
 	p->Beta = 0.577350269f * ( V - W );\
 }\
 
-__STATIC_FORCEINLINE void COORDINATE_TRANSFER_Stator_to_Rotoe_Calc( float Alpha, float Beta, float SinValue, float CosValue, STATOR_TO_ROTOR_TYPE* p)
+__STATIC_FORCEINLINE void COORDINATE_TRANSFER_Stator_to_Rotor_Calc( float Alpha, float Beta, float SinValue, float CosValue, STATOR_TO_ROTOR_TYPE* p)
 {
 	p->D = Alpha * CosValue + Beta * SinValue;
 	p->Q = -Alpha * SinValue + Beta * CosValue;
