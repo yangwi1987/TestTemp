@@ -29,7 +29,7 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             case PS_CALI_SEL_AUTO_ZERO_OFFSET:
             {
             	PositionCalibration_Auto_Zero_Offset_Process(u);
-            	if ( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_FINISHED )
+            	if (( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_FINISHED ) || ( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_ERROR ))
             	{
             		*PosCaliSel = 0;
             	}
@@ -38,7 +38,7 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             case PS_CALI_SEL_LINEARIZATION:
             {
             	PositionCalibration_Linear_Process(u);
-            	if ( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_FINISHED )
+            	if (( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_FINISHED ) || ( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_ERROR ))
             	{
             		*PosCaliSel = 0;
             	}
