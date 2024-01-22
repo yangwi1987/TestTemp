@@ -10,7 +10,7 @@
 
 #define TOTAL_PHASE_CURRENT_SQUARE 1600.0f // at least one phase current is (40 Arms)^2
 #define LEAST_SINGLE_PHASE_CURRENT_SQUARE 0.81f // at least one phase current is (0.9 Arms)^2
-#define MEC_SPEED_100_RPM 52.3599f // 100 RPM mechanical speed to electric speed in (rad/sec)
+#define MEC_SPEED_100_RPM 41.887902f // 100 RPM mechanical speed to electric speed in (rad/sec)
 #define MIN_VOLT_IN_PHASE_LOSS 0.67f // the volt correspond to 1 Nm at zero speed.
 #define LOSS_PHASE_DURATION 100 // in ms
 
@@ -24,34 +24,34 @@ void PhaseLoss_RunTimeDetect( PHASE_LOSS_TYPE *p )
 
 	if( p->PLCLoopVcmdAmp > MIN_VOLT_IN_PHASE_LOSS )
 	{
-//		// Detect sum of each phase current below HFI speed
-//		if( p->PLCLoopElecSpeedAbs < EEMF_START_SPEED )
-//		{
-//			if( (p->Avg1KhzCurrSqrU + p->Avg1KhzCurrSqrV + p->Avg1KhzCurrSqrW) < LEAST_SINGLE_PHASE_CURRENT_SQUARE )
-//			{
-//				// This condition will occur, when:
-//				// Two phase lines are disconnected.
-//				// There is small torque command and one phase line is disconnected.
-//				p->PhaseLossCnt++;
-//			}
-//			else
-//			{
-//				// avoid underflow
-//				if( p->PhaseLossCnt > 0 )
-//				{
-//					p->PhaseLossCnt--;
-//				}
-//			}
-//
-//		}
-//		else
-//		{
-//			// avoid underflow
-//			if( p->PhaseLossCnt > 0 )
-//			{
-//				p->PhaseLossCnt--;
-//			}
-//		}
+		// Detect sum of each phase current below HFI speed
+		if( p->PLCLoopElecSpeedAbs < EEMF_START_SPEED )
+		{
+			if( (p->Avg1KhzCurrSqrU + p->Avg1KhzCurrSqrV + p->Avg1KhzCurrSqrW) < LEAST_SINGLE_PHASE_CURRENT_SQUARE )
+			{
+				// This condition will occur, when:
+				// Two phase lines are disconnected.
+				// There is small torque command and one phase line is disconnected.
+				p->PhaseLossCnt++;
+			}
+			else
+			{
+				// avoid underflow
+				if( p->PhaseLossCnt > 0 )
+				{
+					p->PhaseLossCnt--;
+				}
+			}
+
+		}
+		else
+		{
+			// avoid underflow
+			if( p->PhaseLossCnt > 0 )
+			{
+				p->PhaseLossCnt--;
+			}
+		}
 
 		// Detect each phase current when speed is over 100 RPM and torque is greater than 0.066Nm.
 		if( (p->PLCLoopElecSpeedAbs >= MEC_SPEED_100_RPM) && \
