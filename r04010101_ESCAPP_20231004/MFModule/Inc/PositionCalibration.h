@@ -17,6 +17,7 @@
 #define ROTATE_ELE_POS_PER_MS ( _2PI * 10000.0f / (float)ROTATE_STEPS_FOR_ELE_POS )
 #define MECH_ZERO_UP_BONDARY ( _2PI / DEFAULT_POLE_PAIRS / 2.0f )
 #define MECH_ZERO_LOW_BONDARY ( _2PI - MECH_ZERO_UP_BONDARY)
+#define POSITIONING_TRYING_TIMES DEFAULT_POLE_PAIRS * 4  // try 4 mech revolution
 
 typedef enum
 {
@@ -67,6 +68,7 @@ typedef struct
 	PS_CALI_LINEAR_SM_e Linear_State;
 	PS_CALI_FIND0_SM_e Find_Mech_Zero_State;
 	PS_CALI_ROTATE_DIR_e Rotate_Direction;
+	uint8_t Positioning_Trying_Cnt;
 }PS_CALI_t;
 
 #define PS_CALI_DEFAULT {\
@@ -75,6 +77,7 @@ typedef struct
 		PS_CALI_LINEAR_SM_NONE,\
 		PS_CALI_FIND0_NONE,\
 		UP,\
+		0,\
 }
 
 extern 	float LinearPointsMechPosRad[32];

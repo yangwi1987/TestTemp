@@ -10,7 +10,7 @@
 static PS_CALI_t PS_CALI_Vars = PS_CALI_DEFAULT;
 static uint32_t LinearElePosCmd[32] = { 9817,	19635,	29452,	39270,	49087,	58905,	5890,	15708,	25525,	35343,	45160,	\
 		54978,	1963,	11781,	21598,	31416,	41233,	51051,	60868,	7854,	17671,	27489,	37306,	47124,	56941,	3927,	13744,	\
-		23562,	33379,	43197,	53014, 0 };
+		23562,	33379,	43197,	53014, 0 };  //According to pole pairs, calculate 11.25 mech degrees interval between each points
 float LinearPointsMechPosRad[32] = { 0.0f };
 
 static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u );
@@ -205,6 +205,7 @@ static void PositionCalibration_Start_IF_Control(void)
 	DriveFnRegs[ FN_ENABLE - FN_BASE ] = FN_ENABLE_MF_START;
 	PS_CALI_Vars.Find_Mech_Zero_State = PS_CALI_FIND0_POSITIONING;
 	PS_CALI_Vars.Rotate_Direction = UP;
+	PS_CALI_Vars.Positioning_Trying_Cnt = 0;
 }
 
 static void PositionCalibration_STOP_IF_Control(void)
@@ -214,6 +215,7 @@ static void PositionCalibration_STOP_IF_Control(void)
 	DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ] = 0;
 	DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = 0;
 	DriveFnRegs[ FN_ENABLE - FN_BASE ] = FN_ENABLE_STOP;
+	PS_CALI_Vars.Positioning_Trying_Cnt = 0;
 }
 
 static void PositionCalibration_Rotate_Until_Across_Mech_Zero( float MechPosition )
@@ -230,7 +232,7 @@ static void PositionCalibration_Rotate_Until_Across_Mech_Zero( float MechPositio
 	   		}
 	   		else
 	   		{
-	   	        DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = (uint32_t)(( _2PI * 10000 ) - ( ROTATE_ELE_POS_PER_MS * (float)Rotating_Cnt ));
+	   	        DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = (uint32_t)(( _2PI * 10000.0f ) - ( ROTATE_ELE_POS_PER_MS * (float)Rotating_Cnt ));
 	   		}
 	   	    Rotating_Cnt++;
 	   	}
@@ -248,7 +250,15 @@ static void PositionCalibration_Rotate_Until_Across_Mech_Zero( float MechPositio
             if ( MechPosition >= previous_MechPosition )
             {
             	previous_MechPosition = MechPosition;
-            	PS_CALI_Vars.Find_Mech_Zero_State = PS_CALI_FIND0_ROTATING;
+           		if ( PS_CALI_Vars.Positioning_Trying_Cnt++ > POSITIONING_TRYING_TIMES )
+           		{
+            	    PS_CALI_Vars.Find_Mech_Zero_State = PS_CALI_FIND0_ERROR;
+           		}
+           		else
+           		{
+            	    PS_CALI_Vars.Find_Mech_Zero_State = PS_CALI_FIND0_ROTATING;
+           		}
+
             }
             else
             {
@@ -278,4 +288,5 @@ static void PositionCalibration_Rotate_Until_Across_Mech_Zero( float MechPositio
         	}
    		}
     }
+
 }
