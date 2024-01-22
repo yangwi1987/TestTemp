@@ -7,7 +7,6 @@
 
 #include "AlarmDetect.h"
 #include "RcUartComm.h"
-#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
 extern uint16_t IsUseDigitalFoilSensor;
 
 static uint16_t AlarmDetect_Accumulation( AlarmDetect_t *v, PROTECT_POLLING_TYPE *p, int Signal )

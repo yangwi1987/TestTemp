@@ -4,8 +4,6 @@
 #include "stdlib.h"
 #include "Protocol.h"
 
-#define ABS(x) ((x) > 0 ? (x) : -(x))
-
 BatStation_t BatStation = BAT_STATION_DEFAULT;
 BatCtrl_t BatCtrl = {0};
 BatInfo_t BatInfo[BAT_IDX_ALL] ={CAN_INFORM_FORM_BAT_DEFAULT, CAN_INFORM_FORM_BAT_DEFAULT};

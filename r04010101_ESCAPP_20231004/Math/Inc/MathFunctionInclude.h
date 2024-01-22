@@ -17,10 +17,12 @@
 #define LIM_MIN(X, MIN)     (((X)>(MIN)) ? (X) : (MIN))
 #define LIM_MAX(X, MAX)     (((X)<(MAX)) ? (X) : (MAX))
 #define LIMIT(X, MIN, MAX)  (((X)>(MIN)) ? (((X)<(MAX)) ? (X) : (MAX)) : (MIN))
-#define MIN(A, B)           (((A)<(B)) ? (A) : (B))
-#define MAX(A, B)           (((A)>(B)) ? (A) : (B))
+#define MIN2(A, B)           (((A)<(B)) ? (A) : (B))
+#define MAX2(A, B)           (((A)>(B)) ? (A) : (B))
 #define ABS(x) 	( (x) > 0 ? (x) : -(x) )
 #define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
+#define MIN3(a,b,c)  (((( a > b ) ? b : a) > c ) ? c : ( a > b ? b : a ))
+
 
 #include "CordicMath.h"
 #include "Pid.h"

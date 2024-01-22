@@ -8,9 +8,6 @@
 #include "UtilityBase.h"
 #include "UiApp.h"
 #include "Drive.h"
-#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
-#define MAX2(a,b)  ( ((a) >= (b)) ? (a) : (b) )
-#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
 
 /*
  * Header Information
