@@ -195,7 +195,7 @@ __STATIC_FORCEINLINE void GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( DUTY_TYPE* 
 	p2->DutyLimitation.PwmMode = PWM_COMPLEMENTARY;						\
 }
 
-__STATIC_FORCEINLINE __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) GENERATE_PWM_DUTY_SVPWM_MACRO( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
+__STATIC_FORCEINLINE void GENERATE_PWM_DUTY_SVPWM_INLINE( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
 {
 	int16_t Section = 1;												\
 	float U = 0.0f;														\
