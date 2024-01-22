@@ -32,7 +32,6 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             	if ( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_FINISHED )
             	{
             		*PosCaliSel = 0;
-            		PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_NONE;
             	}
             	break;
             }
@@ -42,7 +41,6 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             	if ( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_FINISHED )
             	{
             		*PosCaliSel = 0;
-            		PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_NONE;
             	}
             	break;
             }
@@ -69,7 +67,7 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         }
         case PS_CALI_ZERO_SM_FIND_MECH_ZERO:
         {
-        	if ( Positioning_Cnt < DEFAULT_DELAT_TIME_FOR_FINDING_ZERO_POS )
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING )
         	{
         		Positioning_Cnt++;
         	}
@@ -106,8 +104,9 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_FINISHED;
         	break;
         }
-        case PS_CALI_ZERO_SM_ERROR:
+        case PS_CALI_ZERO_SM_ERROR://TODO: send error messages if it is called by Routine control
         {
+    		PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_NONE;
         	break;
         }
         default:
@@ -132,7 +131,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         }
         case PS_CALI_LINEAR_SM_FIND_MECH_ZERO:
         {
-        	if ( Positioning_Cnt < DEFAULT_DELAT_TIME_FOR_FINDING_ZERO_POS )
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING )
         	{
         		Positioning_Cnt++;
         	}
@@ -157,7 +156,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         }
         case PS_CALI_LINEAR_SM_FIND_POINTS:
         {
-        	if ( Positioning_Cnt < DEFAULT_DELAT_TIME_FOR_FINDING_ZERO_POS )
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING )
         	{
         		Positioning_Cnt++;
         	}
@@ -185,8 +184,9 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         {
         	break;
         }
-        case PS_CALI_LINEAR_SM_ERROR:
+        case PS_CALI_LINEAR_SM_ERROR:   //TODO: send error messages if it is called by Routine control
         {
+    		PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_NONE;
         	break;
         }
         default:
