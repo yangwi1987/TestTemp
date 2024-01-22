@@ -354,8 +354,15 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
 void AxisFactory_CleanParameter( void )
 {
     CtrlUi.MotorCtrlMode = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
-    DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
     DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] = 32768;
+    DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ] = 0;
+    DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ] = 0;
+    DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = 0;
+    DriveFnRegs[ FN_CURRENT_ID_CMD - FN_BASE ] = 32768;
+    DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] = 32768;
+    DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] = 0;
+    DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] = 0;
+
 }
 
 void AxisFactory_GetSetting( Axis_t *v )
@@ -414,10 +421,6 @@ void AxisFactory_GetSetting( Axis_t *v )
     switch (CtrlUi.MfFunMode)
     {
     	case FN_MF_FUNC_SEL_TORQUE_MODE:
-		{
-			v->CtrlUiEnable = ( DriveFnRegs[ FN_ENABLE - FN_BASE ] == FN_ENABLE_MF_START) ? 1 : 0;
-			break;
-		}
         case FN_MF_FUNC_SEL_VF:
         case FN_MF_FUNC_SEL_IF:
         case FN_MF_FUNC_SEL_IDQ:
