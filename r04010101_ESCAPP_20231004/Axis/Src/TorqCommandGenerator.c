@@ -44,8 +44,8 @@ void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p, f
 	FourQuadTorqueCommandAbs = p->TorqueCommandOut;
 	DCLimitedTorqueCommandAbs = v->DCLimitedTorqueCommand;
 	ACLimitedTorqueCommandAbs = v->ACLimitedTorqueCommand;
-//	TorqueOut = MIN3(FourQuadTorqueCommandAbs, DCLimitedTorqueCommandAbs, ACLimitedTorqueCommandAbs);
-	TorqueOut = FourQuadTorqueCommandAbs;
+	TorqueOut = MIN3(FourQuadTorqueCommandAbs, DCLimitedTorqueCommandAbs, ACLimitedTorqueCommandAbs);
+
 	// Get TNTorqueAbs、ACToruqeAbs、DCTorqueAbs
 	v->TNTorqueAbs = ( FourQuadTorqueCommandAbs > v->TorqueCommandMax ) ? v->TorqueCommandMax : FourQuadTorqueCommandAbs;
 	v->ACTorqueAbs = ACLimitedTorqueCommandAbs;
