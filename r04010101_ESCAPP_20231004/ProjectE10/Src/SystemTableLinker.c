@@ -344,16 +344,16 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[2]},	//P1-16
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[3]},	//P1-17
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[4]},	//P1-18
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[0]},	//P1-19
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[1]},	//P1-20
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[2]},	//P1-21
-				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[3]},	//P1-22
-				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[4]},	//P1-23
-				{		1,		 10000,		    10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[0]},	//P1-24
-				{		1,		 10000,		    10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[1]},	//P1-25
-				{		1,		 10000,		    10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[2]},	//P1-26
-				{		1,		 10000,			10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[3]},	//P1-27
-				{		1,		 10000,			10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[4]},	//P1-28
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[0]},	//P1-19
+				{		1,	    10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[1]},	//P1-20
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[2]},	//P1-21
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[3]},	//P1-22
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[4]},	//P1-23
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[0]},	//P1-24
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[1]},	//P1-25
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[2]},	//P1-26
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[3]},	//P1-27
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[4]},	//P1-28
 				{		0,			0,			0,			0,		0},	//P1-29
 				{		0,			0,			0,			0,		0},	//P1-30
 				{		0,			0,			0,			0,		0},	//P1-31

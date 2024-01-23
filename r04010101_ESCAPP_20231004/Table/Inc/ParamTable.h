@@ -138,7 +138,7 @@ typedef struct {
 	uint16_t ThrottleEmptyPt[5];	//P1-04
 	uint16_t ThrottleHalfPt[5];	//P1-09
 	uint16_t ThrottleFullPt[5];	//P1-14
-	uint16_t ThrottleRamp[5];	//P1-19
+	uint16_t ThrottleRiseRamp[5];	//P1-19
 	uint16_t ThrottleFallRamp[5];	//P1-24
 	uint16_t Reserved129;	//P1-29
 	uint16_t Reserved130;	//P1-30
