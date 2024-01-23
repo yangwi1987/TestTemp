@@ -273,9 +273,9 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved316},	//P3-16 ALARMID_POWER_TRANSISTOR_OC
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved317},	//P3-17 ALARMID_BUFFER_IC_ERROR
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved318},	//P3-18 ALARMID_PHASE_LOSS
-				{		1,		THRE_MAX,		14000,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
+				{		1,		THRE_MAX,		12500,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
 				{		1,		THRE_MAX,		62,				0x45,		&DriveParams.PCUParams.Reserved320},	//P3-20 ALARMID_OVER_VOLTAGE_BUS
-				{		1,		THRE_MAX,		36,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
+				{		1,		THRE_MAX,		35,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
 				{		1,		THRE_MAX,		10,				0x45,		&DriveParams.PCUParams.Reserved322},	//P3-22 ALARMID_UNDER_VOLTAGE_13V
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved323},	//P3-23 ALARMID_IU_OCP
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved324},	//P3-24 ALARMID_IV_OCP
@@ -283,9 +283,9 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved326},	//P3-26 ALARMID_FLASH_UNINITIALIZED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved327},	//P3-27 ALARMID_FLASH_READ_FAILED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved328},	//P3-28 ALARMID_FLASH_DAMAGED
-				{		0,		0,		0,		0,		0},	//P3-29
-				{		0,		0,		0,		0,		0},	//P3-30
-				{		0,		0,		0,		0,		0},	//P3-31
+				{		0,		THRE_MAX,		30,				0x45,		&DriveParams.PCUParams.Reserved329},	//P3-29 ALARMID_UNDER_VOLTAGE_E5V
+				{		0,		THRE_MAX,		30,				0x45,		&DriveParams.PCUParams.Reserved330},	//P3-30 ALARMID_UNDER_VOLTAGE_ES5V
+				{		0,		THRE_MAX,		30,				0x45,		&DriveParams.PCUParams.Reserved331},	//P3-31 ALARMID_UNDER_VOLTAGE_EA5V
 				{		0,		0,		0,		0,		0},	//P3-32
 				{		0,		0,		0,		0,		0},	//P3-33
 				{		1,		THRE_MAX,		125,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_ACC_PEDAL_BREAK in 0.001V
@@ -302,22 +302,22 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-45
 				{		0,		0,		0,		0,		0},	//P3-46
 				{		0,		0,		0,		0,		0},	//P3-47
-				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved348},	//P3-48 ALARMID_OT_PCU_0
+				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved348},	//P3-48 ALARMID_OT_PCU_0
 				{		1,		THRE_MAX,		3900,		0x45,		&DriveParams.PCUParams.Reserved349},	//P3-49 ALARMID_BREAK_NTC_PCU_0
 				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved350},	//P3-50 ALARMID_SHORT_NTC_PCU_0
-				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved351},	//P3-51 ALARMID_OT_PCU_1
+				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved351},	//P3-51 ALARMID_OT_PCU_1
 				{		1,		THRE_MAX,		3900,		0x45,		&DriveParams.PCUParams.Reserved352},	//P3-52 ALARMID_BREAK_NTC_PCU_1
 				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved353},	//P3-53 ALARMID_SHORT_NTC_PCU_1
-				{		1,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved354},	//P3-54 ALARMID_OT_PCU_2
+				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved354},	//P3-54 ALARMID_OT_PCU_2
 				{		1,		THRE_MAX,		4065,		0x45,		&DriveParams.PCUParams.Reserved355},	//P3-55 ALARMID_BREAK_NTC_PCU_2
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved356},	//P3-56 ALARMID_SHORT_NTC_PCU_2
-				{		1,		THRE_MAX,		175,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
+				{		1,		THRE_MAX,		150,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
 				{		1,		THRE_MAX,		4075,		0x45,		&DriveParams.PCUParams.Reserved358},	//P3-58 ALARMID_BREAK_NTC_MOTOR_0
 				{		1,		THRE_MAX,		200,		0x45,		&DriveParams.PCUParams.Reserved359},	//P3-59 ALARMID_SHORT_NTC_MOTOR_0
-				{		1,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
-				{		1,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
-				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
-				{		1,		THRE_MAX,		170,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
+				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
+				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
+				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
+				{		1,		THRE_MAX,		130,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved364},	//P3-64 ALARMID_MOTORSTALL
 				{		0,		0,		0,		0,		0},	//P3-65
 				{		0,		0,		0,		0,		0},	//P3-66
