@@ -84,8 +84,8 @@ extern void CoordinateTransferInit( PHASE_TO_STATOR_TYPE* p1, STATOR_TO_ROTOR_TY
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Phase_to_Stator_Calc( float U, float V, float W, PHASE_TO_STATOR_TYPE* p)\
 {\
-	p->Alpha = 0.666666667f * U - 0.333333333f * ( V + W );\
-	p->Beta = 0.577350269f * ( V - W );\
+	p->Alpha = 0.666666667f * U - 0.333333333f * ( V + W );
+	p->Beta = 0.577350269f * ( V - W );
 }\
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Stator_to_Rotor_Calc( float Alpha, float Beta, float SinValue, float CosValue, STATOR_TO_ROTOR_TYPE* p)
@@ -103,9 +103,9 @@ __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Rotor_to_Stator_Calc( float D, flo
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Stator_to_Phase_Calc( float Alpha, float Beta, STATOR_TO_PHASE_TYPE* p)
 {
-	p->U = Alpha;															\
-	p->V = -0.5f * Alpha + 0.866025403f * Beta;								\
-	p->W = -0.5f * Alpha - 0.866025403f * Beta;								\
+	p->U = Alpha;
+	p->V = -0.5f * Alpha + 0.866025403f * Beta;
+	p->W = -0.5f * Alpha - 0.866025403f * Beta;
 }
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_GetSinCos_LT(uint16_t Pos, float *sin, float *cos)

@@ -46,7 +46,7 @@ typedef enum
 	SVPWM = 0,
 	DPWM_H,
 	DPWM_L,
-	DPWM_ANGLE_SGIFT
+	DPWM_ANGLE_SHIFT
 }DPWM_SELECT_e;
 
 typedef void (*pDutyCommand120Degree)( float, void*, uint16_t );
@@ -187,65 +187,65 @@ void GeneratePwmDuty_CompensateDeadtimeByPhase( COMPENSATION_DEADTIME_TYPE* p, f
 	(pfunGeneratePwmDuty_CompensateDeadtimeByPhase) GeneratePwmDuty_CompensateDeadtimeByPhase,	\
 }
 
-__STATIC_FORCEINLINE void GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( DUTY_TYPE* p1, DUTY_COMMAND_TYPE* p2 )				\
+__STATIC_FORCEINLINE void GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( DUTY_TYPE* p1, DUTY_COMMAND_TYPE* p2 )
 {
 	p2->DutyLimitation.Duty[PHASE_U] = LIMIT(p1->Duty[PHASE_U], p2->MinDuty, p2->MaxDuty);
 	p2->DutyLimitation.Duty[PHASE_V] = LIMIT(p1->Duty[PHASE_V], p2->MinDuty, p2->MaxDuty);
 	p2->DutyLimitation.Duty[PHASE_W] = LIMIT(p1->Duty[PHASE_W], p2->MinDuty, p2->MaxDuty);
-	p2->DutyLimitation.PwmMode = PWM_COMPLEMENTARY;						\
+	p2->DutyLimitation.PwmMode = PWM_COMPLEMENTARY;
 }
 
 __STATIC_FORCEINLINE void GENERATE_PWM_DUTY_SVPWM_INLINE( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
 {
-	int16_t Section = 1;												\
-	float U = 0.0f;														\
-	float V = 0.0f;														\
-	float W = 0.0f;														\
-	float Sqrt3Alpha;													\
+	int16_t Section = 1;
+	float U = 0.0f;
+	float V = 0.0f;
+	float W = 0.0f;
+	float Sqrt3Alpha;
 	\
-	Sqrt3Alpha = 1.732050808f * Alpha;									\
+	Sqrt3Alpha = 1.732050808f * Alpha;
 	\
-	Section = ( Beta > Sqrt3Alpha ) ? ( Section + 1 ) : ( Section );	\
-	Section = ( Beta < -Sqrt3Alpha ) ? ( Section + 1 ) : ( Section );	\
-	Section = ( Beta > 0.0f ) ? ( Section ) : ( 7 - Section );			\
+	Section = ( Beta > Sqrt3Alpha ) ? ( Section + 1 ) : ( Section );
+	Section = ( Beta < -Sqrt3Alpha ) ? ( Section + 1 ) : ( Section );
+	Section = ( Beta > 0.0f ) ? ( Section ) : ( 7 - Section );
 	\
-	switch (Section)													\
-	{																	\
-		case 1:															\
-		case 4:															\
-		{																\
-			U = 0.750000000f * Alpha + 0.433012701f * Beta;				\
-			V = -0.750000000f * Alpha + 1.299038106f * Beta;			\
-			W = -0.750000000f * Alpha - 0.433012701f * Beta;			\
-			break;														\
-		}																\
-		case 2:															\
-		case 5:															\
-		{																\
-			U = 1.500000000f * Alpha;									\
-			V = 0.866025403f * Beta;									\
-			W = -0.866025403f * Beta;									\
-			break;														\
-		}																\
-		case 3:															\
-		case 6:															\
-		{																\
-			U = 0.750000000f * Alpha - 0.433012701f * Beta;				\
-			V = -0.750000000f * Alpha + 0.433012701f * Beta;			\
-			W = -0.750000000f * Alpha - 1.299038106f * Beta;			\
-			break;														\
-		}																\
-		default :														\
-		{																\
-			U = 0.0f;													\
-			V = 0.0f;													\
-			W = 0.0f;													\
-		}																\
-	}																	\
+	switch (Section)
+	{
+		case 1:
+		case 4:
+		{
+			U = 0.750000000f * Alpha + 0.433012701f * Beta;
+			V = -0.750000000f * Alpha + 1.299038106f * Beta;
+			W = -0.750000000f * Alpha - 0.433012701f * Beta;
+			break;
+		}
+		case 2:
+		case 5:
+		{
+			U = 1.500000000f * Alpha;
+			V = 0.866025403f * Beta;
+			W = -0.866025403f * Beta;
+			break;
+		}
+		case 3:
+		case 6:
+		{
+			U = 0.750000000f * Alpha - 0.433012701f * Beta;
+			V = -0.750000000f * Alpha + 0.433012701f * Beta;
+			W = -0.750000000f * Alpha - 1.299038106f * Beta;
+			break;
+		}
+		default :
+		{
+			U = 0.0f;
+			V = 0.0f;
+			W = 0.0f;
+		}
+	}
 	\
-	p->Duty.Duty[PHASE_U] = 0.5f + DevideVbus * U;						\
-	p->Duty.Duty[PHASE_V] = 0.5f + DevideVbus * V;						\
-	p->Duty.Duty[PHASE_W] = 0.5f + DevideVbus * W;						\
+	p->Duty.Duty[PHASE_U] = 0.5f + DevideVbus * U;
+	p->Duty.Duty[PHASE_V] = 0.5f + DevideVbus * V;
+	p->Duty.Duty[PHASE_W] = 0.5f + DevideVbus * W;
 }
 
 __STATIC_FORCEINLINE void GENERATE_PWM_DUTY_SVPWM_Calc( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
