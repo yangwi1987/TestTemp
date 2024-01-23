@@ -8,6 +8,7 @@
 #ifndef INC_DRIVE_H_
 #define INC_DRIVE_H_
 
+#include <BatCtrl.h>
 #include "UtilityBase.h"
 //#include <AsIc.h>
 //#include <PsbCtrl_PCU.h>

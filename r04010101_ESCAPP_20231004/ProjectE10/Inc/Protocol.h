@@ -15,9 +15,8 @@
 #include "math.h"
 
 
+
 /* ==== macro for CANTX IDs for transmit ==== */
-#define CANTXID_BMS_CONTROL_01  0x500   /* command to control BMS actions #1 */
-#define CANTXID_BMS_CONTROL_02  0x501   /* command to control BMS actions #2 */
 
 #define CANTXID_ESC_LOG_INFO_0  0x720   /*Debug information for ESC develop 00*/
 #define CANTXID_ESC_LOG_INFO_1  0x721   /*Debug information for ESC develop 01*/
@@ -29,13 +28,21 @@
 #define CANTXID_ESC_LOG_INFO_7  0x727   /*Debug information for ESC develop 07*/
 
 /* ==== macro for CANRX IDs for receive ==== */
-#define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
-#define CANRXID_BMS_STATUS_02         0x403   /* info shows BMS status */
+#define CANRXID_BMS_FILTER_START_01   0x402   /* info shows BMS status */
+#define CANRXID_BMS_FILTER_START_02   0x403   /* info shows BMS status */
 
 #define CAN_TX_CRI_ALARM_MASK 0x01
 #define CAN_TX_NON_CRI_ALARM_MASK 0x02
 #define CAN_TX_WARNING_MASK 0x04
 
+
+/*========CAN RX ID definition========*/
+
+#define CAN_ID_BMS_MASK     0xFFFF00FF
+#define CAN_ID_BMS_FILTER   0x08020017
+
+#define CAN_ID_DEV_CMD_START	0x710
+#define CAN_ID_DEV_CMD_END		0x71F
 
 /*======================================
  *  Enum definition
@@ -352,7 +359,7 @@ typedef struct
   0.0f,	/*BatInstPwr*/		  \
 }                               \
 
-extern const CanIdConfig_t LscCanIdTableExtra[];
+extern const CanIdConfig_t CanIdTableExtra[];
 
 #endif /* INC_PROTOCOL_H_ */
 #endif /* E10 */

@@ -22,7 +22,7 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	10,		1}, 		// 2-FN_MF_FUNC_SEL
 	{0, 	5, 		6}, 		// 3-FN_RD_FUNC_SEL
 	{0, 	100, 	6}, 		// 4-FN_THRO_COMMAND
-	{0, 	1000, 	6}, 		// 5-FN_TORQ_COMMAND
+	{32768, 33768, 	1}, 		// 5-FN_TORQ_COMMAND
 	{0, 	32000, 	6}, 		// 6-FN_AC_CURR_LIMIT
 	{0, 	32000, 	6}, 		// 7-FN_DC_CURR_LIMIT
 	{0, 	200, 	6}, 		// 8-FN_MAX_TORQUE
