@@ -13,7 +13,7 @@
 #include "MathFunctionInclude.h"
 
 #define		MIN_AC_PHASE_CURRENT				(0.0f)
-#define		MAX_AC_PHASE_CURRENT				(260.0f)
+#define		MAX_AC_PHASE_CURRENT				(531.0f)
 #define		MOS_DERATING						0x01
 #define		CAP_DERATING						0x02
 #define		MOTOR_DERATING						0x04
