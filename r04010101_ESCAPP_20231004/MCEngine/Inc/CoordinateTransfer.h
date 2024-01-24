@@ -82,11 +82,11 @@ extern void CoordinateTransferInit( PHASE_TO_STATOR_TYPE* p1, STATOR_TO_ROTOR_TY
 		CordicMath_GetSinCosValue_Macro(Angle,SinValue,CosValue);		\
 
 
-__STATIC_FORCEINLINE void COORDINATE_TRANSFER_Phase_to_Stator_Calc( float U, float V, float W, PHASE_TO_STATOR_TYPE* p)\
-{\
+__STATIC_FORCEINLINE void COORDINATE_TRANSFER_Phase_to_Stator_Calc( float U, float V, float W, PHASE_TO_STATOR_TYPE* p)
+{
 	p->Alpha = 0.666666667f * U - 0.333333333f * ( V + W );
 	p->Beta = 0.577350269f * ( V - W );
-}\
+}
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Stator_to_Rotor_Calc( float Alpha, float Beta, float SinValue, float CosValue, STATOR_TO_ROTOR_TYPE* p)
 {
