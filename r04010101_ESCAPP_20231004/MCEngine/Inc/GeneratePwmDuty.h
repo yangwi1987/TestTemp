@@ -52,7 +52,6 @@ typedef enum
 typedef void (*pDutyCommand120Degree)( float, void*, uint16_t );
 typedef uint16_t (*pDutyCommandInit)( float, float, float, void*);
 typedef void (*pDutyCommandClean)( void* );
-typedef void (*pSvpwmCalc)( float, float, float, void*);
 typedef void (*pSixWave120Calc)( void*, float );
 typedef void (*pfunGeneratePwmDuty_CompensateDeadtimeByPhase)( void*, float, float, float );
 typedef void (*pfunGeneratePwmDuty_CompensateDeadtimeByPhaseInit)( void*, float, float, float, float);
