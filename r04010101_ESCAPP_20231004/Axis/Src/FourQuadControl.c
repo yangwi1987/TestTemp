@@ -246,22 +246,22 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	}
 	else
 	{
-		if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
-		{
-			v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
-			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
-		}
-		else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
-		{
-			v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
-			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
-		}
-		else
-		{
-			// do nothing
-		}
-		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
-
+//		if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
+//		{
+//			v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
+//			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
+//		}
+//		else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
+//		{
+//			v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
+//			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
+//		}
+//		else
+//		{
+//			// do nothing
+//		}
+//		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
+		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX];
 	}
 
 	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
