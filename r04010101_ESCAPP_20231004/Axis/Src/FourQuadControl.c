@@ -364,7 +364,14 @@ void FourQuadControl_Switch( FourQuadControl *v )
 		}
 		else
 		{
-			v->FourQuadState = FourQuadState_Driving_I;
+			if ( v->DriveGearModeSelect != REVERSE_MODE )
+			{
+				v->FourQuadState = FourQuadState_Driving_I;
+			}
+			else
+			{
+				v->FourQuadState = FourQuadState_Reverse_III;
+			}
 			v->FirstEntryFlg = 0;
 		}
 

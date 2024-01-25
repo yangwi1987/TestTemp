@@ -50,10 +50,10 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
         	}
         	break;
         }
-        case REVERSE_MODE:
-        {
-        	break;
-        }
+//        case REVERSE_MODE:
+//        {
+//        	break;
+//        }
         default:
         {
         	break;
