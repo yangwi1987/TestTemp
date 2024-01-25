@@ -744,53 +744,10 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     // Detect PLC loop signals and register alarm.
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
-    // Detect Digital Foil Position Sensor Read
-    v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
-    v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
-
-    // Detect foil sensor by different hardware setting
-    if(IsUseDigitalFoilSensor == 1) // use digitals foil sensor
-    {
-        if( v->FoilState.All== MAST_PADDLE )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-            v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-        else if( v->FoilState.All== MAST_SURF )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-            v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else if( v->FoilState.All== MAST_FOIL )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
-        }
-    }
-    else // use Analog foil sensor
-    {
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-        if( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxFoil  ) )  // Foil mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else if ( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxSurf ) )	// Surf mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-        v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else	// PADDLE mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-        v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-#endif
-    }
+    //GearMode
+    //v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(???)
+    GearMode_DoPLCLoop( &v->GearModeVar );
+    v->pCANRxInterface->OutputModeCmd = ( v->GearModeVar.GearModeSelect == NORMAL_MODE ) ? 1 : ( v->GearModeVar.GearModeSelect == BOOST_MODE ) ? 2 : 0;
 
     // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
     // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.

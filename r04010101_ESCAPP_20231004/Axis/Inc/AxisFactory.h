@@ -32,6 +32,7 @@
 #if E10
 #include "E10App.h"
 #include "HiResoMotorTable.h"
+#include "GearMode.h"
 #endif
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);
@@ -274,6 +275,7 @@ typedef struct {
 	SpeedInfo_t SpeedInfo;
 	AnalogFoilInfo_t AnalogFoilInfo;
 	DriveLockInfo_t DriveLockInfo;
+	GearMode_Var_t GearModeVar;
 	functypeAxis_Init Init;
 	functypeAxis_DoCurrentLoop DoCurrentLoop;
 	functypeAxis_DoPLCLoop DoPLCLoop;
@@ -324,6 +326,7 @@ typedef struct {
 	SPEED_INFO_DEFAULT,	\
 	ANALOG_FOIL_INFO_DEFAULT, \
 	DRIVE_LOCK_INFO_DERAULT, \
+	GEAR_MODE_VAR_DEFALUT, \
 	(functypeAxis_Init)AxisFactory_Init, \
 	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
 	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \
