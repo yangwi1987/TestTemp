@@ -252,7 +252,6 @@ typedef struct {
 	uint16_t ThrottleGainState;
 	uint16_t DcBusGainState;
 	int16_t PcuPowerState;
-	FoilInfor_u FoilState;
 	uint16_t MfOrRDFunctionDisable;
 	uint16_t TriggerLimpHome;
 	MOTOR_CONTROL_TYPE MotorControl;
@@ -300,7 +299,6 @@ typedef struct {
 	0,      /*ThrottleGainState;*/ \
 	0,      /*DcBusGainState;   */ \
 	PWR_SM_INITIAL,    /*PcuPowerState;       */\
-	{0},                   /*    FoilState;       */\
 	1,	                   /* MfOrRDFunctionDisable;    */\
 	0,	                   /* TriggerLimpHome;    */\
 	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\

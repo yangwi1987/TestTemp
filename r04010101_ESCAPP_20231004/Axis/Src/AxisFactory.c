@@ -724,34 +724,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     // Detect PLC loop signals and register alarm.
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
-    // Detect Digital Foil Position Sensor Read
-    v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
-    v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
-
-    // Detect foil sensor by different hardware setting
-    if(IsUseDigitalFoilSensor == 1) // use digitals foil sensor
-    {
-        if( v->FoilState.All== MAST_PADDLE )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-            v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-        else if( v->FoilState.All== MAST_SURF )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-            v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else if( v->FoilState.All== MAST_FOIL )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
-        }
-    }
-
     // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
     // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
     // It makes sure that the rewrite take effect.
