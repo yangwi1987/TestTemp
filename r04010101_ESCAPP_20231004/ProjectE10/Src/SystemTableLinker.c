@@ -318,10 +318,10 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			65535,		0,			0x42,		&DriveParams.SystemParams.PosCompBySpeed},	//P0-89
 				{		0,			0,			0,			0,		0},	//P0-90
 				{		0,			0,			0,			0,		0},	//P0-91
-				{	32768,		62768,		32798,		0x942,		&DriveParams.SystemParams.DrivePowerRampUpZeroThrottle},	//P0-92
-				{	 2768,		32768,		32168,		0x942,		&DriveParams.SystemParams.DrivePowerRampDownZeroThrottle},	//P0-93
-				{	32768,		62768,		32798,		0x942,		&DriveParams.SystemParams.DrivePowerRampUpFullThrottle},	//P0-94
-				{	 2768,		32768,		32738,		0x942,		&DriveParams.SystemParams.DrivePowerRampDownFullThrottle},	//P0-95
+				{		0,			0,			0,			0,		0},	//P0-92
+				{		0,			0,			0,			0,		0},	//P0-93
+				{		0,			0,			0,			0,		0},	//P0-94
+				{		0,			0,			0,			0,		0},	//P0-95
 				{	32769,		33268,		33268,		0x842,		&DriveParams.SystemParams.DrainRisingRamp},		//P0-96
 				{	32268,		32767,		32268,		0x842,		&DriveParams.SystemParams.DrainFallingRamp},	//P0-97
 				{		0,			0,			0,			0,		0},	//P0-98

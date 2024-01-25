@@ -124,10 +124,10 @@ typedef struct {
 	uint16_t PosCompBySpeed;	//P0-89
 	uint16_t Reserved090;	//P0-90
 	uint16_t Reserved091;	//P0-91
-	uint16_t DrivePowerRampUpZeroThrottle;	//P0-92
-	uint16_t DrivePowerRampDownZeroThrottle;	//P0-93
-	uint16_t DrivePowerRampUpFullThrottle;		//P0-94
-	uint16_t DrivePowerRampDownFullThrottle;	//P0-95
+	uint16_t Reserved092;	//P0-92
+	uint16_t Reserved093;	//P0-93
+	uint16_t Reserved094;		//P0-94
+	uint16_t Reserved095;	//P0-95
 	uint16_t DrainRisingRamp;	//P0-96
 	uint16_t DrainFallingRamp;	//P0-97
 	uint16_t Reserved098;	//P0-98

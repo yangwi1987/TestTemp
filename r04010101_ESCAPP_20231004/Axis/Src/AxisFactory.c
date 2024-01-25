@@ -91,7 +91,6 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
         v->AlarmDetect.CAN1Timeout.Counter = 0;
     }
     v->pCANRxInterface->ReceivedCANID = 0;
-    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
 }
 
 void AxisFactory_UpdateCANTxInterface( Axis_t *v )
@@ -759,7 +758,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
-        v->pCANRxInterface->PowerLevel = 10;
     }
     else
     {
