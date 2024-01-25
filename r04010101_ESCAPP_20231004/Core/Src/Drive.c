@@ -72,7 +72,8 @@ RemainingTime_t RemainingTime1 = REMAININGTIME_DEFAULT;
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
 ESC_OP_STATE_e ESCMainState = ESC_OP_INITIALIZING;
 VEHICLE_STATE_e VehicleMainState = VEHICLE_STATE_INITIALIZING;
-
+uint16_t DualBtnTimeCnt = 0;
+uint8_t ButtonReleasedFlags = 0;
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
@@ -1692,6 +1693,7 @@ __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 	// todo set RC alarm flag
 	// todo clear RC warning/limp flag
 	// todo set DC ramp?
+  VehicleMainState = VEHICLE_STATE_ALARM;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
@@ -1701,183 +1703,258 @@ __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
 	// todo set RC limp home flag;
 	// todo clear RC warning
 	// todo set DC ramp?
+  VehicleMainState = VEHICLE_STATE_LIMPHOME;  
 }
 
 __STATIC_FORCEINLINE void EnterVehicleWarningState( void )
 {
 	// todo set RC warning
 	// todo set DC ramp?
+  VehicleMainState = VEHICLE_STATE_WARNING;
 }
 
-__STATIC_FORCEINLINE void EnterVehicleNormalState( void )
+__STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 {
 	// set Axis trigger limp home flag
 	Axis[0].TriggerLimpHome = 0;
-	// todo clear RC warning/limp/alarm flag
+  /* Todo : Request INV to servo on */
+
+  /* Clear Button released flag*/
+  if(VehicleMainState == VEHICLE_STATE_STANDBY)
+  {
+	ButtonReleasedFlags = 0;
+  }
+  DualBtnTimeCnt = 0;
+
+  VehicleMainState = VEHICLE_STATE_DRIVE;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleIdleState( void )
+{
+  VehicleMainState = VEHICLE_STATE_IDLE;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleStartupState( void )
+{
+  BatStation.PwrOnReq();
+  VehicleMainState = VEHICLE_STATE_STARTUP;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
 {
-	// set Axis trigger limp home flag
-	Axis[0].TriggerLimpHome = 0;
-	// todo clear RC warning/limp/alarm flag
+  // set Axis trigger limp home flag
+  Axis[0].TriggerLimpHome = 0;
+  DualBtnTimeCnt = 0;
+
+  /* Put INV to servo-off */
+  VehicleMainState = VEHICLE_STATE_STANDBY;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
+{
+  /* Request BMS to turn off battery */
+  BatStation.PwrOffReq();
+  VehicleMainState = VEHICLE_STATE_SHUTDOWN;
 }
 
 void Drive_VehicleStateMachine( void )
 {
-	switch( VehicleMainState )
-	{
-		case VEHICLE_STATE_INITIALIZING:
+  switch( VehicleMainState )
+  {
+    case VEHICLE_STATE_INITIALIZING:
 
-			// normal transition
-			if( ESCMainState == ESC_OP_STANDBY /* todo BMS precharge finish*/)
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
+      // normal transition
+      if( ESCMainState == ESC_OP_STANDBY /* todo BMS precharge finish*/)
+      {
+        EnterVehicleIdleState();
+      }
 
-			// action
-			// do CAN and RC initial communication at drive_Init
-			break;
+      // action
 
-		case VEHICLE_STATE_STANDBY:
+      break;
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
-			{
-				EnterVehicleWarningState();
-				VehicleMainState = VEHICLE_STATE_WARNING;
-			}
+    case VEHICLE_STATE_IDLE:
+    
+      /* waiting for killing switch to transfer to startup state */
+      if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW) /* todo : ckeck SW event */
+      {
+        EnterVehicleStartupState();
+      }
 
-			// normal transitions
-			else if( ESCMainState == ESC_OP_NORMAL )
-			{
-				EnterVehicleNormalState();
-				VehicleMainState = VEHICLE_STATE_NORMAL;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do CAN and RC communication at drive_DoPLC
-				// no motor power output
-			}
-			break;
+      break;
 
-		case VEHICLE_STATE_NORMAL:
+    case VEHICLE_STATE_STARTUP:
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
-			{
-				EnterVehicleWarningState();
-				VehicleMainState = VEHICLE_STATE_WARNING;
-			}
+      switch (BatStation.MainSMGet())
+      {
+        case BAT_MAIN_ACTIVATED:
+          EnterVehicleStandbyState();
+          break;
 
-			// normal transitions
-			else if( ESCMainState == ESC_OP_STANDBY )
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// allow full power output depending on driving mode
-			}
-			break;
+        case BAT_MAIN_ALARM:
+          EnterVehicleAlarmState();
+          break;
 
-		case VEHICLE_STATE_WARNING:
+        default:
+          break;
+      }
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			// recovery paths
-			else if( ESCMainState == ESC_OP_NORMAL && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
-			{
-				EnterVehicleNormalState();
-				VehicleMainState = VEHICLE_STATE_NORMAL;
-			}
-			else if( ESCMainState == ESC_OP_STANDBY && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-			}
-			break;
+      break;
 
-		case VEHICLE_STATE_LIMPHOME:
+    case VEHICLE_STATE_STANDBY:
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-				// have triggered limp home while entering limp home state, and limited max power.
-			}
-			break;
+      // error situation
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      { 
+        EnterVehicleShutdownState();
+      }
+      else
+      {
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget == 0 ))
+        {
+          DualBtnTimeCnt ++;
+        }
+        else
+        {
+          DualBtnTimeCnt = 0;
+        }
 
-		case VEHICLE_STATE_ALARM:
+        if(DualBtnTimeCnt > 100)
+        {
+          EnterVehicleDriveState();
+        }
+      }
 
-			// error situation
-			if( ESCMainState != ESC_OP_ALARM && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-				// if previous state is limphome, then keep TriggerLimpHome flag, or follow the DC limit rule.
-				// if ESC is ESCOP_Alarm, then vehicle have been servo off.
-			}
-			break;
+      break;
 
-		// abnormal PcuPowerState value
-		case VEHICLE_STATE_POWER_OFF:
-		default:
-			break;
+    case VEHICLE_STATE_DRIVE:
 
-	}
+      // error situation
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM )
+      {
+        EnterVehicleAlarmState();
+      }
+      else if( ESCMainState == ESC_OP_LIMPHOME)
+      {
+        EnterVehicleLimpHomeState();
+      }
+      else if( ESCMainState == ESC_OP_WARNING)
+      {
+        EnterVehicleWarningState();
+      }
+      else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
+
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
+
+      }
+      else
+      { 
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget == 0 ) &&
+            (Axis[0].SpeedInfo.MotorMechSpeedRPM < 2.0) && 
+            (Axis[0].SpeedInfo.MotorMechSpeedRPM > -2.0))
+        {
+          DualBtnTimeCnt ++;
+
+          if(DualBtnTimeCnt > 300)
+          {
+            EnterVehicleStandbyState();
+          }
+        }
+        else
+        {
+          DualBtnTimeCnt = 0;
+
+        }
+      }
+      break;
+
+    case VEHICLE_STATE_WARNING:
+
+      // error situation
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)
+      {
+        EnterVehicleAlarmState();
+      }
+      else if( ESCMainState == ESC_OP_LIMPHOME )
+      {
+        EnterVehicleLimpHomeState();
+      }
+      // recovery paths
+      else if( ESCMainState == ESC_OP_NORMAL )
+      {
+        EnterVehicleDriveState();
+      }
+      else if( ESCMainState == ESC_OP_STANDBY )
+      {
+        EnterVehicleStandbyState();
+      }
+      else
+      {
+        // keep in the same state, action:
+        // do DC limit
+        // do AC limit
+      }
+      break;
+
+    case VEHICLE_STATE_LIMPHOME:
+
+      // error situation
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM )
+      {
+        EnterVehicleAlarmState();
+      }
+      else
+      {
+        // keep in the same state, action:
+        // do DC limit
+        // do AC limit
+        // have triggered limp home while entering limp home state, and limited max power.
+      }
+      break;
+
+    case VEHICLE_STATE_ALARM:
+
+      // error situation
+      if( ESCMainState != ESC_OP_ALARM && Bat_MainSMGet() != BAT_MAIN_ALARM )
+      {
+        EnterVehicleLimpHomeState();
+      }
+      else
+      {
+        // keep in the same state, action:
+        // do DC limit
+        // do AC limit
+        // if previous state is limphome, then keep TriggerLimpHome flag, or follow the DC limit rule.
+        // if ESC is ESCOP_Alarm, then vehicle have been servo off.
+      }
+      break;
+
+    // abnormal PcuPowerState value
+    case VEHICLE_STATE_POWER_OFF:
+    default:
+      break;
+
+  }
 }
 
 void HAL_TIM_Base_Start_TOTAL_TIME( TIM_HandleTypeDef *htim )
