@@ -7,7 +7,7 @@
 
 #include "GearMode.h"
 
-
+static uint8_t EnableBoostGearMode = FUNCTION_DISABLE;
 
 void GearMode_Init ( GearMode_Var_t* v )
 {
@@ -24,7 +24,7 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
         {
         	if ( v->BoostState == BOOST_READY )
         	{
-        		if ( v->IsBoostBtnPressed == BOOST_BTN_PRESSED )
+        		if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && ( EnableBoostGearMode == FUNCTION_ENABLE ))
         		{
         			 v->GearModeSelect  = BOOST_MODE;
         		}
@@ -59,4 +59,14 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
         	break;
         }
     }
+}
+
+void GearMode_EnableBoostMode (void)
+{
+	EnableBoostGearMode = FUNCTION_ENABLE;
+}
+
+void GearMode_DisableBoostMode (void)
+{
+	EnableBoostGearMode = FUNCTION_DISABLE;
 }

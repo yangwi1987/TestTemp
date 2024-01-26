@@ -9,6 +9,7 @@
 #define INC_GEARMODE_H_
 
 #include "stdint.h"
+#include "Constant.h"
 
 #define GEAR_MODE_TIMEBASE 0.001f //PLC loop
 #define BOOST_COOLDOWN_TIME_s 45.0f //s
@@ -62,5 +63,7 @@ typedef struct
 
 //extern void GearMode_Init ( GearMode_Var_t* v );
 extern void GearMode_DoPLCLoop ( GearMode_Var_t* v );
+extern void GearMode_EnableBoostMode (void);
+extern void GearMode_DisableBoostMode (void);
 
 #endif /* INC_GEARMODE_H_ */
