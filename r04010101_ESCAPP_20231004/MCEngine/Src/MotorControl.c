@@ -199,8 +199,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 
 		p->VoltCmd.VdCmd = 0.0f;
 		p->VoltCmd.VqCmd = p->VfControl.VoltAmp;
-		p->VoltCmd.EleCompAngle = p->VfControl.Position.VirtualEleAngle + p->VfControl.Position.VirtualEleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
-
+		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
 		if ( p->VoltCmd.VcmdAmp > VbusLimit)
 		{
@@ -313,7 +312,7 @@ void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
 	p->CurrentControl.Decoupling.PIDWayIq.Clean( &(p->CurrentControl.Decoupling.PIDWayIq) );
 
 	//Sensorless
-	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
+//	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
 
 //	p->CurrentControl.EleAngle = 0.0f;
 }
