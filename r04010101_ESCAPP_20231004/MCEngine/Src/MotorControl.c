@@ -87,10 +87,8 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		}
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-//		COORDINATE_TRANSFER_GetSinCos_LT((uint16_t)((p->VoltCmd.EleCompAngle * 651.8986f )), &SinValue, &CosValue);
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
-//		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
