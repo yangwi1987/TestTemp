@@ -777,16 +777,16 @@ void UdsServiceCtrl_TransferData( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx,
 void UdsServiceCtrl_RequestTransferExit( NetWorkService_t *p, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx )
 {
 	uint16_t i = 0;
-	uint16_t lChecksum = 0;
+//	uint16_t lChecksum = 0;
 	if( p->TransferCtrl.LengthTotal == p->TransferCtrl.LengthHandled )
 	{
 /*
  * User Code Begin
  */
-		if( p->TransferCtrl.ChecksumCalculate != 0 )
-		{
-			lChecksum = p->TransferCtrl.ChecksumCalculate( p->TransferCtrl.pStartMemAddr, p->TransferCtrl.LengthTotal);
-		}
+//		if( p->TransferCtrl.ChecksumCalculate != 0 )
+//		{
+//			lChecksum = p->TransferCtrl.ChecksumCalculate( p->TransferCtrl.pStartMemAddr, p->TransferCtrl.LengthTotal);
+//		}
 /*
  * User Code End
  */

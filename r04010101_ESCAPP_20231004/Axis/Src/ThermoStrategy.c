@@ -7,9 +7,6 @@
 
 #include "ThermoStrategy.h"
 
-#define ABS(x)  ((x) >= 0 ? (x) : -(x))
-#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
-#define MIN3(a,b,c)  (((( a > b ) ? b : a) > c ) ? c : ( a > b ? b : a ))
 #define MOS_DERATING_TABLE_NUN 12
 #define WINDING_DERATING_TABLE_NUN 8
 

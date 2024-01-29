@@ -8,9 +8,6 @@
 #include "UtilityBase.h"
 #include "UiApp.h"
 #include "Drive.h"
-#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
-#define MAX2(a,b)  ( ((a) >= (b)) ? (a) : (b) )
-#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
 
 /*
  * Header Information
@@ -84,6 +81,21 @@ DTCStation_t DTCStation1 = DTC_STATION_DEFFAULT;
 void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
 extern const CANProtocol ExtranetInformInSystemTableExample;
 
+#if JUDGE_FUNCTION_DELAY
+extern Judge_Delay TIM20INT_Judge_Delay;
+extern Judge_Delay CurrentLoop_Judge_Delay;
+extern Judge_Delay PLCLoop_Judge_Delay;
+extern Judge_Delay _100HzLoop_Judge_Delay;
+#endif
+#if MEASURE_CPU_LOAD
+extern float Max_100Hz_Load_pct;
+extern float Max_PLCLoop_Load_pct;
+extern float Max_CurrentLoop_Load_pct;
+extern float Max_ADC_Inj_Load_pct;
+extern float Ave_100Hz_Load_pct;
+extern float Ave_PLCLoop_Load_pct;
+extern float Ave_CurrentLoop_Load_pct;
+#endif
 uint32_t VersionAddressArray[5] =
 {
 		APP_START_ADDRESS,
@@ -455,6 +467,55 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 	case DN_ACC_CAN_ERROR_CNT :
 		RetValue = Axis[0].pCANRxInterface->AccCANErrorCnt;
 		break;
+#if JUDGE_FUNCTION_DELAY
+    case DN_MAX_TIM20INT_INTERVAL   :
+		RetValue = (uint16_t)(TIM20INT_Judge_Delay.Max_Intervals_us * 100.0f);
+		break;
+    case DN_AVE_TIM20INT_INTERVAL   :
+		RetValue = (uint16_t)(TIM20INT_Judge_Delay.Ave_Intervals_us * 100.0f);
+		break;
+    case DN_MAX_CURRENTLOOP_INTERVAL:
+		RetValue = (uint16_t)(CurrentLoop_Judge_Delay.Max_Intervals_us * 100.0f);
+		break;
+    case DN_AVE_CURRENTLOOP_INTERVAL:
+		RetValue = (uint16_t)(CurrentLoop_Judge_Delay.Ave_Intervals_us * 100.0f);
+		break;
+    case DN_MAX_PLCLOOP_INTERVAL    :
+		RetValue = (uint16_t)(PLCLoop_Judge_Delay.Max_Intervals_us * 10.0f);
+		break;
+    case DN_AVE_PLCLOOP_INTERVAL    :
+		RetValue = (uint16_t)(PLCLoop_Judge_Delay.Ave_Intervals_us * 10.0f);
+		break;
+    case DN_MAX_100HZLOOP_INTERVAL  :
+		RetValue = (uint16_t)(_100HzLoop_Judge_Delay.Max_Intervals_us);
+		break;
+    case DN_AVE_100HZLOOP_INTERVAL  :
+		RetValue = (uint16_t)(_100HzLoop_Judge_Delay.Ave_Intervals_us);
+		break;
+#endif
+#if MEASURE_CPU_LOAD
+    case DN_MAX_100HZLOOP_LOAD_PCT  :
+		RetValue = (uint16_t)(Max_100Hz_Load_pct * 100.0f);
+		break;
+    case DN_MAX_PLCLOOP_LOAD_PCT    :
+		RetValue = (uint16_t)(Max_PLCLoop_Load_pct * 100.0f);
+		break;
+    case DN_MAX_CURRENTLOOP_LOAD_PCT:
+		RetValue = (uint16_t)(Max_CurrentLoop_Load_pct * 100.0f);
+		break;
+    case DN_MAX_ADC_INJ_LOAD_PCT    :
+		RetValue = (uint16_t)(Max_ADC_Inj_Load_pct * 100.0f);
+		break;
+    case DN_AVE_100HZLOOP_LOAD_PCT  :
+		RetValue = (uint16_t)(Ave_100Hz_Load_pct * 100.0f);
+		break;
+    case DN_AVE_PLCLOOP_LOAD_PCT    :
+		RetValue = (uint16_t)(Ave_PLCLoop_Load_pct * 100.0f);
+		break;
+    case DN_AVE_CURRENTLOOP_LOAD_PCT:
+		RetValue = (uint16_t)(Ave_CurrentLoop_Load_pct * 100.0f);
+		break;
+#endif
 	default :
 		RetValue = 0;
 		break;
@@ -2169,7 +2230,7 @@ void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
 
 void drive_DoCurrentLoop(void)
 {
-	int i;
+//	int i;
 
 	AdcStation1.DoCurrentLoop( &AdcStation1 );
 
@@ -2179,17 +2240,20 @@ void drive_DoCurrentLoop(void)
 #endif
 
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
-	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
-	{
+//	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
+//	{
 		// Update Control Feedback
-		Axis[i].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[i];
-		Axis[i].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[i];
-		Axis[i].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[i];
-		Axis[i].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+		Axis[0].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[0];
+		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[0];
+		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[0];
+		Axis[0].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+
+		Axis[0].MotorControl.CurrentControl.EleAngle = PSStation1.ElecPosition;
+		Axis[0].MotorControl.CurrentControl.EleSpeed = PSStation1.ElecSpeed;
 
 		// Do Current Loop Tasks
-		Axis[i].DoCurrentLoop(&Axis[i]);
-	}
+		Axis[0].DoCurrentLoop(&Axis[0]);
+//	}
 }
 
 void Session_DoPLCLoop(void)

@@ -9,8 +9,6 @@
 #include "UiApp.h"
 #include "AxisFactory.h"
 
-#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
-#define MAX3(x,y,z)   (( (x > y) ? x : y ) > z ? ( x > y ? x : y ) : z)
 
 static uint8_t CurrToPLCCnt = 0;
 extern uint16_t IsUseDigitalFoilSensor;
@@ -298,41 +296,11 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             else
             {
                 v->MotorCtrlMode = CtrlUi.MotorCtrlMode;
-#if	USE_EEMF==USE_FUNCTION
-                if( (CtrlUi.MotorCtrlMode==FUNCTION_MODE_VF_CONTROL) || (CtrlUi.MotorCtrlMode==FUNCTION_MODE_IF_CONTROL) )
-                {
-
-                }
-                else
-                {
-                    v->MotorCtrlMode = ( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_YES ) ? FUNCTION_MODE_EEMF : v->MotorCtrlMode;
-                }
-#else
-                v->MotorCtrlMode = CtrlUi.MotorCtrlMode;
-#endif
-#if	USE_HFI_SIN==USE_FUNCTION
-                if( (CtrlUi.MotorCtrlMode==FUNCTION_MODE_VF_CONTROL) || (CtrlUi.MotorCtrlMode==FUNCTION_MODE_IF_CONTROL) )
-                {
-
-                }
-                else
-                {
-                    v->MotorCtrlMode = ( v->MotorControl.Sensorless.HFISin.Start == FUNCTION_YES ) ? FUNCTION_MODE_HFI_SIN : v->MotorCtrlMode;
-                }
-#else
-                v->MotorCtrlMode = CtrlUi.MotorCtrlMode;
-#endif
             }
 
             if( !ServoOnEnable )
             {
                 v->ServoOnOffState = MOTOR_STATE_SHUTDOWN_START;
-            }
-            else if ( v->DriveLockInfo.DriveStateFlag == Drive_Stop_Flag )
-            {
-            	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
-            	v->MotorCtrlMode = FUNCTION_MODE_BOOTSTRAP;
-            	v->MotorControl.Clean( &v->MotorControl );
             }
             break;
 
@@ -622,52 +590,6 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 
     if( v->ServoOn )
     {
-        if( v->SpeedInfo.ElecSpeedAbs < EEMF_START_SPEED  )
-        {
-            if( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_NO )
-            {
-                v->MotorControl.Sensorless.HFISin.HFISinCalcProcess = SENSORLESS_CALC_PROCESS_EXE;
-            }
-            else
-            {
-                if( v->SpeedInfo.ElecSpeedAbs < ( EEMF_START_SPEED + EEMF_CALC_SPEED ) * 0.5f )
-                {
-                    v->MotorControl.Sensorless.HFISin.HFISinCalcProcess = SENSORLESS_CALC_PROCESS_ENTERING;
-                }
-                else
-                {
-                    if( v->MotorControl.Sensorless.HFISin.HFISinCalcProcess == SENSORLESS_CALC_PROCESS_ENTERING )
-                    {
-                        // do nothing
-                    }
-                    else
-                    {
-                        v->MotorControl.Sensorless.HFISin.HFISinCalcProcess = SENSORLESS_CALC_PROCESS_CLEAN;
-                    }
-                }
-            }
-        }
-        else
-        {
-            v->MotorControl.Sensorless.HFISin.HFISinCalcProcess = SENSORLESS_CALC_PROCESS_CLEAN;
-        }
-
-        if( ( v->SpeedInfo.ElecSpeedAbs < EEMF_CALC_SPEED ) )
-        {
-            v->MotorControl.Sensorless.EEMF.EEMFCalcProcess = SENSORLESS_CALC_PROCESS_CLEAN;
-        }
-        else
-        {
-            if( v->MotorControl.Sensorless.EEMF.EEMFCalcProcess == SENSORLESS_CALC_PROCESS_CLEAN )
-            {
-                v->MotorControl.Sensorless.EEMF.EEMFCalcProcess = SENSORLESS_CALC_PROCESS_ENTERING;
-            }
-            else
-            {
-                v->MotorControl.Sensorless.EEMF.EEMFCalcProcess = SENSORLESS_CALC_PROCESS_EXE;
-            }
-        }
-        //
         // do FOC calculations
         v->MotorControl.Process( &v->MotorControl, v->MotorCtrlMode);
 
@@ -677,37 +599,6 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
         v->pPwmStation->DutyCmd.Duty[CH_PWM_WP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2];
 
         v->pPwmStation->AxisDutyToPwmCount( v->pPwmStation, AxisIndex, v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode);
-
-#if USE_EEMF==USE_FUNCTION
-        if( v->SpeedInfo.ElecSpeedAbs > EEMF_START_SPEED )
-        {
-#if USE_EEMF==USE_FUNCTION
-            v->MotorControl.Sensorless.EEMF.Start = FUNCTION_YES;
-            v->MotorControl.Sensorless.SensorlessState = SensorlessState_Using_EEMF_Algorithm;
-#else
-            v->MotorControl.Sensorless.EEMF.Start = FUNCTION_NO;
-#endif
-            v->MotorControl.Sensorless.HFISin.Start = FUNCTION_NO;
-        }
-        else if( v->SpeedInfo.ElecSpeedAbs < EEMF_CALC_SPEED )
-        {
-            v->MotorControl.Sensorless.EEMF.Start = FUNCTION_NO;
-#if USE_HFI_SIN==USE_FUNCTION
-            v->MotorControl.Sensorless.HFISin.Start = ( v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_YES ) ? FUNCTION_NO : FUNCTION_YES;
-            v->MotorControl.Sensorless.SensorlessState = ( v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_YES ) ? \
-                                                            v->MotorControl.Sensorless.SensorlessState : SensorlessState_Using_HFI_Algorithm;
-#else
-            v->MotorControl.Sensorless.HFISin.Start = FUNCTION_NO;
-#endif
-        }
-        else
-        {
-            //do nothing
-            v->MotorControl.Sensorless.SensorlessState = ( v->MotorControl.Sensorless.SensorlessState == SensorlessState_Using_HFI_Algorithm ) ? \
-            SensorlessState_Switching_from_HFI_to_EEMF : (( v->MotorControl.Sensorless.SensorlessState == SensorlessState_Using_EEMF_Algorithm ) ? \
-            SensorlessState_Switching_from_EEMF_to_HFI : v->MotorControl.Sensorless.SensorlessState );
-        }
-    #endif
 
         v->PhaseLoss.Acc10KhzCurrSqrU += v->MotorControl.SensorFb.Iu * v->MotorControl.SensorFb.Iu;
         v->PhaseLoss.Acc10KhzCurrSqrV += v->MotorControl.SensorFb.Iv * v->MotorControl.SensorFb.Iv;
@@ -724,16 +615,7 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 void AxisFactory_DoPLCLoop( Axis_t *v )
 {
     // Update Speed
-#if USE_HFI_SIN==USE_FUNCTION
-    if( v->MotorControl.Sensorless.EEMF.Start == FUNCTION_YES )
-    {
-        v->SpeedInfo.MotorMechSpeedRad = v->MotorControl.Sensorless.EEMF.AngleObserver.SpeedTmp * v->SpeedInfo.DividePolepair;
-    }
-    else
-    {
-        v->SpeedInfo.MotorMechSpeedRad = v->MotorControl.Sensorless.HFISin.AngleObserver.SpeedTmp * v->SpeedInfo.DividePolepair;
-    }
-#endif
+	v->SpeedInfo.MotorMechSpeedRad = PSStation1.MechSpeed;
     v->SpeedInfo.MotorMechSpeedRPM = v->SpeedInfo.MotorMechSpeedRad * RAD_2_RPM;
     v->SpeedInfo.ElecSpeed = v->SpeedInfo.MotorMechSpeedRad * (float)v->SpeedInfo.Polepair;
     v->SpeedInfo.MotorMechSpeedRPMAbs = ABS(v->SpeedInfo.MotorMechSpeedRPM);

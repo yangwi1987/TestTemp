@@ -109,7 +109,7 @@ static void MX_UART5_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-#if Measure_CPU_Load || Judge_function_delay
+#if MEASURE_CPU_LOAD || JUDGE_FUNCTION_DELAY
 static void USER_DWT_Init(void);
 #endif
 /* USER CODE END PFP */
@@ -198,7 +198,7 @@ int main(void)
 //  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_2 );
   __enable_irq();
 
-#if Measure_CPU_Load || Judge_function_delay
+#if MEASURE_CPU_LOAD || JUDGE_FUNCTION_DELAY
   USER_DWT_Init();
 #endif
   
@@ -1416,7 +1416,7 @@ static void MX_TIM3_Init(void)
   * @param  None
   * @retval None
   */
-#if Measure_CPU_Load || Judge_function_delay
+#if MEASURE_CPU_LOAD || JUDGE_FUNCTION_DELAY
 
 static void USER_DWT_Init(void)
 {

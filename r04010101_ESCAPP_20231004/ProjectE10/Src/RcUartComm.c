@@ -10,7 +10,6 @@
 #include "stdlib.h"
 #include "UtilityBase.h"
 
-#define ABS(x) ((x) > 0 ? (x) : -(x))
 
 __IO uint32_t uwCRCValue = 0;
 
