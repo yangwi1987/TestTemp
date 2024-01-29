@@ -46,7 +46,8 @@ typedef struct
 {
 	BoostBtnState   IsBoostBtnPressed;
 	ReverseBtnState IsReverseBtnPressed ;
-    uint32_t        BoostStateCnt;
+    uint16_t        BoostCnt;
+    uint16_t        BoostCoolCnt;
     GearModeSel_e   GearModeSelect;
     BoostState_e    BoostState;
 
@@ -55,7 +56,8 @@ typedef struct
 #define GEAR_MODE_VAR_DEFALUT { \
 		BOOST_BTN_RELEASED,  /*IsBoostBtnPressed;  */\
 		REVERSE_BTN_RELEASED,/*IsReverseBtnPressed */\
-		0,                   /*BoostStateCnt;      */\
+		0,                   /*BoostCnt;      */\
+		0,                   /*BoostCoolCnt;      */\
 		NORMAL_MODE,         /*GearModeSelect;     */\
 		BOOST_READY          /*BoostState;         */\
 }

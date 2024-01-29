@@ -18,42 +18,57 @@ void GearMode_Init ( GearMode_Var_t* v )
 
 void GearMode_DoPLCLoop ( GearMode_Var_t* v )
 {
+	if ( v->BoostState == BOOST_COOLDOWN )
+	{
+    	if ( v->BoostCoolCnt++ >= BOOST_COOLDOWN_TIME )
+    	{
+    		v->BoostCoolCnt = 0;
+    	    v->BoostState = BOOST_READY;
+    	}
+	}
     switch ( v->GearModeSelect )
     {
         case NORMAL_MODE:
         {
-        	if ( v->BoostState == BOOST_READY )
-        	{
-        		if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && ( EnableBoostGearMode == FUNCTION_ENABLE ))
-        		{
-        			 v->GearModeSelect  = BOOST_MODE;
-        		}
-        	}
-        	else  // if ( v->BoostState == BOOST_COOLDOWN )
-        	{
-            	if ( v->BoostStateCnt++ >= BOOST_COOLDOWN_TIME )
+    		if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && (v->IsReverseBtnPressed == BOOST_BTN_RELEASED) && ( EnableBoostGearMode == FUNCTION_ENABLE ))
+    		{
+            	if ( v->BoostState == BOOST_READY )
             	{
-            		v->BoostStateCnt = 0;
-            	    v->BoostState = BOOST_READY;
+            		 v->GearModeSelect  = BOOST_MODE;
             	}
+    		}
+    		else if (( v->IsReverseBtnPressed  == BOOST_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED))
+        	{
+    			v->GearModeSelect  = RESERVE_MODE;
         	}
 
         	break;
         }
         case BOOST_MODE:
         {
-        	if ( v->BoostStateCnt++ >= BOOST_CONTINUE_TIME )
+        	if (( v->BoostCnt++ >= BOOST_CONTINUE_TIME ) || ( EnableBoostGearMode == FUNCTION_DISABLE ))
         	{
-        		v->BoostStateCnt = 0;
+        		v->BoostCnt = 0;
         	    v->BoostState = BOOST_COOLDOWN;
         	    v->GearModeSelect  = NORMAL_MODE;
         	}
+        	else if ( v->IsReverseBtnPressed  == BOOST_BTN_PRESSED )
+        	{
+        		v->BoostCnt = 0;
+        	    v->BoostState = BOOST_COOLDOWN;
+        	    v->GearModeSelect  = RESERVE_MODE;
+        	}
         	break;
         }
-//        case REVERSE_MODE:
-//        {
-//        	break;
-//        }
+        case REVERSE_MODE:
+        {
+        	if ( v->IsReverseBtnPressed  == BOOST_BTN_RELEASED )
+        	{
+        	    v->GearModeSelect  = NORMAL_MODE;
+        	}
+
+        	break;
+        }
         default:
         {
         	break;
