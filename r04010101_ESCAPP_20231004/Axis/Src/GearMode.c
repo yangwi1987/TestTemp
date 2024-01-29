@@ -8,7 +8,7 @@
 #include "GearMode.h"
 
 static uint8_t EnableBoostGearMode = FUNCTION_DISABLE;
-static uint8_t EnableReverseGearMode = FUNCTION_ENABLE;
+static uint8_t EnableReverseGearMode = FUNCTION_DISABLE;
 
 void GearMode_Init ( GearMode_Var_t* v )
 {
@@ -38,7 +38,7 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
             		 v->GearModeSelect  = BOOST_MODE;
             	}
     		}
-    		else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED))
+    		else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED) && ( EnableReverseBoostGearMode == FUNCTION_ENABLE ))
         	{
     			v->GearModeSelect  = REVERSE_MODE;
         	}
@@ -53,7 +53,7 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
         	    v->BoostState = BOOST_COOLDOWN;
         	    v->GearModeSelect  = NORMAL_MODE;
         	}
-        	else if ( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED )
+        	else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && ( EnableReverseBoostGearMode == FUNCTION_ENABLE ))
         	{
         		v->BoostCnt = 0;
         	    v->BoostState = BOOST_COOLDOWN;
