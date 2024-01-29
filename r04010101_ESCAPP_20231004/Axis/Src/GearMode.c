@@ -8,6 +8,7 @@
 #include "GearMode.h"
 
 static uint8_t EnableBoostGearMode = FUNCTION_DISABLE;
+static uint8_t EnableReverseGearMode = FUNCTION_ENABLE;
 
 void GearMode_Init ( GearMode_Var_t* v )
 {
@@ -30,16 +31,16 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
     {
         case NORMAL_MODE:
         {
-    		if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && (v->IsReverseBtnPressed == BOOST_BTN_RELEASED) && ( EnableBoostGearMode == FUNCTION_ENABLE ))
+    		if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && (v->IsReverseBtnPressed == REVERSE_BTN_RELEASED) && ( EnableBoostGearMode == FUNCTION_ENABLE ))
     		{
             	if ( v->BoostState == BOOST_READY )
             	{
             		 v->GearModeSelect  = BOOST_MODE;
             	}
     		}
-    		else if (( v->IsReverseBtnPressed  == BOOST_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED))
+    		else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED))
         	{
-    			v->GearModeSelect  = RESERVE_MODE;
+    			v->GearModeSelect  = REVERSE_MODE;
         	}
 
         	break;
@@ -52,17 +53,17 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
         	    v->BoostState = BOOST_COOLDOWN;
         	    v->GearModeSelect  = NORMAL_MODE;
         	}
-        	else if ( v->IsReverseBtnPressed  == BOOST_BTN_PRESSED )
+        	else if ( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED )
         	{
         		v->BoostCnt = 0;
         	    v->BoostState = BOOST_COOLDOWN;
-        	    v->GearModeSelect  = RESERVE_MODE;
+        	    v->GearModeSelect  = REVERSE_MODE;
         	}
         	break;
         }
         case REVERSE_MODE:
         {
-        	if ( v->IsReverseBtnPressed  == BOOST_BTN_RELEASED )
+        	if ( v->IsReverseBtnPressed  == REVERSE_BTN_RELEASED )
         	{
         	    v->GearModeSelect  = NORMAL_MODE;
         	}
@@ -84,4 +85,14 @@ void GearMode_EnableBoostMode (void)
 void GearMode_DisableBoostMode (void)
 {
 	EnableBoostGearMode = FUNCTION_DISABLE;
+}
+
+void GearMode_EnableReverseMode (void)
+{
+	EnableReverseGearMode = FUNCTION_ENABLE;
+}
+
+void GearMode_DisableReverseMode (void)
+{
+	EnableReverseGearMode = FUNCTION_DISABLE;
 }

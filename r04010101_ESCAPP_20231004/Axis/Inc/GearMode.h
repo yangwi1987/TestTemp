@@ -67,5 +67,6 @@ typedef struct
 extern void GearMode_DoPLCLoop ( GearMode_Var_t* v );
 extern void GearMode_EnableBoostMode (void);
 extern void GearMode_DisableBoostMode (void);
-
+extern void GearMode_EnableReverseMode (void);
+extern void GearMode_DisableReverseMode (void);
 #endif /* INC_GEARMODE_H_ */
