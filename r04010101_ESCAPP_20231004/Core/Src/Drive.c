@@ -1894,9 +1894,8 @@ void drive_Init(void)
 	uint16_t AxisIndex;
 	uint16_t IoState;
 	uint16_t IoState_2;
-	// Start timer 2 and avoid first interrupt request.
+	// Start timer 3 for total time function and avoid first interrupt request.
 	HAL_TIM_Base_Start_TOTAL_TIME(&htim3);
-	HAL_TIM_Base_Start_TOTAL_TIME(&htim6);
 	ParamMgr1.OnParamValueChanged = &Drive_OnParamValueChanged;
 	IntranetCANStation.AccessParam = &AccessParam;
 	IntranetCANStation.pParamMgr = &ParamMgr1;
