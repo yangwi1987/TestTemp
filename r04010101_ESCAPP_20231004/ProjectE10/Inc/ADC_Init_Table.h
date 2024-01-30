@@ -33,15 +33,15 @@ enum AdcInjGroupEnum {
 
 /* WARNING: DO NOT CHANGE THE ORDER*/
 enum AdcRegGroupEnum {
-	FOIL_AD = 0,
-	P13V_AD,
+	HW_ID2 = 0,
+	ES5V_FB,
 	HW_ID1,
-	HW_ID2,
-	REG_REVD_4,
-	REG_REVD_5,
-	REG_REVD_6,
-	REG_REVD_7,
-	REG_REVD_8,
+	E5V_FB,
+	EA5V_FB,
+	PREC_FB,
+	S13V8,
+	ACC_FB2,
+	ACC_FB1,
 	REG_REVD_9,
 	REG_REVD_10,
 	REG_REVD_11,
@@ -50,8 +50,8 @@ enum AdcRegGroupEnum {
 
 /* WARNING: DO NOT CHANGE THE ORDER*/
 enum AdcThermoNameEnum {
-	MOS_NTC_CENTER = 0,
-	MOS_NTC_SIDE,
+	MOS_NTC_1 = 0,
+	MOS_NTC_2,
 	CAP_NTC,
 	PCU_NTC_3,
 	PCU_NTC_4,

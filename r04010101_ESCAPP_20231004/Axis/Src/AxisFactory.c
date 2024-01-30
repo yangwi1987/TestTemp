@@ -129,8 +129,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 */
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]; //MOS2
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]; //MOS2
         v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
     }
 
@@ -185,9 +185,7 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
         v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
         v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-        v->pCANTxInterface->Debugf[IDX_FOIL_SENSOR_VOLT] = v->pAdcStation->AdcTraOut.Foil;
-#endif
+
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
         v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
@@ -626,54 +624,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     // Detect PLC loop signals and register alarm.
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
-    // Detect Digital Foil Position Sensor Read
-    v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
-    v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
-
-    // Detect foil sensor by different hardware setting
-    if(IsUseDigitalFoilSensor == 1) // use digitals foil sensor
-    {
-        if( v->FoilState.All== MAST_PADDLE )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-            v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-        else if( v->FoilState.All== MAST_SURF )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-            v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else if( v->FoilState.All== MAST_FOIL )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
-        }
-    }
-    else // use Analog foil sensor
-    {
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-        if( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxFoil  ) )  // Foil mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else if ( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxSurf ) )	// Surf mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-        v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else	// PADDLE mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-        v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-#endif
-    }
-
     // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
     // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
     // It makes sure that the rewrite take effect.
@@ -807,11 +757,11 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     if( v->AlarmDetect.BufICEnable )
     {
-        HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_SET );		//Disable Buffer Enable
+        HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_SET );		//Disable Buffer Enable
     }
     else
     {
-        HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
+        HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
     }
 
     //check Drive lock state.

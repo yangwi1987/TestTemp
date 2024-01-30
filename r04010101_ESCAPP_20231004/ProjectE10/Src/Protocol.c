@@ -129,7 +129,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       p->EscLogInfo0.EscMos2Temp = (uint8_t)(v->NTCTemp[2]+40);
       p->EscLogInfo0.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
       p->EscLogInfo0.FoilPosition = v->FoilPos;
-      p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
+//      p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
       p->EscLogInfo0.FoilSensorVolt = (int8_t)(v->Debugf[IDX_FOIL_SENSOR_VOLT]*10.0f);
       p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;
       p->EscLogInfo0.ThrottleFinal = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_FINAL]);

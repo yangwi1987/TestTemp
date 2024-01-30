@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2024 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -33,7 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
- 
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,8 +43,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
-#if JUDGE_FUNCTION_DELAY
-Judge_Delay TIM20INT_Judge_Delay = { 0 };
+#if Judge_function_delay
+Judge_Delay TIM8INT_Judge_Delay = { 0 };
 Judge_Delay CurrentLoop_Judge_Delay = { 0 };
 Judge_Delay PLCLoop_Judge_Delay = { 0 };
 Judge_Delay _100HzLoop_Judge_Delay = { 0 };
@@ -92,26 +91,24 @@ void USER_HAL_ADC_IRQHandler( ADC_HandleTypeDef *hadc );
 extern DMA_HandleTypeDef hdma_adc1;
 extern DMA_HandleTypeDef hdma_adc2;
 extern DMA_HandleTypeDef hdma_adc3;
+extern DMA_HandleTypeDef hdma_adc4;
+extern DMA_HandleTypeDef hdma_adc5;
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
-extern FDCAN_HandleTypeDef hfdcan1;
+extern ADC_HandleTypeDef hadc3;
+extern ADC_HandleTypeDef hadc4;
 extern FDCAN_HandleTypeDef hfdcan2;
-extern TIM_HandleTypeDef htim2;
+// extern TIM_HandleTypeDef htim2; todo
 extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim5;
 extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim20;
-extern DMA_HandleTypeDef hdma_uart5_rx;
-extern DMA_HandleTypeDef hdma_uart5_tx;
-extern USART_HandleTypeDef husart2;
 /* USER CODE BEGIN EV */
 
-extern TIM_HandleTypeDef htim16;
 /* USER CODE END EV */
 
 /******************************************************************************/
-/*           Cortex-M4 Processor Interruption and Exception Handlers          */ 
+/*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
   * @brief This function handles Non maskable interrupt.
@@ -122,7 +119,9 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-
+   while (1)
+  {
+  }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -285,7 +284,6 @@ void DMA1_Channel3_IRQHandler(void)
   HAL_DMA_IRQHandler(&hdma_adc3);
   /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
 
-
   /* USER CODE END DMA1_Channel3_IRQn 1 */
 }
 
@@ -297,7 +295,7 @@ void DMA1_Channel4_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
 
   /* USER CODE END DMA1_Channel4_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_uart5_rx);
+  HAL_DMA_IRQHandler(&hdma_adc4);
   /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
 
   /* USER CODE END DMA1_Channel4_IRQn 1 */
@@ -311,12 +309,12 @@ void DMA1_Channel5_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
 
   /* USER CODE END DMA1_Channel5_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_uart5_tx);
+  HAL_DMA_IRQHandler(&hdma_adc5);
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
-  RCCommCtrl.TxFlag = RC_COMM_TX_STATE_IDLE;
-  RCCommCtrl.pTarget->gState = HAL_UART_STATE_READY;
+
   /* USER CODE END DMA1_Channel5_IRQn 1 */
 }
+
 /**
   * @brief This function handles ADC1 and ADC2 global interrupt.
   */
@@ -343,66 +341,12 @@ void ADC1_2_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles FDCAN1 interrupt 0.
-  */
-void FDCAN1_IT0_IRQHandler(void)
-{
-  /* USER CODE BEGIN FDCAN1_IT0_IRQn 0 */
-  ExtranetCANStation.ReadRxFIFO(&ExtranetCANStation,FDCAN_RX_FIFO0);
-  /* USER CODE END FDCAN1_IT0_IRQn 0 */
-  HAL_FDCAN_IRQHandler(&hfdcan1);
-  /* USER CODE BEGIN FDCAN1_IT0_IRQn 1 */
-  /* USER CODE END FDCAN1_IT0_IRQn 1 */
-}
-
-/**
-  * @brief This function handles FDCAN1 interrupt 1.
-  */
-void FDCAN1_IT1_IRQHandler(void)
-{
-  /* USER CODE BEGIN FDCAN1_IT1_IRQn 0 */
-
-  /* USER CODE END FDCAN1_IT1_IRQn 0 */
-  HAL_FDCAN_IRQHandler(&hfdcan1);
-  /* USER CODE BEGIN FDCAN1_IT1_IRQn 1 */
-
-  /* USER CODE END FDCAN1_IT1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
-  */
-void USART2_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART2_IRQn 0 */
-
-  /* USER CODE END USART2_IRQn 0 */
-  HAL_USART_IRQHandler(&husart2);
-  /* USER CODE BEGIN USART2_IRQn 1 */
-
-  /* USER CODE END USART2_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-  drive_DoTotalTime();
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM3 global interrupt.
   */
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
+    drive_DoTotalTime();
 
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
@@ -412,17 +356,78 @@ void TIM3_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM5 global interrupt.
+  * @brief This function handles TIM8 break interrupt.
   */
-void TIM5_IRQHandler(void)
+void TIM8_BRK_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM5_IRQn 0 */
+  /* USER CODE BEGIN TIM8_BRK_IRQn 0 */
 
-  /* USER CODE END TIM5_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim5);
-  /* USER CODE BEGIN TIM5_IRQn 1 */
+  /* USER CODE END TIM8_BRK_IRQn 0 */
+//  HAL_TIM_IRQHandler(&htim8);
+  /* USER CODE BEGIN TIM8_BRK_IRQn 1 */
+  drive_DoHWOCPIRQ();
+  HAL_NVIC_DisableIRQ(TIM8_BRK_IRQn);
 
-  /* USER CODE END TIM5_IRQn 1 */
+  /* USER CODE END TIM8_BRK_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM8 update interrupt.
+  */
+void TIM8_UP_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM8_UP_IRQn 0 */
+
+#if  Judge_function_delay
+uint32_t currentTimestamp = DWT->CYCCNT;
+uint32_t EndTimestame = 0;
+uint32_t delta = currentTimestamp - TIM8INT_Judge_Delay.previousTimestamp;
+static uint8_t initial_ignore = 0;
+TIM8INT_Judge_Delay.deltaCnt = delta;
+TIM8INT_Judge_Delay.previousTimestamp = currentTimestamp;
+TIM8INT_Judge_Delay.Intervals_us = (float)delta / 170.0f;
+if ( initial_ignore > 10 )
+{
+	TIM8INT_Judge_Delay.maxDelta = delta > TIM8INT_Judge_Delay.maxDelta ? delta : TIM8INT_Judge_Delay.maxDelta;
+	TIM8INT_Judge_Delay.AveDelta = TIM8INT_Judge_Delay.AveDelta - aveDelta_filter_coef * ( TIM8INT_Judge_Delay.AveDelta - (float)delta );
+}
+else
+{
+	initial_ignore++;
+}
+#endif
+#if MEASURE_CPU_LOAD_CURRENTLOOP
+  CurrentTimeStampCurrentLoop = DWT->CYCCNT;
+#endif
+  CPUCounter.PWMCounter++;
+#if 0
+  /* USER CODE END TIM8_UP_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim8);
+  /* USER CODE BEGIN TIM8_UP_IRQn 1 */
+#endif
+
+  PSStation1.CntFromABZ = TIM2->CNT;
+  PSStation1.Direction = ( TIM2->CR1 >> 4 )& 0x1;  //Read DIR bit
+  USER_HAL_TIM_IRQHandler(&htim8);
+  AdcStation1.AdcInjGroup = 0;		// Clear ADC Flag
+
+  /* USER CODE END TIM8_UP_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ADC3 global interrupt.
+  */
+void ADC3_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC3_IRQn 0 */
+#if 0
+  /* USER CODE END ADC3_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc3);
+  /* USER CODE BEGIN ADC3_IRQn 1 */
+#endif
+  USER_HAL_ADC_IRQHandler( &hadc3 );
+
+  /* USER CODE END ADC3_IRQn 1 */
 }
 
 /**
@@ -449,11 +454,11 @@ void TIM7_DAC_IRQHandler(void)
         _100HzLoop_Judge_Delay.Max_Intervals_us = (float)_100HzLoop_Judge_Delay.maxDelta / 170.0f;
     	CurrentLoop_Judge_Delay.Max_Intervals_us = (float)CurrentLoop_Judge_Delay.maxDelta / 170.0f;
     	PLCLoop_Judge_Delay.Max_Intervals_us = (float)PLCLoop_Judge_Delay.maxDelta / 170.0f;
-    	TIM20INT_Judge_Delay.Max_Intervals_us = (float)TIM20INT_Judge_Delay.maxDelta / 170.0f;
+    	TIM8INT_Judge_Delay.Max_Intervals_us = (float)TIM8INT_Judge_Delay.maxDelta / 170.0f;
         _100HzLoop_Judge_Delay.Ave_Intervals_us = (float)_100HzLoop_Judge_Delay.AveDelta / 170.0f;
     	CurrentLoop_Judge_Delay.Ave_Intervals_us = (float)CurrentLoop_Judge_Delay.AveDelta / 170.0f;
     	PLCLoop_Judge_Delay.Ave_Intervals_us = (float)PLCLoop_Judge_Delay.AveDelta / 170.0f;
-    	TIM20INT_Judge_Delay.Ave_Intervals_us = (float)TIM20INT_Judge_Delay.AveDelta / 170.0f;
+    	TIM8INT_Judge_Delay.Ave_Intervals_us = (float)TIM8INT_Judge_Delay.AveDelta / 170.0f;
     }
     else
     {
@@ -488,59 +493,33 @@ void TIM7_DAC_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM20 break interrupt.
+  * @brief This function handles ADC4 global interrupt.
   */
-void TIM20_BRK_IRQHandler(void)
+void ADC4_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM20_BRK_IRQn 0 */
+  /* USER CODE BEGIN ADC4_IRQn 0 */
+#if 0
+  /* USER CODE END ADC4_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc4);
+  /* USER CODE BEGIN ADC4_IRQn 1 */
+#endif
+  USER_HAL_ADC_IRQHandler( &hadc4 );
 
-  /* USER CODE END TIM20_BRK_IRQn 0 */
-//  HAL_TIM_IRQHandler(&htim20);
-  /* USER CODE BEGIN TIM20_BRK_IRQn 1 */
-  drive_DoHWOCPIRQ();
-  HAL_NVIC_DisableIRQ(TIM20_BRK_IRQn);
-  /* USER CODE END TIM20_BRK_IRQn 1 */
+  /* USER CODE END ADC4_IRQn 1 */
 }
 
 /**
-  * @brief This function handles TIM20 update interrupt.
+  * @brief This function handles TIM20 capture compare interrupt.
   */
-void TIM20_UP_IRQHandler(void)
+void TIM20_CC_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM20_UP_IRQn 0 */
+  /* USER CODE BEGIN TIM20_CC_IRQn 0 */
 
-#if  JUDGE_FUNCTION_DELAY
-uint32_t CurrentTimeStamp = DWT->CYCCNT;
-uint32_t delta = CurrentTimeStamp - TIM20INT_Judge_Delay.previousTimestamp;
-static uint8_t initial_ignore = 0;
-TIM20INT_Judge_Delay.deltaCnt = delta;
-TIM20INT_Judge_Delay.previousTimestamp = CurrentTimeStamp;
-TIM20INT_Judge_Delay.Intervals_us = (float)delta / 170.0f;
-if ( initial_ignore > 10 )
-{
-	TIM20INT_Judge_Delay.maxDelta = delta > TIM20INT_Judge_Delay.maxDelta ? delta : TIM20INT_Judge_Delay.maxDelta;
-	TIM20INT_Judge_Delay.AveDelta = TIM20INT_Judge_Delay.AveDelta - aveDelta_filter_coef * ( TIM20INT_Judge_Delay.AveDelta - (float)delta );
-}
-else
-{
-	initial_ignore++;
-}
-#endif
-#if MEASURE_CPU_LOAD_CURRENTLOOP
-  CurrentTimeStampCurrentLoop = DWT->CYCCNT;
-#endif
-  CPUCounter.PWMCounter++;
-#if 0
-  /* USER CODE END TIM20_UP_IRQn 0 */
+  /* USER CODE END TIM20_CC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim20);
-  /* USER CODE BEGIN TIM20_UP_IRQn 1 */
-#endif
-  PSStation1.CntFromABZ = TIM4->CNT;
-  PSStation1.Direction = ( TIM4->CR1 >> 4 )& 0x1;  //Read DIR bit
-  USER_HAL_TIM_IRQHandler(&htim20);
-  AdcStation1.AdcInjGroup = 0;		// Clear ADC Flag
+  /* USER CODE BEGIN TIM20_CC_IRQn 1 */
 
-  /* USER CODE END TIM20_UP_IRQn 1 */
+  /* USER CODE END TIM20_CC_IRQn 1 */
 }
 
 /**
@@ -612,7 +591,6 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
-
 	AdcStation1.MarkRegularGroupReadFlag( &AdcStation1, hadc );
 
 	if( AdcStation1.AdcRegGroup == AdcStation1.AdcRegGroupFlag )
@@ -692,8 +670,8 @@ void USER_HAL_TIM_IRQHandler( TIM_HandleTypeDef *htim )
 	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC1);
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_1;
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
-	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC2);
-	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_2;
+	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC3);
+	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_3;
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_CLEARED;
 	__HAL_TIM_CLEAR_IT(htim, TIM_IT_CC4);
 	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_4;
@@ -766,4 +744,3 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	}
 }
 /* USER CODE END 1 */
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
