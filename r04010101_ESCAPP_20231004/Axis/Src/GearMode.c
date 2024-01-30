@@ -38,7 +38,7 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
             		 v->GearModeSelect  = BOOST_MODE;
             	}
     		}
-    		else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED) && ( EnableReverseBoostGearMode == FUNCTION_ENABLE ))
+    		else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED) && ( EnableReverseGearMode == FUNCTION_ENABLE ))
         	{
     			v->GearModeSelect  = REVERSE_MODE;
         	}
@@ -53,7 +53,7 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
         	    v->BoostState = BOOST_COOLDOWN;
         	    v->GearModeSelect  = NORMAL_MODE;
         	}
-        	else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && ( EnableReverseBoostGearMode == FUNCTION_ENABLE ))
+        	else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && ( EnableReverseGearMode == FUNCTION_ENABLE ))
         	{
         		v->BoostCnt = 0;
         	    v->BoostState = BOOST_COOLDOWN;
