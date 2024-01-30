@@ -82,7 +82,7 @@ void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
 extern const CANProtocol ExtranetInformInSystemTableExample;
 
 #if JUDGE_FUNCTION_DELAY
-extern Judge_Delay TIM20INT_Judge_Delay;
+extern Judge_Delay TIM8INT_Judge_Delay;
 extern Judge_Delay CurrentLoop_Judge_Delay;
 extern Judge_Delay PLCLoop_Judge_Delay;
 extern Judge_Delay _100HzLoop_Judge_Delay;
@@ -468,11 +468,11 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		RetValue = Axis[0].pCANRxInterface->AccCANErrorCnt;
 		break;
 #if JUDGE_FUNCTION_DELAY
-    case DN_MAX_TIM20INT_INTERVAL   :
-		RetValue = (uint16_t)(TIM20INT_Judge_Delay.Max_Intervals_us * 100.0f);
+    case DN_MAX_TIM8INT_INTERVAL   :
+		RetValue = (uint16_t)(TIM8INT_Judge_Delay.Max_Intervals_us * 100.0f);
 		break;
-    case DN_AVE_TIM20INT_INTERVAL   :
-		RetValue = (uint16_t)(TIM20INT_Judge_Delay.Ave_Intervals_us * 100.0f);
+    case DN_AVE_TIM8INT_INTERVAL   :
+		RetValue = (uint16_t)(TIM8INT_Judge_Delay.Ave_Intervals_us * 100.0f);
 		break;
     case DN_MAX_CURRENTLOOP_INTERVAL:
 		RetValue = (uint16_t)(CurrentLoop_Judge_Delay.Max_Intervals_us * 100.0f);

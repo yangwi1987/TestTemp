@@ -43,7 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
-#if Judge_function_delay
+#if JUDGE_FUNCTION_DELAY
 Judge_Delay TIM8INT_Judge_Delay = { 0 };
 Judge_Delay CurrentLoop_Judge_Delay = { 0 };
 Judge_Delay PLCLoop_Judge_Delay = { 0 };
@@ -378,9 +378,8 @@ void TIM8_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM8_UP_IRQn 0 */
 
-#if  Judge_function_delay
+#if  JUDGE_FUNCTION_DELAY
 uint32_t currentTimestamp = DWT->CYCCNT;
-uint32_t EndTimestame = 0;
 uint32_t delta = currentTimestamp - TIM8INT_Judge_Delay.previousTimestamp;
 static uint8_t initial_ignore = 0;
 TIM8INT_Judge_Delay.deltaCnt = delta;
