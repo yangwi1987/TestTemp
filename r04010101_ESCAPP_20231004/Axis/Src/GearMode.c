@@ -31,18 +31,14 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
     {
         case NORMAL_MODE:
         {
-    		if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && (v->IsReverseBtnPressed == REVERSE_BTN_RELEASED) && ( EnableBoostGearMode == FUNCTION_ENABLE ))
-    		{
-            	if ( v->BoostState == BOOST_READY )
-            	{
-            		 v->GearModeSelect  = BOOST_MODE;
-            	}
-    		}
-    		else if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && (v->IsBoostBtnPressed == BOOST_BTN_RELEASED) && ( EnableReverseGearMode == FUNCTION_ENABLE ))
+    		if (( v->IsReverseBtnPressed  == REVERSE_BTN_PRESSED ) && ( EnableReverseGearMode == FUNCTION_ENABLE ))
         	{
     			v->GearModeSelect  = REVERSE_MODE;
         	}
-
+    		else if (( v->IsBoostBtnPressed == BOOST_BTN_PRESSED ) && ( EnableBoostGearMode == FUNCTION_ENABLE ) && ( v->BoostState == BOOST_READY ))
+    		{
+            	v->GearModeSelect  = BOOST_MODE;
+    		}
         	break;
         }
         case BOOST_MODE:
