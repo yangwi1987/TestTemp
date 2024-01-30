@@ -2049,8 +2049,8 @@ void drive_Init(void)
 	ExtranetCANStation.Enable = ENABLE;
 	ExtranetCANStation.ForceDisable = DISABLE;
 
-	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
-	RCCommCtrl.Init(&RCCommCtrl,&huart3,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
+//	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
+//	RCCommCtrl.Init(&RCCommCtrl,&huart3,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 
 	// DTC Init
 	DTCStation1.Init( &DTCStation1 );
@@ -2201,17 +2201,17 @@ void drive_DoPwmRcCatch(void)
 
 void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
 {
-	uint32_t IC1Val = 0;
-    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+	uint32_t IC2Val = 0;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
     {
           /* Get the Input Capture value */
-        IC1Val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
-        if (IC1Val != 0)
+        IC2Val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+        if (IC2Val != 0)
         {
             /* Duty cycle computation */
-            PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2) * 100)) / (float)IC1Val;
+            PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1) * 100)) / (float)IC2Val;
 
-            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC1Val) * 17.0f);
+            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC2Val) * 17.0f);
 
         }
         else
@@ -2547,7 +2547,7 @@ void drive_Do10HzLoop(void)
 		Axis[i].Do10HzLoop(&Axis[i]);
 
 	}
-	RCCommCtrl._10HzLoop(&RCCommCtrl);
+//	RCCommCtrl._10HzLoop(&RCCommCtrl);
 
 	// Because ESC does not receive RECEIVED_BAT_ID_1 for 100 ms, CAN1Timeout.Counter will be greater than 10;
 	// Note: CAN1Timeout.Counter increase every 100Hz in AlarmDetect_Do100HzLoop function
@@ -2683,7 +2683,7 @@ void drive_DoHouseKeeping(void)
 	GlobalAlarmDetect_DoHouseKeeping();
 
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
-	RCCommCtrl.MsgDecoder(&RCCommCtrl);
+//	RCCommCtrl.MsgDecoder(&RCCommCtrl);
 	
 	//DTC process to ExtFlash
 	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)

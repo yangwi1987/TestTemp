@@ -737,7 +737,7 @@ void USER_HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
   */
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
-    if ( htim->Instance == TIM3 )
+    if ( htim->Instance == TIM20 )
 	{
     	drive_DoPwmPositionCatch(htim);
 	}

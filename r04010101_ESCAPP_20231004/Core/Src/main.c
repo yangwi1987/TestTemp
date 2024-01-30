@@ -166,14 +166,14 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /*## Start the Input Capture in interrupt mode ##########################*/
-  if (HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_2) != HAL_OK)
+  if (HAL_TIM_IC_Start_IT(&htim20, TIM_CHANNEL_2) != HAL_OK)
   {
     /* Starting Error */
     Error_Handler();
   }
 
   /*## Start the Input Capture in interrupt mode ##########################*/
-  if (HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1) != HAL_OK)
+  if (HAL_TIM_IC_Start_IT(&htim20, TIM_CHANNEL_1) != HAL_OK)
   {
     /* Starting Error */
     Error_Handler();
@@ -185,8 +185,6 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim7);
   __HAL_FLASH_CLEAR_FLAG( FLASH_FLAG_ALL_ERRORS );
 //  HAL_TIM_Base_Start(&htim16);
-//  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_1 );
-//  HAL_TIM_IC_Start_IT( &htim5, TIM_CHANNEL_2 );
   __enable_irq();
 
 #if MEASURE_CPU_LOAD || JUDGE_FUNCTION_DELAY
@@ -1344,14 +1342,14 @@ static void MX_TIM20_Init(void)
   }
   sSlaveConfig.SlaveMode = TIM_SLAVEMODE_RESET;
   sSlaveConfig.InputTrigger = TIM_TS_TI2FP2;
-  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sSlaveConfig.TriggerPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sSlaveConfig.TriggerPrescaler = TIM_ICPSC_DIV1;
   sSlaveConfig.TriggerFilter = 0;
   if (HAL_TIM_SlaveConfigSynchro(&htim20, &sSlaveConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
   sConfigIC.ICSelection = TIM_ICSELECTION_INDIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
@@ -1359,7 +1357,7 @@ static void MX_TIM20_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   if (HAL_TIM_IC_ConfigChannel(&htim20, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
   {
