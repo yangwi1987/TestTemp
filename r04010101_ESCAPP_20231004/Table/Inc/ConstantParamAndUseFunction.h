@@ -19,7 +19,7 @@
 #define Factor_to_cal_power_from_dq 1.5f
 #define Root_of_One_Third 0.577350269f
 
-#define JUDGE_FUNCTION_DELAY USE_FUNCTION
+#define Judge_function_delay USE_FUNCTION
 #define MEASURE_CPU_LOAD USE_FUNCTION
 #define MEASURE_CPU_LOAD_ADC_INJ USE_FUNCTION
 #define MEASURE_CPU_LOAD_CURRENTLOOP USE_FUNCTION
