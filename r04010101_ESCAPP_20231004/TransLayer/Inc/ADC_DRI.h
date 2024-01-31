@@ -125,6 +125,7 @@ typedef struct{
 	float  MOTOR_NTC;
 	float  MOTOR_NTC_1;
 	float  MOTOR_NTC_2;
+	float  Throttle;
 } ADC_TRA_DATA;
 
 typedef union{
@@ -140,24 +141,26 @@ typedef union{
 }	\
 
 #define ADC_TRA_DATA_DEFAULT { \
-	{0.0, 0.0}, \
-	{0.0, 0.0}, \
-	{0.0, 0.0}, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	{0.0f, 0.0f, 0.0f}, \
-	0.0f, \
-    0.0f, \
-	0.0f }
+	{0.0, 0.0},         /*Iu[2];      */\
+	{0.0, 0.0},         /*Iv[2];      */\
+	{0.0, 0.0},         /*Iw[2];      */\
+	0.0,                /*BatVdc;     */\
+	0.0,                /*Idc;        */\
+	0.0,                /*HwID1;      */\
+	0.0,                /*HwID2;      */\
+	0.0,                /*ES5V;       */\
+	0.0,                /*E5V;        */\
+	0.0,                /*EA5V;       */\
+	0.0,                /*PreC;       */\
+	0.0,                /*S13V8;      */\
+	0.0,                /*Pedal_V1;   */\
+	0.0,                /*Pedal_V2;   */\
+	{0.0f, 0.0f, 0.0f}, /*PCU_NTC[3]; */\
+	0.0f,               /*MOTOR_NTC;  */\
+    0.0f,               /*MOTOR_NTC_1;*/\
+    0.0f,               /*MOTOR_NTC_2;*/\
+	0.0f                /*Throttle;   */\
+	}
 
 typedef struct {
 	uint16_t NTCID;
@@ -193,8 +196,8 @@ typedef struct {
 	ADC_EXE_TYPE_DEFINE   AdcExeGain[CURRENT_LOOP_CHANNEL_SIZE];	// Execution Gain Point U, V, W
 	uint16_t		      AdcExeZeroP[CURRENT_LOOP_CHANNEL_SIZE]; 	// Execution Zero Point U, V, W
 	ADC_EXE_TYPE_DEFINE	  AdcExeThrotGain;							// Execution Throt Gain
-	uint16_t			  AdcExeThrotZero;							// Execution Throt Zero
-	uint16_t			  AdcExeThrotMax;							// Execution Throt Max
+	float			      AdcExeThrotZero;							// Execution Throt Zero
+	float		    	  AdcExeThrotMax;							// Execution Throt Max
 	ADC_INJ_GROUP_CHANNEL InjCh[CURRENT_LOOP_CHANNEL_SIZE];			// Record injection channel informations from table at initial
 	ADC_REG_GROUP_CHANNEL RegCh[PLC_LOOP_CHANNEL_SIZE];				// Record regular channel informations from table at initial
 	ADC_THERMO_CHANNEL	  ThermoCh[THERMAL_CHANNEL_SIZE];			// Record thermo channel informations from table at initial
@@ -205,7 +208,7 @@ typedef struct {
 	uint16_t			  AdcDmaData[ADC_DMA_GROUP_SIZE][ADC_DMA_CHANNEL_SIZE];
 	uint16_t			  *pTempADCValue[THERMAL_CHANNEL_SIZE];				// Temperature ADC pointer
 	FILTER_BILINEAR_1ORDER_TYPE ThrotAdcFilter;
-	uint16_t			  ThrotADCFilterValue;
+	float			  ThrotADCRawRatio;
 	uint16_t			  NTCIsAbnormal;
 	functypeAdcStation_Init	Init;
 	functypeAdcStation_DoCurrentLoop DoCurrentLoop;
@@ -245,8 +248,8 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT },	\
 	{0,    0,    0,    0,    0,    0,    0,    0,    0    },	\
 	ADC_EXE_TYPE_DEFINE_DEFAULT,	\
-	0,	\
-	0,	\
+	0.0f,	\
+	0.0f,	\
 	{ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, \
 	 ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT}, \
 	{ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, \
@@ -265,7 +268,7 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	 {0,0,0,0,0,0,0,0}}, \
 	 {0,0,0,0,0,0,0,0,0,0,0}, \
 	 FILTER_BILINEAR_1ORDER_DEFAULT, \
-	 0, \
+	 0.0f, \
 	 0, \
 	(functypeAdcStation_Init)AdcStation_Init, \
 	(functypeAdcStation_DoCurrentLoop)AdcStation_DoCurrentLoop, \

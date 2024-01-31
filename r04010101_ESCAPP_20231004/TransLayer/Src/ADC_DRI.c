@@ -330,6 +330,26 @@ void AdcStation_DoPLCLoop( AdcStation *v )
 		v->ThermoADCCatchValue[MOTOR_NTC_2_A0] = (*v->pTempADCValue[MOTOR_NTC_2_A0]);
 		v->ThermoADCCatcher = 0;
 	}
+
+	// Jeff test
+#if 1
+	v->AdcTraOut.PedalVoltage = v->AdcTraOut.Foil;
+	v->AdcTraOut.EA5V = 5.0f;
+#endif
+
+	v->ThrotADCRawRatio = ( v->AdcTraOut.EA5V > 1.0f ) ? v->AdcTraOut.PedalVoltage / v->AdcTraOut.EA5V : v->AdcTraOut.PedalVoltage;
+
+	float tempThrotADCRawRatio = v->ThrotADCRawRatio;
+	if ( tempThrotADCRawRatio > v->AdcExeThrotMax )
+	{
+		tempThrotADCRawRatio = v->AdcExeThrotMax;
+	}
+	else if ( tempThrotADCRawRatio < v->AdcExeThrotZero )
+	{
+		tempThrotADCRawRatio = v->AdcExeThrotZero;
+	}
+
+	v->AdcTraOut.Throttle = v->AdcExeThrotGain.FDta * ( tempThrotADCRawRatio - v->AdcExeThrotZero );
 }
 
 void AdcStation_Do100HzLoop( AdcStation *v )

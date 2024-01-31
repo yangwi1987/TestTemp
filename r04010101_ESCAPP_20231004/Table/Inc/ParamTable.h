@@ -132,8 +132,8 @@ typedef struct {
 	uint16_t DrainFallingRamp;	//P0-97
 	uint16_t Reserved098;	//P0-98
 	uint16_t Reserved099;	//P0-99
-	uint16_t ThrottleMaxAdc;	//P1-00
-	uint16_t ThrottleMinAdc;	//P1-01
+	uint16_t ThrottleMaxRawRatio;	//P1-00
+	uint16_t ThrottleMinRawRatio;	//P1-01
 	uint16_t ThrottleScale[2];	//P1-02
 	uint16_t ThrottleEmptyPt[5];	//P1-04
 	uint16_t ThrottleHalfPt[5];	//P1-09

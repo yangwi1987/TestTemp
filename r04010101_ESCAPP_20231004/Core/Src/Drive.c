@@ -749,13 +749,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC001_Throttle_Raw:
         {
-        	int8_t tempReturnValue = Axis[0].pCANRxInterface->ThrottleCmd;
-    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-    	    pTx->Data[1] = pRx->Data[1];
-    	    pTx->Data[2] = pRx->Data[2];
-    		pTx->Data[3] = tempReturnValue;
-    		pTx->LengthTotal = 4;
-    	    tempRsp = NRC_0x00_PR;
+    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.ThrotADCRawRatio * 10000.0f);
         	break;
         }
         case DID_0xC002_Throttle_Position:
@@ -1513,7 +1507,6 @@ void Drive_PcuPowerStateMachine( void )
 				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
 					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
-				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED)&&
 				   (Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0))
 
 				{
@@ -2098,32 +2091,35 @@ void drive_DoLoad_DataToAdcGain(void)
 	Axis[ 0 ].pAdcStation->ZeroCalibInjDone = ( Axis[ 0 ].pAdcStation->ZeroCalibInjChCount == 0 )? ADC_DONE:ADC_NONE;
 
 //  Throttle Gain and Zero Point load
-	if( Axis[0].ThrottleGainState == GAIN_STATE_NORMAL )
-	{
+	//TODO: use calibration values in the future
+//	if( Axis[0].ThrottleGainState == GAIN_STATE_NORMAL )
+//	{
 		Axis[ 0 ].pAdcStation->AdcExeThrotGain.FDta = Axis[ 0 ].ThrottleGain;
-	}else;
-	Axis[ 0 ].pAdcStation->AdcExeThrotZero = ( DriveParams.SystemParams.ThrottleMinAdc > 0 )? DriveParams.SystemParams.ThrottleMinAdc: 0;
-	Axis[ 0 ].pAdcStation->AdcExeThrotMax = ( DriveParams.SystemParams.ThrottleMaxAdc > 2048 )? DriveParams.SystemParams.ThrottleMaxAdc: 4095;
+//	}else;
+
+	Axis[ 0 ].pAdcStation->AdcExeThrotZero = (float)DriveParams.SystemParams.ThrottleMinRawRatio * 0.0001;
+	Axis[ 0 ].pAdcStation->AdcExeThrotMax = (float)DriveParams.SystemParams.ThrottleMaxRawRatio * 0.0001;
 
 }
 
 #if USE_THROTTLE_CALIBRATION == USE_FUNCTION
 void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a )
 {
-	if( ( d->SystemParams.ThrottleMaxAdc == 2300 ) && (d->SystemParams.ThrottleMinAdc == 130) )
-	{
-		Axis[0].ThrottleGainState = GAIN_STATE_EMPTY;
-		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
-	}
-	else if( d->SystemParams.ThrottleMaxAdc < d->SystemParams.ThrottleMinAdc )
+//	if( ( d->SystemParams.ThrottleMaxAdc == 4095 ) && (d->SystemParams.ThrottleMinAdc == 0) )
+//	{
+//		Axis[0].ThrottleGainState = GAIN_STATE_EMPTY;
+//		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
+//	}
+//	else
+		if( d->SystemParams.ThrottleMaxRawRatio < d->SystemParams.ThrottleMinRawRatio )
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_ABNORMAL;
-		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
+		Axis[0].ThrottleGain = 0;
 	}
 	else
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_NORMAL;
-		Axis[0].ThrottleGain = ( float )( 1.0f /( float )( d->SystemParams.ThrottleMaxAdc - d->SystemParams.ThrottleMinAdc ) );
+		Axis[0].ThrottleGain = ( float )( 10000.0f /( float )( d->SystemParams.ThrottleMaxRawRatio - d->SystemParams.ThrottleMinRawRatio ) );
 	}
 }
 #endif

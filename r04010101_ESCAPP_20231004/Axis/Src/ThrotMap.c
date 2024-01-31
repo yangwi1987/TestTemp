@@ -85,18 +85,18 @@ void ThrottleMapping_Calc( ThrottleMapping_t *v )
 	v->ThrottleReleaseFlag = 0;
 	if( v->ThrottleRawIn > THROT_MAXIMUM )
 	{
-		v->PercentageOut = 1.0f;
+		v->PercentageTarget = 1.0f;
 		return;
 	}
 	else if( v->ThrottleRawIn < THROT_MINIMUM )
 	{
-		v->PercentageOut = 0.0f;
+		v->PercentageTarget = 0.0f;
 		v->ThrottleReleaseFlag = 1;
 		return;
 	}
 	else if( v->ThrottleDI == 0 )
 	{
-		v->PercentageOut = 0.0f;
+		v->PercentageTarget = 0.0f;
 		v->ThrottleReleaseFlag = 1;
 		return;
 	}
