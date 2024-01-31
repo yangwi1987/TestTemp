@@ -119,10 +119,11 @@ enum AdcThermoTableIdxEnum {
 
 /* Gain AD to V */
 #define AD2VGAIN								( float )0.000805600f
-#define AC_CURR_GAIN							( float )0.372265625f
+#define AC_CURR_GAIN							( float )-0.372265625f
 #define DC_VOLT_GAIN							( float )0.019306152f
-#define V13V_GAIN								( float )0.003173828f
-#define _5V_GAIN								( float )0.001220703f
+#define S13V8_GAIN								( float )0.004672852f
+#define E5V_GAIN								( float )0.002416992f
+#define PEDAL_GAIN								( float )0.001220703f
 
 #define DEFAULT_GAIN							( float )1.0f
 
