@@ -331,13 +331,7 @@ void AdcStation_DoPLCLoop( AdcStation *v )
 		v->ThermoADCCatcher = 0;
 	}
 
-	// Jeff test
-#if 1
-	v->AdcTraOut.PedalVoltage = v->AdcTraOut.Foil;
-	v->AdcTraOut.EA5V = 5.0f;
-#endif
-
-	v->ThrotADCRawRatio = ( v->AdcTraOut.EA5V > 1.0f ) ? v->AdcTraOut.PedalVoltage / v->AdcTraOut.EA5V : v->AdcTraOut.PedalVoltage;
+	v->ThrotADCRawRatio = ( v->AdcTraOut.EA5V > 1.0f ) ? v->AdcTraOut.Pedal_V1 / v->AdcTraOut.EA5V : v->AdcTraOut.Pedal_V1;
 
 	float tempThrotADCRawRatio = v->ThrotADCRawRatio;
 	if ( tempThrotADCRawRatio > v->AdcExeThrotMax )
