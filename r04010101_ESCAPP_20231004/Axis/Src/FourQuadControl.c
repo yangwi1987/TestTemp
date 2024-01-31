@@ -142,71 +142,6 @@ static void FourQuadControl_DriveTableInit( FourQuadControl *v )
 	}
 	v->LimpTransitRamp = (( MaxPower - v->DriveCurve[0].Para[DRIVE_POWER_MAX] ) / LimpTransitSec ) * TimeBase;
 
-	v->DrivePowerLevelTarget = 1.0f;
-	v->DrivePowerLevelGain = 1.0f;
-	uint16_t ParaError = 0.0f;
-	float DrivePowerRampUpFullThrottle = 0.0f;
-	float DrivePowerRampDownFullThrottle = 0.0f;
-	float DrivePowerRampUpZeroThrottle = 0.0f;
-	float DrivePowerRampDownZeroThrottle = 0.0f;
-	if( DriveParams.SystemParams.DrivePowerRampUpFullThrottle > DriveParams.SystemParams.DrivePowerRampUpZeroThrottle )
-	{
-		ParaError = 1;
-	}
-	if( DriveParams.SystemParams.DrivePowerRampDownFullThrottle < DriveParams.SystemParams.DrivePowerRampDownZeroThrottle )
-	{
-		ParaError = 1;
-	}
-	if( ParaError == 0 )
-	{
-		ParaError |= ParamMgr_ParaGainHandler( &(DriveParams), &(DriveParams.SystemParams.DrivePowerRampUpFullThrottle), &(DrivePowerRampUpFullThrottle) );
-		ParaError |= ParamMgr_ParaGainHandler( &(DriveParams), &(DriveParams.SystemParams.DrivePowerRampDownFullThrottle), &(DrivePowerRampDownFullThrottle) );
-		ParaError |= ParamMgr_ParaGainHandler( &(DriveParams), &(DriveParams.SystemParams.DrivePowerRampUpZeroThrottle), &(DrivePowerRampUpZeroThrottle) );
-		ParaError |= ParamMgr_ParaGainHandler( &(DriveParams), &(DriveParams.SystemParams.DrivePowerRampDownZeroThrottle), &(DrivePowerRampDownZeroThrottle) );
-	}
-	else
-	{
-		//do nothing
-	}
-
-	if( ParaError == 0 )
-	{
-		for( n = 0 ; n < DRIVE_TABLE_LENGTH ; n++ )
-		{
-			if( v->DriveCurve[n].Para[DRIVE_POWER_MAX] > 1.0f ) //avoid to divide 0
-			{
-				float ParamA = 0.0f;
-				float ParamB = 0.0f;
-				// Calculate Parameter of Up Ramp
-				ParamA = ( DrivePowerRampUpFullThrottle - DrivePowerRampUpZeroThrottle );
-				ParamB = DrivePowerRampUpZeroThrottle;
-				v->DrivePowerLevelRampUpParamA[n] =  ParamA / v->DriveCurve[n].Para[DRIVE_POWER_MAX] * TimeBase;
-				v->DrivePowerLevelRampUpParamB[n] =  ParamB / v->DriveCurve[n].Para[DRIVE_POWER_MAX] * TimeBase;
-				// Calculate Parameter of Down Ramp
-				ParamA = ( DrivePowerRampDownFullThrottle - DrivePowerRampDownZeroThrottle );
-				ParamB = DrivePowerRampDownZeroThrottle;
-				v->DrivePowerLevelRampDownParamA[n] =  -ParamA / v->DriveCurve[n].Para[DRIVE_POWER_MAX] * TimeBase;
-				v->DrivePowerLevelRampDownParamB[n] =  -ParamB / v->DriveCurve[n].Para[DRIVE_POWER_MAX] * TimeBase;
-			}
-			else
-			{
-				v->DrivePowerLevelRampUpParamA[n] = 0.0f;
-				v->DrivePowerLevelRampUpParamB[n] = 0.0f;
-				v->DrivePowerLevelRampDownParamA[n] = 0.0f;
-				v->DrivePowerLevelRampDownParamB[n] = 0.0f;
-			}
-		}
-	}
-	else
-	{
-		for( n = 0 ; n < DRIVE_TABLE_LENGTH ; n++ )
-		{
-			v->DrivePowerLevelRampUpParamA[n] = 0.0f;
-			v->DrivePowerLevelRampUpParamB[n] = 0.0f;
-			v->DrivePowerLevelRampDownParamA[n] = 0.0f;
-			v->DrivePowerLevelRampDownParamB[n] = 0.0f;
-		}
-	}
 }
 
 static void FourQuadControl_BackRollTableInit( FourQuadControl *v )
@@ -244,22 +179,7 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	}
 	else
 	{
-		if( v->DrivePowerLevelTarget > v->DrivePowerLevelGain )
-		{
-			v->DrivePowerLevelRampUp = v->Throttle * v->DrivePowerLevelRampUpParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampUpParamB[v->Driving_TNIndex];
-			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampUp );
-		}
-		else if( v->DrivePowerLevelTarget < v->DrivePowerLevelGain )
-		{
-			v->DrivePowerLevelRampDown = v->Throttle * v->DrivePowerLevelRampDownParamA[v->Driving_TNIndex] + v->DrivePowerLevelRampDownParamB[v->Driving_TNIndex];
-			v->DrivePowerLevelGain = Ramp( v->DrivePowerLevelGain, v->DrivePowerLevelTarget, v->DrivePowerLevelRampDown );
-		}
-		else
-		{
-			// do nothing
-		}
-		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
-
+		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX];
 	}
 
 	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
@@ -412,8 +332,7 @@ void FourQuadControl_Reset( FourQuadControl *v, float DCDrainLimit )
 	v->DCDrainLimit = DCDrainLimit;
 
 	DRIVE_TABLE_TYPE *pTable = &(v->DriveCurve[v->Driving_TNIndex]);
-	v->DrivePowerLevelGain = v->DrivePowerLevelTarget;
-	v->DrivePowerCmd = pTable->Para[DRIVE_POWER_MAX] * v->DrivePowerLevelGain;
+	v->DrivePowerCmd = pTable->Para[DRIVE_POWER_MAX];
 }
 
 float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCurr, float VbusReal, float VbusUsed )

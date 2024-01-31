@@ -89,7 +89,6 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
         v->AlarmDetect.CAN1Timeout.Counter = 0;
     }
     v->pCANRxInterface->ReceivedCANID = 0;
-    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
 }
 
 void AxisFactory_UpdateCANTxInterface( Axis_t *v )
@@ -256,10 +255,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
-                	if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
-                	{
-                		v->ServoOnOffState = MOTOR_STATE_ON;
-                	}
+                	v->ServoOnOffState = MOTOR_STATE_ON;
 
                     if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
                     {
@@ -562,16 +558,6 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 
     v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
 
-    // Init analog foil sensor boundary
-    v->AnalogFoilInfo.MaxSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
-    v->AnalogFoilInfo.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
-    v->AnalogFoilInfo.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
-    v->AnalogFoilInfo.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
-
-    //Load TimeToStopDriving_InPLCLoop, convert s to ms
-    v->DriveLockInfo.IsUseDriveLockFn = v->pDriveParams->PCUParams.DebugParam2;
-    v->DriveLockInfo.TimeToStopDriving_InPLCLoop = v->pDriveParams->SystemParams.SecTimeThresholdForDriveLock * 1000;
-    v->DriveLockInfo.RpmToStartCntDriveLock = v->pDriveParams->SystemParams.RpmToStartCntDriveLock;
 #if USE_HIGH_RESO_MOTOR_TABLE
     HiResoMotorTable_Init();
 #endif
@@ -631,7 +617,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
-        v->pCANRxInterface->PowerLevel = 10;
     }
     else
     {
@@ -756,40 +741,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
     }
 
-    //check Drive lock state.
-    if ( v->DriveLockInfo.IsUseDriveLockFn )
-    {
-        if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
-        {
-            if (( RCCommCtrl.pRxInterface->RcConnStatus <= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) && ( v->SpeedInfo.MotorMechSpeedRPMAbs < (float)v->DriveLockInfo.RpmToStartCntDriveLock ))
-            {
-            	if ( v->DriveLockInfo.TimeToStopDriving_cnt >= v->DriveLockInfo.TimeToStopDriving_InPLCLoop )
-            	{
-            		v->DriveLockInfo.DriveStateFlag = Drive_Stop_Flag;
-            		v->DriveLockInfo.TimeToStopDriving_cnt = 0;
-            	}
-            	else
-            	{
-            		v->DriveLockInfo.TimeToStopDriving_cnt++;
-            	}
-            }
-            else
-            {
-            	v->DriveLockInfo.TimeToStopDriving_cnt = 0;
-            }
-        }
-        else
-        {
-        	if ( RCCommCtrl.pRxInterface->RcConnStatus > RC_CONN_STATUS_RC_THROTTLE_LOCKED )
-        	{
-        		v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
-        	}
-        }
-    }
-    else
-    {
-    	v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
-    }
 }
 
 void AxisFactory_Do100HzLoop( Axis_t *v )

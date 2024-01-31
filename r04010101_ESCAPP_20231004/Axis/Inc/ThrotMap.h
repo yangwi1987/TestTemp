@@ -30,14 +30,16 @@ typedef struct {
 	float EmptyThrottle;
 	float HalfThrottle;
 	float FullThrottle;
-	float ThrotRamp;
+	float ThrotRiseRamp;
+	float ThrotFallRamp;
 } THROT_TABLE_BUF;
 
 #define THROT_TABLE_BUF_DEFAULT {	\
 	0.0f,	\
 	0.0f,	\
 	0.0f,	\
-	0 }
+	0.0f,   \
+	0.0f }
 
 typedef struct {
 	uint16_t InitError;

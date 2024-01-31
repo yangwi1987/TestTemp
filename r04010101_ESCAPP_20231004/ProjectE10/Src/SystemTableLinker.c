@@ -48,9 +48,9 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 #elif E10
 				{ALARMID_PHASE_LOSS, 	 	  	ALARM_ENABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 #endif
-				{ALARMID_MOTOR_OVER_SPEED, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 8000, 100, ALARM_COUNTER_MAX},
+				{ALARMID_MOTOR_OVER_SPEED, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 12500, 100, ALARM_COUNTER_MAX},
 				{ALARMID_OVER_VOLTAGE_BUS, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 62,   10, ALARM_COUNTER_MAX},
-				{ALARMID_UNDER_VOLTAGE_BUS,   	ALARM_ENABLE, 	ALARM_TYPE_CRITICAL,   TRIG_MODE_LOW,   36,    10, ALARM_COUNTER_MAX},
+				{ALARMID_UNDER_VOLTAGE_BUS,   	ALARM_DISABLE, 	ALARM_TYPE_CRITICAL,   TRIG_MODE_LOW,   35,    10, ALARM_COUNTER_MAX},
 				{ALARMID_UNDER_VOLTAGE_13V,   	ALARM_ENABLE, 	ALARM_TYPE_CRITICAL, 	TRIG_MODE_LOW,   10,    10, ALARM_COUNTER_MAX},
 				{ALARMID_IU_OCP, 			  	ALARM_DISABLE,	ALARM_TYPE_CRITICAL, 	TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_IV_OCP, 			  	ALARM_DISABLE, 	ALARM_TYPE_CRITICAL, 	TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
@@ -58,19 +58,14 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{ALARMID_FLASH_UNINITIALIZED, ALARM_ENABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, 0,		 0, ALARM_COUNTER_MAX},
 				{ALARMID_FLASH_READ_FAILED,   ALARM_ENABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, 0,		 0, ALARM_COUNTER_MAX},
 				{ALARMID_FLASH_DAMAGED,   	  ALARM_ENABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, 0,		 0, ALARM_COUNTER_MAX},
-				{ALARMID_MOTOR_REVERSE, 		ALARM_ENABLE, ALARM_TYPE_NONCRITICAL, TRIG_MODE_HIGH,  100, ALARM_COUNTER_MAX, 100},
-				{ALARMID_UNUSED, 				ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
-				{ALARMID_UNUSED, 				ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
+				{ALARMID_UNDER_VOLTAGE_E5V,     ALARM_ENABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  30, 10, ALARM_COUNTER_MAX},
+				{ALARMID_UNDER_VOLTAGE_ES5V,    ALARM_ENABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  30, 10, ALARM_COUNTER_MAX},
+				{ALARMID_UNDER_VOLTAGE_EA5V, 	ALARM_ENABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  30, 10, ALARM_COUNTER_MAX},
 				// 0x20 ~ 0x2F
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-				{ALARMID_FOIL_BREAK, ALARM_ENABLE, ALARM_TYPE_NONCRITICAL, TRIG_MODE_LOW,  125, ALARM_COUNTER_MAX, 10},
-				{ALARMID_FOIL_SHORT, ALARM_ENABLE, ALARM_TYPE_NONCRITICAL, TRIG_MODE_HIGH,  4752, ALARM_COUNTER_MAX, 10},
-#else
-				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
-				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
-#endif
+				{ALARMID_ACC_PEDAL_BREAK, ALARM_ENABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_LOW,  125, ALARM_COUNTER_MAX, 10},
+				{ALARMID_ACC_PEDAL_SHORT, ALARM_ENABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  4752, ALARM_COUNTER_MAX, 10},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
@@ -84,13 +79,13 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				// 0x30 ~ 0x3F
-				{ALARMID_OT_PCU_0, 		 	ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  120,   5,  	ALARM_COUNTER_MAX},
+				{ALARMID_OT_PCU_0, 		 	ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  110,   5,  	ALARM_COUNTER_MAX},
 				{ALARMID_BREAK_NTC_PCU_0, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_HIGH,  3900, ALARM_COUNTER_MAX, 	10},
 				{ALARMID_SHORT_NTC_PCU_0, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_LOW,   120,  ALARM_COUNTER_MAX, 	10},
-				{ALARMID_OT_PCU_1, 		 	ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  120,   5, 	ALARM_COUNTER_MAX},
+				{ALARMID_OT_PCU_1, 		 	ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  110,   5, 	ALARM_COUNTER_MAX},
 				{ALARMID_BREAK_NTC_PCU_1, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_HIGH,  3900, ALARM_COUNTER_MAX, 	10},
 				{ALARMID_SHORT_NTC_PCU_1, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_LOW,   120,  ALARM_COUNTER_MAX, 	10},
-				{ALARMID_OT_PCU_2, 			ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  115,  5,  	ALARM_COUNTER_MAX},
+				{ALARMID_OT_PCU_2, 			ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  110,  5,  	ALARM_COUNTER_MAX},
 				{ALARMID_BREAK_NTC_PCU_2, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_HIGH,  4065, ALARM_COUNTER_MAX, 	10},
 				{ALARMID_SHORT_NTC_PCU_2, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_LOW,   100,  ALARM_COUNTER_MAX, 	10},
 #if IS_MF_CODE_BIN_FILE
@@ -98,14 +93,14 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{ALARMID_BREAK_NTC_MOTOR_0, ALARM_DISABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  4075, 10, 	ALARM_COUNTER_MAX},
 				{ALARMID_SHORT_NTC_MOTOR_0, ALARM_DISABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_LOW,   200,  10, 	ALARM_COUNTER_MAX},
 #else
-				{ALARMID_OT_MOTOR_0,	 	ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  175,  5, 	 	ALARM_COUNTER_MAX},
+				{ALARMID_OT_MOTOR_0,	 	ALARM_ENABLE,  ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  150,  5, 	 	ALARM_COUNTER_MAX},
 				{ALARMID_BREAK_NTC_MOTOR_0, ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_HIGH,  4075, ALARM_COUNTER_MAX, 	10},
 				{ALARMID_SHORT_NTC_MOTOR_0, ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, TRIG_MODE_LOW,   200,  ALARM_COUNTER_MAX, 	10},
 #endif
-				{ALARMID_OT_PCU_0_WARNING, 	ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  115, ALARM_COUNTER_MAX, 10},
-				{ALARMID_OT_PCU_1_WARNING, 	ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  115, ALARM_COUNTER_MAX, 10},
-				{ALARMID_OT_PCU_2_WARNING, 	ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  110, ALARM_COUNTER_MAX, 10},
-				{ALARMID_OT_MOTOR_0_WARNING,ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  170, ALARM_COUNTER_MAX, 10},
+				{ALARMID_OT_PCU_0_WARNING, 	ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  100, ALARM_COUNTER_MAX, 10},
+				{ALARMID_OT_PCU_1_WARNING, 	ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  100, ALARM_COUNTER_MAX, 10},
+				{ALARMID_OT_PCU_2_WARNING, 	ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  100, ALARM_COUNTER_MAX, 10},
+				{ALARMID_OT_MOTOR_0_WARNING,ALARM_ENABLE, ALARM_TYPE_NONCRITICAL,  TRIG_MODE_HIGH,  130, ALARM_COUNTER_MAX, 10},
 				// 0x40 ~ 0x4F
 				{ALARMID_MOTORSTALL, ALARM_ENABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
@@ -144,7 +139,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				// 0x60 ~ 0x6F
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
-				{ALARMID_RC_INVALID, 	ALARM_ENABLE,  ALARM_TYPE_NONCRITICAL, 	TRIG_MODE_HIGH,  9, ALARM_COUNTER_MAX, 3},
+				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
@@ -159,7 +154,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				// 0x70 ~ 0x7F
-				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_CRITICAL, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
+				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 				{ALARMID_UNUSED, ALARM_DISABLE, ALARM_TYPE_NONE, TRIG_MODE_HIGH,  ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
@@ -216,13 +211,14 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 			{0, 0, 0, 0, 0, 0},
 		},
 
-		.WindingDeratingTable = { 2600, 2340, 2110, 1900, 1710, 1540, 1400, 1400 },
-		.WindingDeratingInfo = { 8, 1.0f, 164.0f, 0.1f, &SystemTable.WindingDeratingTable[0] },
+		.WindingDeratingTable = { 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310 },
+		.WindingDeratingInfo = { 8, 1.0f, 115.0f, 0.1f, &SystemTable.WindingDeratingTable[0] },
 
-		.MosDeratingTable = { 2600, 2480, 2360, 2240, 2120, 2000, 1880, 1760, 1640, 1520, 1400, 1400 },
-		.MosDeratingInfo = { 12, 1.0f, 50.0f, 0.1f, &SystemTable.MosDeratingTable[0] },
+		.MosDeratingTable = { 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310},
+		.MosDeratingInfo = { 12, 1.0f, 85.0f, 0.1f, &SystemTable.MosDeratingTable[0] },
 
-		.CapDeratingTable = { 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600, 2600},
+		.CapDeratingTable = { 5310,	5310, 5310,	5310, 5310,	5310, 5310,	5310, 5310,	5310,\
+				       5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310, 5310 },
 		.CapDeratingInfo = { 22, 1.0f, 110.0f, 0.1f, &SystemTable.CapDeratingTable[0] },
 
 		.SysParamTableInfoArray =
@@ -285,47 +281,47 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			0,			0,			0,		0},	//P0-52
 				{		0,			0,			0,			0,		0},	//P0-53
 				{		0,			0,			0,			0,		0},	//P0-54
-				{		32768,		33968,		33348,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][0]},	//P0-55
-				{		32768,		33968,		33348,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][1]},	//P0-56
-				{		32768,		33968,		33348,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][2]},	//P0-57
-				{		32768,		33968,		33348,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][3]},	//P0-58
-				{		32768,		33968,		33348,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][4]},	//P0-59
-				{		32768,		33968,		33868,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][0]},	//P0-60
-				{		32768,		33968,		33868,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][1]},	//P0-61
-				{		32768,		33968,		33868,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][2]},	//P0-62
-				{		32768,		33968,		33868,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][3]},	//P0-63
-				{		32768,		33968,		33868,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][4]},	//P0-64
-				{		32768,		33768,		32777,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][0]},	//P0-65
-				{		32768,		33768,		32777,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][1]},	//P0-66
-				{		32768,		33768,		32838,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][2]},	//P0-67
-				{		32768,		33768,		32838,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][3]},	//P0-68
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][0]},	//P0-55
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][1]},	//P0-56
+				{		32768,		35268,		34804,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][2]},	//P0-57
+				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][3]},	//P0-58
+				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][4]},	//P0-59
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][0]},	//P0-60
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][1]},	//P0-61
+				{		32768,		35268,		34804,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][2]},	//P0-62
+				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][3]},	//P0-63
+				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][4]},	//P0-64
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][0]},	//P0-65
+				{		32768,		33768,		32871,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][1]},	//P0-66
+				{		32768,		33768,		32926,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][2]},	//P0-67
+				{		32768,		33768,		32768,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][3]},	//P0-68
 				{		32768,		33768,		32768,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][4]},	//P0-69
-				{		32768,		40768,		39400,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][0]},	//P0-70
-				{		32768,		40768,		39400,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][1]},	//P0-71
-				{		32768,		40768,		39400,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][2]},	//P0-72
-				{		32768,		40768,		39400,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][3]},	//P0-73
-				{		32768,		40768,		39400,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][4]},	//P0-74
-				{		32768,		62768,		32773,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][0]},	//P0-75
-				{		32768,		62768,		32773,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][1]},	//P0-76
-				{		32768,		62768,		32773,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][2]},	//P0-77
-				{		32768,		62768,		32773,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][3]},	//P0-78
-				{		32768,		62768,		32773,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][4]},	//P0-79
-				{		2768,		32768,		32762,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][0]},	//P0-80
-				{		2768,		32768,		32762,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][1]},	//P0-81
-				{		2768,		32768,		32742,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][2]},	//P0-82
-				{		2768,		32768,		32742,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][3]},	//P0-83
-				{		2768,		32768,		32762,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][4]},	//P0-84
+				{		32768,		47768,		44768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][0]},	//P0-70
+				{		32768,		47768,		44768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][1]},	//P0-71
+				{		32768,		47768,		46381,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][2]},	//P0-72
+				{		32768,		47768,		32768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][3]},	//P0-73
+				{		32768,		47768,		32768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][4]},	//P0-74
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][0]},	//P0-75
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][1]},	//P0-76
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][2]},	//P0-77
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][3]},	//P0-78
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][4]},	//P0-79
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][0]},	//P0-80
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][1]},	//P0-81
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][2]},	//P0-82
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][3]},	//P0-83
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][4]},	//P0-84
 				{		32768,		62768,		62768,		0x84A,		&DriveParams.SystemParams.DriveRisingRamp},	//P0-85
 				{		2768,		32768,		2768,		0x84A,		&DriveParams.SystemParams.DriveFallingRamp},	//P0-86
 				{		30,			100,		30,		    0x4A,		&DriveParams.SystemParams.LimpTransitSec},	//P0-87
-				{		2,			8,			8,		    0x42,		&DriveParams.SystemParams.HFIInjVol},	//P0-88
-				{		2,			20,			10,			0x42,		&DriveParams.SystemParams.IinitialAlignDelay},	//P0-89
+				{		0,			65535,		0,		    0x42,		&DriveParams.SystemParams.PosZeroOffset},	//P0-88
+				{		0,			65535,		0,			0x42,		&DriveParams.SystemParams.PosCompBySpeed},	//P0-89
 				{		0,			0,			0,			0,		0},	//P0-90
 				{		0,			0,			0,			0,		0},	//P0-91
-				{	32768,		62768,		32798,		0x942,		&DriveParams.SystemParams.DrivePowerRampUpZeroThrottle},	//P0-92
-				{	 2768,		32768,		32168,		0x942,		&DriveParams.SystemParams.DrivePowerRampDownZeroThrottle},	//P0-93
-				{	32768,		62768,		32798,		0x942,		&DriveParams.SystemParams.DrivePowerRampUpFullThrottle},	//P0-94
-				{	 2768,		32768,		32738,		0x942,		&DriveParams.SystemParams.DrivePowerRampDownFullThrottle},	//P0-95
+				{		0,			0,			0,			0,		0},	//P0-92
+				{		0,			0,			0,			0,		0},	//P0-93
+				{		0,			0,			0,			0,		0},	//P0-94
+				{		0,			0,			0,			0,		0},	//P0-95
 				{	32769,		33268,		33268,		0x842,		&DriveParams.SystemParams.DrainRisingRamp},		//P0-96
 				{	32268,		32767,		32268,		0x842,		&DriveParams.SystemParams.DrainFallingRamp},	//P0-97
 				{		0,			0,			0,			0,		0},	//P0-98
@@ -349,23 +345,23 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[2]},	//P1-16
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[3]},	//P1-17
 				{		0,		  100,		   90,		 0x52,		&DriveParams.SystemParams.ThrottleFullPt[4]},	//P1-18
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[0]},	//P1-19
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[1]},	//P1-20
-				{		0,		 1000,		    5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[2]},	//P1-21
-				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[3]},	//P1-22
-				{		0,		 1000,			5,		 0x5A,		&DriveParams.SystemParams.ThrottleRamp[4]},	//P1-23
-				{		0,			0,			0,			0,		0},	//P1-24
-				{		0,		65535,		   10,		 0x45,		&DriveParams.SystemParams.SecTimeThresholdForDriveLock},	//P1-25
-				{		0,		 6000,		  100,		 0x45,		&DriveParams.SystemParams.RpmToStartCntDriveLock},	//P1-26
-				{		0,			0,			0,			0,		0},	//P1-27
-				{		0,			0,			0,			0,		0},	//P1-28
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[0]},	//P1-19
+				{		1,	    10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[1]},	//P1-20
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[2]},	//P1-21
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[3]},	//P1-22
+				{		1,		10000,		   50,		 0x42,		&DriveParams.SystemParams.ThrottleRiseRamp[4]},	//P1-23
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[0]},	//P1-24
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[1]},	//P1-25
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[2]},	//P1-26
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[3]},	//P1-27
+				{		1,		10000,		10000,		 0x42,		&DriveParams.SystemParams.ThrottleFallRamp[4]},	//P1-28
 				{		0,			0,			0,			0,		0},	//P1-29
 				{		0,			0,			0,			0,		0},	//P1-30
 				{		0,			0,			0,			0,		0},	//P1-31
-				{	    3,	  	   51,		  13,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenSurf0p1V},	//P1-32
-				{	    3,	  	   51,		  5,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenSurf0p1V},	//P1-33
-				{	    3,	  	   51,		  36,		 0x4A,		&DriveParams.SystemParams.MaxAnaFoilSenFoil0p1V},	//P1-34
-				{	    3,	  	   51,		  28,		 0x4A,		&DriveParams.SystemParams.MinAnaFoilSenFoil0p1V},	//P1-35
+				{		0,			0,			0,			0,		0},	//P1-32
+				{		0,			0,			0,			0,		0},	//P1-33
+				{		0,			0,			0,			0,		0},	//P1-34
+				{		0,			0,			0,			0,		0},	//P1-35
 				{		0,			0,			0,			0,		0},	//P1-36
 				{		0,			0,			0,			0,		0},	//P1-37
 				{		0,			0,			0,			0,		0},	//P1-38
