@@ -65,12 +65,12 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcThermoTable =
 		{
 				// PCU Thermal
-				//Name			ZeroFlagEnable,		TableIdx,		Channel Enable,	Adc Group,			Adc Rank
-				{MOS_NTC_1,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_3,				RANK_2			},	// MOS NTC Center
-				{MOS_NTC_2,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_3,				RANK_3			},	// MOS NTC Side
-				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_3,				RANK_1			},	// CAP NTC
-				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
-				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
+				//Name			ZeroFlagEnable,		TableIdx,			Channel Enable,		Adc Group,			Adc Rank
+				{MOS_NTC_1,		ADC_DISABLE,		NTCG163JX103DT1S,	ADC_ENABLE,			ADC_3,				RANK_2			},	// MOS NTC Center
+				{MOS_NTC_2,		ADC_DISABLE,		NTCG163JX103DT1S,	ADC_ENABLE,			ADC_3,				RANK_3			},	// MOS NTC Side
+				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,		ADC_ENABLE,			ADC_3,				RANK_1			},	// CAP NTC
+				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
+				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
 				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_1,				RANK_1			},
@@ -86,7 +86,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcCurveFittingTable =
 		{
 				// A6,			A5,				A4,				A3,				A2,				A1,				A0
-				{ 226.34901f, 	410.00309f, 	-321.93657f, 	46.95519f, 		7.8639097f,		-1.1499592f, 	-0.29832702f},		//	NTC On board number - NTCG163JX103DT1S
+				{ 226.34901f, 	410.00309f, 	-321.93657f, 	46.95519f, 		7.8639097f,		-1.1499592f, 	-0.29832702f},		//	NTC On board number for MOS - NTCG163JX103DT1S
 				{ 286.91117f, 	256.03905f, 	-208.99333f, 	31.554341f,		3.6156109f,		-1.5739555f,	0.12358828f	},		//	NTC Motor Winding number - GWX_LS103H20
 				{ 243.11277f,	-123.32722f,	8.3642276f,		2.0067563f,		0.26944288f,	-0.35931768f,	0.056648032f}		//  NTC On board for CAP - GWX_LS103H12
 		},

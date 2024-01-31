@@ -100,7 +100,7 @@ enum AdcEnable {
 
 enum AdcThermoTableIdxEnum {
 	NO_TABLE = 0,
-	NTCS0603E3103,				// On board NTC
+	NTCG163JX103DT1S,			// On board NTC for MOS
 	GWX_LS103H20,				// Motor NTC
 	GWX_LS103H12,				// On board NTC for CAP
 };
