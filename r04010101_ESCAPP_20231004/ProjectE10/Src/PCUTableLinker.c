@@ -105,13 +105,13 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.Pwm_Tim_Initializer_Axis1 =
 		{
 			TIM8,								\
-			&htim8,							\
-			TIM_CHANNEL_1,						\
-			TIM_CHANNEL_3,						\
-			TIM_CHANNEL_4,						\
-			1,									\
+			&htim8,								\
+			TIM_CHANNEL_4,/*ChannelU*/			\
+			TIM_CHANNEL_1,/*ChannelV*/			\
+			TIM_CHANNEL_3,/*ChannelW*/			\
+			1,			/* note PSC = 0*/		\
 			TIM_COUNTERMODE_CENTERALIGNED1,		\
-			INITIAL_PWM_PERIOD,					\
+			INITIAL_PWM_PERIOD,	/* note ARR = 8500-1*/			\
 			TIM_CLOCKDIVISION_DIV1,				\
 			INITIAL_REPET_COUNTER,				\
 			TIM_AUTORELOAD_PRELOAD_ENABLE,		\
@@ -121,11 +121,11 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			TIM_MASTERSLAVEMODE_DISABLE,		\
 			TIM_BREAKINPUTSOURCE_BKIN,			\
 			TIM_BREAKINPUTSOURCE_ENABLE,		\
-			TIM_BREAKINPUTSOURCE_POLARITY_LOW,	\
-			TIM_OCMODE_PWM2,					\
+			TIM_BREAKINPUTSOURCE_POLARITY_LOW,	/*todo check high or low*/\
+			TIM_OCMODE_PWM2,	/*no use*/		\
 			4250,								\
-			TIM_OCPOLARITY_LOW,					\
-			TIM_OCNPOLARITY_LOW,				\
+			TIM_OCPOLARITY_LOW,	/*CC1P=1 => low active*/ \
+			TIM_OCNPOLARITY_LOW, /*CC1NP=1 => low active*/ \
 			TIM_OCFAST_DISABLE,					\
 			TIM_OCIDLESTATE_RESET,				\
 			TIM_OCNIDLESTATE_RESET,				\
@@ -134,9 +134,9 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			TIM_OSSR_DISABLE,					\
 			TIM_OSSI_DISABLE,					\
 			TIM_LOCKLEVEL_OFF,					\
-			203,								\
+			203,	/*todo check 203 or 128*/	\
 			TIM_BREAK_ENABLE,					\
-			TIM_BREAKPOLARITY_HIGH,				\
+			TIM_BREAKPOLARITY_HIGH, /*todo check high or low*/				\
 			0,									\
 			TIM_BREAK_AFMODE_INPUT,				\
 			TIM_BREAK2_DISABLE,					\
@@ -144,7 +144,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			0,									\
 			TIM_BREAK_AFMODE_INPUT,				\
 			TIM_AUTOMATICOUTPUT_DISABLE,		\
-			5									\
+			5	/*MinimumTime*/					\
 		},
 
 		.PcuParamTableInfoArray =

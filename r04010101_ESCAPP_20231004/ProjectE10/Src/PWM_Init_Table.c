@@ -70,40 +70,41 @@ void PwmTIMx_Init_Func( const PWM_TIM_INIT_PARA *Para )
   /*
    * Setup the Pwm output channel
    */
-#if  0// ESC_VERSION_1.0
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+
+  // Set channel U (timer 8, channel 4)
+  sConfigOC.OCMode = TIM_OCMODE_PWM1; // todo check PWM mode
   sConfigOC.Pulse = Para->InitDutyCntCh1st;
   sConfigOC.OCPolarity = Para->OCPolarity;
   sConfigOC.OCNPolarity = Para->OCNPolarity;
-  sConfigOC.OCFastMode = TIM_OCMODE_PWM1;
-#else // ESC_VERSION_1.3
-  sConfigOC.OCMode = Para->OCMode;
-  sConfigOC.Pulse = Para->InitDutyCntCh1st;
-  sConfigOC.OCPolarity = Para->OCPolarity;
-  sConfigOC.OCNPolarity = Para->OCNPolarity;
-  sConfigOC.OCFastMode = Para->OCMode;
-#endif
+  sConfigOC.OCFastMode = Para->OCFastMode;
   sConfigOC.OCIdleState = Para->OCIdleState;
   sConfigOC.OCNIdleState = Para->OCNIdleState;
-  if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC, Para->Channel1) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC, Para->ChannelU) != HAL_OK)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = Para->OCMode;
+
+
+  // Set channel V (timer 8, channel 1)
+  sConfigOC.OCMode = TIM_OCMODE_PWM2; // todo check PWM mode
   sConfigOC.OCPolarity = Para->OCPolarity;
   sConfigOC.OCNPolarity = Para->OCNPolarity;
-  sConfigOC.OCFastMode = Para->OCMode;
+  sConfigOC.OCFastMode = Para->OCFastMode;
   sConfigOC.Pulse = Para->InitDutyCntCh2ed;
-  if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC,  Para->Channel2) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC,  Para->ChannelV) != HAL_OK)
   {
+
     Error_Handler();
   }
-  sConfigOC.OCMode = Para->OCMode;
+
+
+  // Set channel W (timer 8, channel 3)
+  sConfigOC.OCMode = TIM_OCMODE_PWM1; // todo check PWM mode
   sConfigOC.OCPolarity = Para->OCPolarity;
   sConfigOC.OCNPolarity = Para->OCNPolarity;
-  sConfigOC.OCFastMode = Para->OCMode;
+  sConfigOC.OCFastMode = Para->OCFastMode;
   sConfigOC.Pulse = Para->InitDutyCntCh3rd;
-  if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC,  Para->Channel3) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC,  Para->ChannelW) != HAL_OK)
   {
     Error_Handler();
   }

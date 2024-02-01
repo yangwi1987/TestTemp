@@ -91,9 +91,9 @@ typedef struct {
 typedef struct{
 	TIM_TypeDef* GroupIdx;
 	TIM_HandleTypeDef *TimGroup;
-	uint16_t Channel1;
-	uint16_t Channel2;
-	uint16_t Channel3;
+	uint16_t ChannelU;
+	uint16_t ChannelV;
+	uint16_t ChannelW;
 	uint16_t PreScale;
 	uint16_t CounterMode;
 	uint16_t Period;
@@ -135,12 +135,13 @@ typedef struct{
 #define PWM_TIM_INIT_PARA_DEFAULT { \
 	0, /*	GroupIdx			*/\
 	0, /*	TimGroup			*/\
-	0, /*	Channel1			*/\
-	0, /*	Channel2			*/\
-	0, /*	Channel3			*/\
+	0, /*	ChannelU			*/\
+	0, /*	ChannelV			*/\
+	0, /*	ChannelW			*/\
 	0, /*	PreScale			*/\
 	0, /*	CounterMode			*/\
 	0, /*	Period				*/\
+	0, /*	Division			*/\
 	0, /*	RcrPara				*/\
 	0, /*	AutoPreloadMode		*/\
 	0, /*	ClkSource			*/\

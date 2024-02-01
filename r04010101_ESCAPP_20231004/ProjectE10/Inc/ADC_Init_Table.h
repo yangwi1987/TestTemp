@@ -1,8 +1,8 @@
 /*
  * ADC_Init_Table.h
  *
- *  Created on: 2020年2月7日
- *      Author: MikeSFWen
+ *  Created on: 2024年2月1日
+ *      Author:
  */
 
 #if E10
@@ -18,7 +18,8 @@ extern ADC_HandleTypeDef hadc3;
 extern ADC_HandleTypeDef hadc4;
 extern ADC_HandleTypeDef hadc5;
 
-/* WARNING: DO NOT CHANGE THE ORDER*/
+/* WARNING: DO NOT CHANGE THE ORDE
+ * keep the same order as AdcInjectionGroupTable*/
 enum AdcInjGroupEnum {
 	ISE_U_A0 = 0,
 	ISE_V_A0,
@@ -31,7 +32,8 @@ enum AdcInjGroupEnum {
 	INJ_REVD_9
 };
 
-/* WARNING: DO NOT CHANGE THE ORDER*/
+/* WARNING: DO NOT CHANGE THE ORDER
+ * keep the same order as AdcRegularGroupTable*/
 enum AdcRegGroupEnum {
 	HW_ID2 = 0,
 	ES5V_FB,
@@ -48,7 +50,8 @@ enum AdcRegGroupEnum {
 	REG_REVD_12
 };
 
-/* WARNING: DO NOT CHANGE THE ORDER*/
+/* WARNING: DO NOT CHANGE THE ORDER,
+ * keep the same order as AdcThermoTable*/
 enum AdcThermoNameEnum {
 	MOS_NTC_1 = 0,
 	MOS_NTC_2,

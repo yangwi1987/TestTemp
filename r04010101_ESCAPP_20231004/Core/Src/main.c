@@ -1225,7 +1225,7 @@ static void MX_TIM8_Init(void)
   htim8.Instance = TIM8;
   htim8.Init.Prescaler = ( 1 - 1 );
   htim8.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim8.Init.Period = 8499;
+  htim8.Init.Period = (8500 - 1);
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 1;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -1251,15 +1251,15 @@ static void MX_TIM8_Init(void)
   }
   sBreakInputConfig.Source = TIM_BREAKINPUTSOURCE_BKIN;
   sBreakInputConfig.Enable = TIM_BREAKINPUTSOURCE_ENABLE;
-  sBreakInputConfig.Polarity = TIM_BREAKINPUTSOURCE_POLARITY_HIGH;
+  sBreakInputConfig.Polarity = TIM_BREAKINPUTSOURCE_POLARITY_HIGH; /*todo check high or low*/
   if (HAL_TIMEx_ConfigBreakInput(&htim8, TIM_BREAKINPUT_BRK, &sBreakInputConfig) != HAL_OK)
   {
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM2;
   sConfigOC.Pulse = 8499;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH; /*todo check high or low*/
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH; /*todo check high or low*/
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
@@ -1279,9 +1279,9 @@ static void MX_TIM8_Init(void)
   sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
   sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 128;
+  sBreakDeadTimeConfig.DeadTime = 128; /*todo check 203 or 128*/
   sBreakDeadTimeConfig.BreakState = TIM_BREAK_ENABLE;
-  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_LOW;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_LOW; /*todo check high or low*/
   sBreakDeadTimeConfig.BreakFilter = 0;
   sBreakDeadTimeConfig.BreakAFMode = TIM_BREAK_AFMODE_INPUT;
   sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
