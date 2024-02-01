@@ -124,6 +124,9 @@ enum AdcThermoTableIdxEnum {
 #define V13V_GAIN								( float )0.004672852f // sense 13 V pin
 #define _5V_GAIN								( float )0.001220703f // pedal input 1,2
 #define _9.9V_GAIN								( float )0.002416992f // sense 5V pin, but max analog value is 9.9V
+#define S13V8_GAIN								( float )0.004672852f
+#define E5V_GAIN								( float )0.002416992f
+#define PEDAL_GAIN								( float )0.001220703f
 
 #define DEFAULT_GAIN							( float )1.0f  // HW ID1,2
 
