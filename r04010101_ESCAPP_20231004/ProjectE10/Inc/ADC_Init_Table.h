@@ -118,13 +118,14 @@ enum AdcThermoTableIdxEnum {
 #define NTC_TYPE_NUMBER							3
 
 /* Gain AD to V */
-#define AD2VGAIN								( float )0.000805600f
-#define AC_CURR_GAIN							( float )0.372265625f
-#define DC_VOLT_GAIN							( float )0.019306152f
-#define V13V_GAIN								( float )0.003173828f
-#define _5V_GAIN								( float )0.001220703f
+#define AD2VGAIN								( float )0.000805600f // thermal ADC to 3.3V analog check again! todo
+#define AC_CURR_GAIN							( float )-0.372265625f // motor phase current sensor
+#define DC_VOLT_GAIN							( float )0.019306152f // DC BUS, pre-charge input
+#define V13V_GAIN								( float )0.004672852f // sense 13 V pin
+#define _5V_GAIN								( float )0.001220703f // pedal input 1,2
+#define _9.9V_GAIN								( float )0.002416992f // sense 5V pin, but max analog value is 9.9V
 
-#define DEFAULT_GAIN							( float )1.0f
+#define DEFAULT_GAIN							( float )1.0f  // HW ID1,2
 
 /* NTC Table Define */
 #define NTC_TYPE_CNT							4
