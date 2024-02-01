@@ -274,7 +274,7 @@ float AdcStation_DoThermoTransition( AdcStation *v )
 	float Item2nd = 0.0f;
 	float Item1st = 0.0f;
 
-	float RawVoltage = v->ThermoADCCatchValue[v->ThermoTraIndex] * AD2VGAIN;
+	float RawVoltage = v->ThermoADCCatchValue[v->ThermoTraIndex] * ADC_THERMAL_GAIN;
 
 	Item1st = RawVoltage;
 	Item2nd = Item1st * Item1st;
