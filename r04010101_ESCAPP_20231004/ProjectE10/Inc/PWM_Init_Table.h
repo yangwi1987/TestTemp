@@ -108,14 +108,14 @@ typedef struct{
 	uint16_t BreakSourceEanble :8;
 	uint16_t BreakSourcePriority;
 	uint16_t OCMode;
-	uint16_t InitDutyCntCh1st;
+	uint16_t InitDutyCntChU;
 	uint16_t OCPolarity;
 	uint16_t OCNPolarity;
 	uint16_t OCFastMode;
 	uint16_t OCIdleState;
 	uint16_t OCNIdleState;
-	uint16_t InitDutyCntCh2ed;
-	uint16_t InitDutyCntCh3rd;
+	uint16_t InitDutyCntChV;
+	uint16_t InitDutyCntChW;
 	uint16_t OffStateRunMode;
 	uint16_t OffStateIDLEMode;
 	uint16_t LockLevel;
@@ -152,14 +152,14 @@ typedef struct{
 	0, /*	BreakSourceEanble	*/\
 	0, /*	BreakSourcePriority	*/\
 	0, /*	OCMode				*/\
-	(8500-1), /*	InitDutyCntCh1st	*/\
+	(8501), /*	InitDutyCntChU	*/\
 	0, /*	OCPolarity			*/\
 	0, /*	OCNPolarity			*/\
 	0, /*	OCFastMode			*/\
 	0, /*	OCIdleState			*/\
 	0, /*	OCNIdleState		*/\
-	(8500-1), /*	InitDutyCntCh2ed	*/\
-	(8500-1), /*	InitDutyCntCh3rd	*/\
+	(8501), /*	InitDutyCntChV	*/\
+	(8501), /*	InitDutyCntChW	*/\
 	0, /*	OffStateRunMode		*/\
 	0, /*	OffStateIDLEMode	*/\
 	0, /*	LockLevel			*/\

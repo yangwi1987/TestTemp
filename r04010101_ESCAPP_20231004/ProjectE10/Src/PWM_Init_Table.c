@@ -72,8 +72,8 @@ void PwmTIMx_Init_Func( const PWM_TIM_INIT_PARA *Para )
    */
 
   // Set channel U (timer 8, channel 4)
-  sConfigOC.OCMode = TIM_OCMODE_PWM1; // todo check PWM mode
-  sConfigOC.Pulse = Para->InitDutyCntCh1st;
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = Para->InitDutyCntChU;
   sConfigOC.OCPolarity = Para->OCPolarity;
   sConfigOC.OCNPolarity = Para->OCNPolarity;
   sConfigOC.OCFastMode = Para->OCFastMode;
@@ -86,11 +86,11 @@ void PwmTIMx_Init_Func( const PWM_TIM_INIT_PARA *Para )
 
 
   // Set channel V (timer 8, channel 1)
-  sConfigOC.OCMode = TIM_OCMODE_PWM2; // todo check PWM mode
+  sConfigOC.OCMode = TIM_OCMODE_PWM2;
   sConfigOC.OCPolarity = Para->OCPolarity;
   sConfigOC.OCNPolarity = Para->OCNPolarity;
   sConfigOC.OCFastMode = Para->OCFastMode;
-  sConfigOC.Pulse = Para->InitDutyCntCh2ed;
+  sConfigOC.Pulse = Para->InitDutyCntChV;
   if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC,  Para->ChannelV) != HAL_OK)
   {
 
@@ -99,11 +99,11 @@ void PwmTIMx_Init_Func( const PWM_TIM_INIT_PARA *Para )
 
 
   // Set channel W (timer 8, channel 3)
-  sConfigOC.OCMode = TIM_OCMODE_PWM1; // todo check PWM mode
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.OCPolarity = Para->OCPolarity;
   sConfigOC.OCNPolarity = Para->OCNPolarity;
   sConfigOC.OCFastMode = Para->OCFastMode;
-  sConfigOC.Pulse = Para->InitDutyCntCh3rd;
+  sConfigOC.Pulse = Para->InitDutyCntChW;
   if (HAL_TIM_PWM_ConfigChannel( Para->TimGroup, &sConfigOC,  Para->ChannelW) != HAL_OK)
   {
     Error_Handler();
