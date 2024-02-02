@@ -144,7 +144,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			0, /*	Break2Filter		*/		\
 			TIM_BREAK_AFMODE_INPUT,				\
 			TIM_AUTOMATICOUTPUT_DISABLE,		\
-			5	/*MinimumTime*/					\
+			5	/*MinimumTime*/	/*todo check with EE*/\
 		},
 
 		.PcuParamTableInfoArray =
