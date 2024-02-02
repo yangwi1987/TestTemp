@@ -136,27 +136,27 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
     }
 
-    if( v->PcuPowerState == PWR_SM_INITIAL )
-    {
-        v->pCANTxInterface->PcuStateReport = PCU_STATE_INITIAL;
-    }
-    else if( v->PcuPowerState == PWR_SM_POWER_ON )
-    {
-        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
-            v->pCANTxInterface->PcuStateReport = PCU_STATE_OUTPUT;
-        }else{
-            v->pCANTxInterface->PcuStateReport = PCU_STATE_STANDBY;
-        }
-    }
-    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
-    {
-        v->pCANTxInterface->PcuStateReport = PCU_STATE_POWER_OFF;
-    }
-    else 
-    {
-        // undefined value, register error
-        v->pCANTxInterface->PcuStateReport = PCU_STATE_ERROR;
-    }
+//    if( v->PcuPowerState == PWR_SM_INITIAL )
+//    {
+//        v->pCANTxInterface->PcuStateReport = PCU_STATE_INITIAL;
+//    }
+//    else if( v->PcuPowerState == PWR_SM_POWER_ON )
+//    {
+//        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
+//            v->pCANTxInterface->PcuStateReport = PCU_STATE_OUTPUT;
+//        }else{
+//            v->pCANTxInterface->PcuStateReport = PCU_STATE_STANDBY;
+//        }
+//    }
+//    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
+//    {
+//        v->pCANTxInterface->PcuStateReport = PCU_STATE_POWER_OFF;
+//    }
+//    else
+//    {
+//        // undefined value, register error
+//        v->pCANTxInterface->PcuStateReport = PCU_STATE_ERROR;
+//    }
 
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         for(i=0;i<10;i++){
@@ -200,32 +200,7 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 {
-    switch(v->PcuPowerState)
-    {
-        case PWR_SM_POWER_ON:
-        {
-        	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0)
-            {
-        		v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            }
-        	else
-        	{
-        		v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-        	}
 
-            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PWR_SM_INITIAL :
-        case PWR_SM_POWER_OFF :
-        case PWR_SM_WAIT_FOR_RESET :
-        default :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            break;
-        }
-    }
 }
 
 // This function execute in current loop.

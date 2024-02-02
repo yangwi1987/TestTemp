@@ -74,15 +74,10 @@ uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterf
 	  switch (IdIn)
 	  {
 	  	  case CAN_ID_DEV_CMD_START:
-
-	  		  if(*(pDataIn + 0) == 0)
-	  		  {
-	  			  BatStation.PwrOnReq();
-	  		  }
-	  		  else
-	  		  {
-	  			  BatStation.PwrOffReq();
-	  		  }
+	  		  Btn_SignalWrite(BTN_IDX_KILL_SW, *pDataIn);
+	  		  Btn_SignalWrite(BTN_IDX_BST_BTN, *(pDataIn + 1));
+	  		  Btn_SignalWrite(BTN_IDX_REV_BTN, *(pDataIn + 2));
+	  		  v->ThrottleCmd =  ((uint8_t)*(pDataIn + 3) > 100) ? 100 : (uint8_t)*(pDataIn + 3);
 	  		  break;
 
 	  	  default:
@@ -267,6 +262,11 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     	  p->DataU8[0] = BatStation.MainSMGet();
     	  p->DataU8[1] = BatStation.PwrOffSMGet();
     	  p->DataU8[2] = BatStation.PwrOnSMGet();
+    	  p->DataU8[3] = v->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_FLAG];
+    	  p->DataU8[4] = v->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_L];
+    	  p->DataU8[5] = v->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_H];
+    	  p->DataU8[6] = 0;
+    	  p->DataU8[7] = v->PcuStateReport;
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
       else
