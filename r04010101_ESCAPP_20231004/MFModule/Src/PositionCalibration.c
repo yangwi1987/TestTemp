@@ -92,14 +92,14 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         }
         case PS_CALI_ZERO_SM_CAL_OFFSET:
         {
-        	u->MechPosZeroOffset = -u->MechPosition;
+        	u->MechPosZeroOffset = u->MechPosition < _PI ? -u->MechPosition : _2PI -u->MechPosition;
         	PositionCalibration_STOP_IF_Control();
         	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_SAVING_PARAM;
         	break;
         }
         case PS_CALI_ZERO_SM_SAVING_PARAM:
         {
-        	DriveParams.SystemParams.MechPositionZeroOffset = (uint16_t)( u->MechPosZeroOffset * 10000.0f ) + 32768;
+        	DriveParams.SystemParams.MechPositionZeroOffset = (int16_t)( u->MechPosZeroOffset * 10000.0f ) + 32768;
         	DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 1;
         	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_FINISHED;
         	break;
