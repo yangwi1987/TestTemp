@@ -38,7 +38,7 @@ typedef enum
 	REVERSE_MODE
 }GearModeSel_e;
 
-typedef enum
+typedef enum       // Add BOOST_RUNNING in the next stage
 {
 	BOOST_READY = 0,
 	BOOST_COOLDOWN
