@@ -3,6 +3,8 @@
  *
  *  Created on: 2024年1月25日
  *      Author: Jeff.Chang
+ *
+ *      Integrate with FourQuadControl In the next stage!!!
  */
 
 #include "GearMode.h"

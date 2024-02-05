@@ -2,7 +2,9 @@
  * GearMode.h
  *
  *  Created on: 2024年1月25日
- *      Author: UJeff.Changr
+ *      Author: Jeff.Changr
+ *
+ *      Integrate with FourQuadControl In the next stage!!!
  */
 
 #ifndef INC_GEARMODE_H_
