@@ -613,6 +613,12 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     // Detect PLC loop signals and register alarm.
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
+    //GearMode
+    //v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(???)
+    GearMode_DoPLCLoop( &v->GearModeVar );
+    v->FourQuadCtrl.DriveGearModeSelect = v->GearModeVar.GearModeSelect;
+    v->pCANRxInterface->OutputModeCmd = ( v->GearModeVar.GearModeSelect == NORMAL_MODE ) ? 1 : ( v->GearModeVar.GearModeSelect == BOOST_MODE ) ? 2 : 0;
+
     // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
     // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
     // It makes sure that the rewrite take effect.
