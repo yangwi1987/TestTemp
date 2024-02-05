@@ -1811,7 +1811,7 @@ void Drive_VehicleStateMachine( void )
       {
         if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
             (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
-            (Axis[0].ThrotMapping.PercentageTarget == 0 ))
+            (Axis[0].ThrotMapping.PercentageTarget <= 1.0 ))
         {
           DualBtnTimeCnt ++;
 
@@ -1831,9 +1831,12 @@ void Drive_VehicleStateMachine( void )
 
     case VEHICLE_STATE_DRIVE:
 
-      // error situation
-      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM )
-      //if( Bat_MainSMGet() == BAT_MAIN_ALARM)
+      
+			if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+      else if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM ) // error situation
       {
         EnterVehicleAlarmState();
       }
@@ -1844,10 +1847,6 @@ void Drive_VehicleStateMachine( void )
       else if( ESCMainState == ESC_OP_WARNING)
       {
         EnterVehicleWarningState();
-      }
-      else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-      {
-        EnterVehicleStandbyState();
       }
       else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
       {
@@ -1871,7 +1870,7 @@ void Drive_VehicleStateMachine( void )
       { 
         if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
             (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
-            (Axis[0].ThrotMapping.PercentageTarget == 0 ) &&
+            (Axis[0].ThrotMapping.PercentageTarget <= 1.0 ) &&
             (ABS(Axis[0].SpeedInfo.MotorMechSpeedRPM) < 100.0))
         {
           DualBtnTimeCnt ++;
@@ -1890,18 +1889,17 @@ void Drive_VehicleStateMachine( void )
 
     case VEHICLE_STATE_WARNING:
 
-      // error situation
-      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)
+      if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+      else if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)	// error situation
       {
         EnterVehicleAlarmState();
       }
       else if( ESCMainState == ESC_OP_NORMAL )
       {
         EnterVehicleDriveState();
-      }
-      else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
-      {
-        EnterVehicleStandbyState();
       }
       else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
       {
@@ -1925,7 +1923,7 @@ void Drive_VehicleStateMachine( void )
       { 
         if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
             (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
-            (Axis[0].ThrotMapping.PercentageTarget == 0 ) &&
+            (Axis[0].ThrotMapping.PercentageTarget <= 1.0 ) &&
             (ABS(Axis[0].SpeedInfo.MotorMechSpeedRPM) < 100.0))
         {
           DualBtnTimeCnt ++;
