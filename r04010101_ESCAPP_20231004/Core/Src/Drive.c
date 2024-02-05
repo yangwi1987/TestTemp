@@ -1888,13 +1888,11 @@ void Drive_VehicleStateMachine( void )
       break;
 
     case VEHICLE_STATE_WARNING:
-
-      // error situation
-      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)	// error situation
       {
         EnterVehicleAlarmState();
       }
-	  else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+	    else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
       {
         EnterVehicleStandbyState();
       }
