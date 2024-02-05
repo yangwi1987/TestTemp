@@ -17,7 +17,7 @@
  */
 #define NULL_ADDRESS 0
 
-// allocate sector0 ~ sector 1 for parameter system
+// allocate sector0 ~ sector1 for parameter system
 #define TOTAL_PARA_PACK_SIZE		4
 #define SECTOR0_ADDR				0x00000000
 #define SECTOR0_PACK0_ADDR			0x00000000
@@ -26,7 +26,7 @@
 #define SECTOR1_PACK2_ADDR			0x00001000
 #define SECTOR1_PACK3_ADDR			0x00001800
 
-// reserve sector2 ~ sector7
+// allocate sector2 ~ sector3 for total time
 #define	SECTOR2_ADDR				0x00002000
 #define	SECTOR2_PACK4_ADDR			0x00002000 // first total time QW ADDR
 #define	SECTOR2_PACK5_ADDR			0x00002800
@@ -36,8 +36,17 @@
 #define	SECTOR3_PACK7_ADDR			0x00003800
 #define	SECTOR3_QW511_ADDR			0x00003FF8 // end total time QW ADDR
 
+// allocate sector4 ~ sector5 for current calibration
 #define	SECTOR4_ADDR				0x00004000
+#define	SECTOR4_PACK8_ADDR			0x00004000 // first Current Calibration 8QW ADDR
+#define	SECTOR4_PACK9_ADDR			0x00004800
+
 #define	SECTOR5_ADDR				0x00005000
+#define	SECTOR5_PACK10_ADDR			0x00005000
+#define	SECTOR5_PACK11_ADDR			0x00005800
+#define	SECTOR5_8QW63_ADDR			0x00005FC0 // end Current Calibration 8QW ADDR
+
+// reserve sector6 ~ sector7
 #define	SECTOR6_ADDR				0x00006000
 #define SECTOR7_ADDR				0x00007000
 #define SECTOR7_PACK15_ADDR			0x00007800
@@ -45,7 +54,14 @@
 #define TOTAL_TIME_FIRST_ADDR	SECTOR2_PACK4_ADDR
 #define TOTAL_TIME_END_ADDR		SECTOR3_QW511_ADDR
 
+#define TOTAL_TIME_SIZE_IN_QW       1
 #define TOTAL_TotalTime_QW 			1024 // 2 sector = 1024 QWord
+
+#define CURRENT_CALIB_FIRST_ADDR	SECTOR4_PACK8_ADDR
+#define CURRENT_CALIB_END_ADDR		SECTOR5_8QW63_ADDR
+
+#define CURRENT_CALIB_SIZE_IN_QW    8
+#define TOTAL_CURRENT_CALIB_8QW		128  // 2 sector = 128 * 8QWord
 
 /* Macro for DTC store*/
 #define	SECTOR16_ADDR				0x00010000
@@ -89,9 +105,11 @@
 #define GET_SECTOR_NUMBER(address) 	(address >> 12)
 #define GET_PACK_NUMBER(address) 	(address >> 11)
 #define GET_QW_NUMBER(address) 		(address >> 3)
+#define GET_8QW_NUMBER(address)     (address >> 6)
 #define GET_SECTOR_ADDR(number) 	(number << 12)
 #define GET_PACK_ADDR(number) 		(number << 11)
 #define GET_QW_ADDR(number) 		(number << 3)
+#define GET_8QW_ADDR(number)        (number << 6)
 
 /*
  * External flash constant definition
@@ -130,11 +148,13 @@
 #define	CER_LEN		1
 #define JEDEC_LEN	4
 #define TOTAL_TIME_LEN 8
+#define CURRENT_CALIB_LEN 64
 
 #define SR_WIP		0x01	// Write In Progress
 #define SR_WEL		0x02	// Write Enable Latch
 
 #define FLASH_QW_SIZE				8		// bytes, QW: QWord = 64 bit
+#define FLASH_8QW_SIZE              64      // bytes
 #define FLASH_HALFPAGE_SIZE         128     // byte
 #define FLASH_PP_SIZE				256		// bytes
 #define FLASH_PACK_SIZE				2048	// bytes
@@ -160,7 +180,7 @@
 #define READY_OFFSET				2046									// check word offset
 #define CHECK_SUM_OFFSET			2047
 #define QW_READY_OFFSET				6										// QWord check word offset
-#define QW_HECK_SUM_OFFSET			7										// QWord checksum offset
+#define QW_CHECK_SUM_OFFSET			7										// QWord checksum offset
 
 // define read enable table size and structure
 // Assume that: each page in different parameter regions has the same size.
@@ -177,14 +197,17 @@ typedef enum
 	FLASHERROR_UNINITIALIZED	= 0b00000001,
 	FLASHERROR_CHECKSUM_FAIL	= 0b00000010,
 	FLASHERROR_DAMAGED			= 0b00001000,
+	FLASHERROR_NULL_CURR_CAL_BACKUP 	= 0b00010000, // no current calibration backup in another section of external flash
 	FLASHERROR_NULL_TOTAL_TIME			= 0b00100000, // no total time exist
 	FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME	= 0b01000000,
+	FLASHERROR_CHECKSUM_FAIL_CURR_CAL_BACKUP = 0b10000000,
 } E_FLASH_ERROR; // note: AlarmStatus is 8 bits;
 
 typedef enum
 {
-	FLASHWARNING_NONE				= 0b00000000,
-	FLASHWARNING_TT_CHECK_WORD_ERR	= 0b00100000, // check word is error in total time
+	FLASHWARNING_NONE				    = 0b00000000,
+	FLASHWARNING_CURRCLB_CHECK_WORD_ERR = 0b00010000, // check word is error in current calibration
+	FLASHWARNING_TT_CHECK_WORD_ERR	    = 0b00100000, // check word is error in total time
 } E_FLASH_WARNING; // note: WarningStatus is 8 bits;
 
 typedef enum
@@ -203,6 +226,9 @@ extern SPI_HandleTypeDef hspi1;
 typedef void (*functypeExtFlash_Init)( void* );
 typedef void (*functypeExtFlash_LoadParam)(void*);
 typedef void (*functypeExtFlash_ParamBackup)(void*, void*);
+
+typedef void (*functypeExtFlash_CurrentCalibrationBackup)(void*, void*);
+typedef void (*functypeExtFlash_ReadCurrentCalibration)( void*, void*);
 
 /*define function for DTC*/
 
@@ -223,6 +249,33 @@ typedef struct
 	functypeExtFlash_Clear_DTC_Data Clear_DTC_Data;
 }ExtFlash_DTC_Store_t;
 
+
+typedef struct
+{
+	uint16_t Axis1_Iu_Scale[2];						// 4 Byte
+	uint16_t Axis1_Iv_Scale[2];						// 4 Byte
+	uint16_t Axis1_Iw_Scale[2];						// 4 Byte
+	uint16_t Axis2_Iu_Scale[2];						// 4 Byte
+	uint16_t Axis2_Iv_Scale[2];						// 4 Byte
+	uint16_t Axis2_Iw_Scale[2];						// 4 Byte
+	uint16_t Axis1_Iu_ZeroPoint;					// 2 Byte
+	uint16_t Axis1_Iv_ZeroPoint;					// 2 Byte
+	uint16_t Axis1_Iw_ZeroPoint;					// 2 Byte
+	uint16_t Axis2_Iu_ZeroPoint;					// 2 Byte
+	uint16_t Axis2_Iv_ZeroPoint;					// 2 Byte
+	uint16_t Axis2_Iw_ZeroPoint;					// 2 Byte
+	uint16_t Reserved[13];							// 26 Byte
+	uint8_t CheckWord;								// 1 Byte
+	uint8_t CheckSum;								// 1 Byte
+} ExtFlash_Current_Calibration_t;
+
+typedef struct
+{
+	uint8_t ReadDoneFlag;
+	uint8_t LoadCurrCalibRequest;
+	functypeExtFlash_CurrentCalibrationBackup 	CurrentCalibrationBackup;
+	functypeExtFlash_ReadCurrentCalibration		ReadCurrentCalibration;
+} ExtFlash_Curr_Calib_Store_t;
 
 typedef struct
 {
@@ -252,8 +305,10 @@ typedef struct
 	uint8_t *pParaReadEnableTable;
 	TotalTimeQW_t *pBufferTotalTimeQW;
 	uint32_t TotalTimeQWAddress; // address of last total time QWord
+	uint32_t CurrentCalib8QWAddress; // address of last current calibration 8QWord
 	ParamPack_t ParamPack;
 	ExtFlash_DTC_Store_t DTC_Store;
+	ExtFlash_Curr_Calib_Store_t Curr_Calib_Store;
 	functypeExtFlash_Init Init;
 	functypeExtFlash_LoadParam LoadParam;
 	functypeExtFlash_ParamBackup ParamBackup;
@@ -282,6 +337,10 @@ void ExtFlash_ReadLastOPTotalTime( ExtFlash_t *v );
 void ExtFlash_LogTotalTime( ExtFlash_t *v);
 void ExtFlash_EraseTotalTime( ExtFlash_t *v);
 
+void ExtFlash_LoadBufferCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibration_t* pBufferCurrentCalib, DriveParams_t *pDriveParams );
+void ExtFlash_CurrentCalibrationBackup( ExtFlash_t *v, DriveParams_t *pDriveParams );
+void ExtFlash_ReadCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibration_t *pTempCurrentCalib );
+
 void ExtFlash_Write_DTC_Data( ExtFlash_t *v , uint16_t DTC_Record_Num, uint8_t *pDataIn );
 void ExtFlash_Read_DTC_Data( ExtFlash_t *v , uint16_t DTC_Record_Num, uint8_t *pDataOut0, uint8_t *pDataOut1 );
 void ExtFlash_Clear_DTC_Data( ExtFlash_t *v );
@@ -309,8 +368,10 @@ void ExtFlash_Clear_DTC_Data( ExtFlash_t *v );
 	0, /* pParaReadEnableTable*/ \
 	0, /* pBufferTotalTimeQW */\
 	0, /* TotalTimeQWAddress */\
+	0, /* CurrentCalib8QWAddress */\
 	PARAM_PACK_DEFAULT, \
 	DTC_STORE_DEFAULT, /*ExtFlash_DTC_Store_t*/\
+	CURR_CALIB_STORE_DEFAULT, /*ExtFlash_Curr_Calib_Store_t*/\
 	(functypeExtFlash_Init)ExtFlash_Init, \
 	(functypeExtFlash_LoadParam)ExtFlash_LoadParam, \
 	(functypeExtFlash_ParamBackup)ExtFlash_ParamBackup, \
@@ -322,6 +383,13 @@ void ExtFlash_Clear_DTC_Data( ExtFlash_t *v );
 		(functypeExtFlash_Write_DTC_Data) ExtFlash_Write_DTC_Data,\
 		(functypeExtFlash_Read_DTC_Data)  ExtFlash_Read_DTC_Data,\
 		(functypeExtFlash_Clear_DTC_Data) ExtFlash_Clear_DTC_Data,\
+	}
+
+#define CURR_CALIB_STORE_DEFAULT {  \
+		0, /* ReadDoneFlag */\
+		0, /* LoadCurrCalibRequest */\
+		(functypeExtFlash_CurrentCalibrationBackup) ExtFlash_CurrentCalibrationBackup,\
+		(functypeExtFlash_ReadCurrentCalibration)  ExtFlash_ReadCurrentCalibration,\
 	}
 
 #define ADDR_BY_DTC_RECORD_NUM_DEFAULT {\

@@ -29,7 +29,8 @@ void GlobalAlarmDetect_init( void )
 	if( SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmEnable == ALARM_ENABLE )
 	{
 		if( (ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL) ||
-			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME) )
+			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME) ||
+			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_CURR_CAL_BACKUP) )
 		{
 			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_READ_FAILED, SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmType );
 		}

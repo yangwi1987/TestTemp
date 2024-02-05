@@ -262,35 +262,42 @@ void ExtFlash_CER( ExtFlash_t *v )
 }
 
 //QW: QWord = 64 bit
-static uint32_t ExtFlash_SearchQW( ExtFlash_t *v, uint32_t MinQWAddr, uint32_t MaxQWAddr, uint32_t TotalQWSize, uint32_t AlarmCode )
+static uint32_t ExtFlash_SearchNumQW( ExtFlash_t *v, uint32_t MinQWAddr, uint32_t MaxQWAddr, uint16_t NumQW, uint32_t TotalNumQWSize, uint32_t AlarmCode )
 {
-	uint8_t NextQWReadyFlag = 0, ThisQWReadyFlag = 0;
+	uint8_t NextNumQWReadyFlag = 0, ThisNumQWReadyFlag = 0;
 	uint32_t TempQWAddr = MinQWAddr;
+	uint32_t FlashNumQWInBtye = FLASH_QW_SIZE, ReadyOffest = QW_READY_OFFSET;
 	uint16_t i;
 
-	// Search for the total time Address between MinQWAddr ~ the address before MaxQWAddr
-	for( i = 1; i < TotalQWSize; i++ )
+	if( NumQW == 8 )
 	{
-		TempQWAddr = MinQWAddr + FLASH_QW_SIZE * (i - 1);
+		FlashNumQWInBtye = 8 * FLASH_QW_SIZE;
+		ReadyOffest = FlashNumQWInBtye - 2;
+	}
 
-		ExtFlash_NORD( v, TempQWAddr + QW_READY_OFFSET, NORD_LEN + 1 );
-		ThisQWReadyFlag = v->RxBuff[NORD_LEN];
-		ExtFlash_NORD( v, (TempQWAddr + FLASH_QW_SIZE) + QW_READY_OFFSET, NORD_LEN + 1 );
-		NextQWReadyFlag = v->RxBuff[NORD_LEN];
+	// Search for the total time Address between MinQWAddr ~ the address before MaxQWAddr
+	for( i = 1; i < TotalNumQWSize; i++ )
+	{
+		TempQWAddr = MinQWAddr + FlashNumQWInBtye * (i - 1);
 
-		if( ThisQWReadyFlag == CHECK_WORD && NextQWReadyFlag == 0xFF )
+		ExtFlash_NORD( v, TempQWAddr + ReadyOffest, NORD_LEN + 1 );
+		ThisNumQWReadyFlag = v->RxBuff[NORD_LEN];
+		ExtFlash_NORD( v, (TempQWAddr + FlashNumQWInBtye) + ReadyOffest, NORD_LEN + 1 );
+		NextNumQWReadyFlag = v->RxBuff[NORD_LEN];
+
+		if( ThisNumQWReadyFlag == CHECK_WORD && NextNumQWReadyFlag == 0xFF )
 		{
 			// Search Success and return.
 			return TempQWAddr;
 		}
 	}
 
-	// If the above search is fail, and then search for the QW Address at MaxQWAddr
-	ThisQWReadyFlag = NextQWReadyFlag; // This flag is in MaxQWAddr.
-	ExtFlash_NORD( v, MinQWAddr + QW_READY_OFFSET, NORD_LEN + 1 );
-	NextQWReadyFlag = v->RxBuff[NORD_LEN];
+	// If the above search is fail, and then search for the NumQW Address at MaxQWAddr
+	ThisNumQWReadyFlag = NextNumQWReadyFlag; // This flag is in MaxQWAddr.
+	ExtFlash_NORD( v, MinQWAddr + ReadyOffest, NORD_LEN + 1 );
+	NextNumQWReadyFlag = v->RxBuff[NORD_LEN];
 
-	if( ThisQWReadyFlag == CHECK_WORD && NextQWReadyFlag == 0xFF )
+	if( ThisNumQWReadyFlag == CHECK_WORD && NextNumQWReadyFlag == 0xFF )
 	{
 		return MaxQWAddr;
 	}
@@ -314,7 +321,8 @@ void ExtFlash_Init( ExtFlash_t *v )
 	// Pull High SPI CS Pin
 	HAL_GPIO_WritePin( F_SPI_CS_GPIO_Port, F_SPI_CS_Pin, GPIO_PIN_SET );
 
-	TempAddr = ExtFlash_SearchQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TotalTime_QW, FLASHERROR_NULL_TOTAL_TIME );
+	// Search Total Time in external flash
+	TempAddr = ExtFlash_SearchNumQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TIME_SIZE_IN_QW, TOTAL_TotalTime_QW, FLASHERROR_NULL_TOTAL_TIME );
 	if( v->AlarmStatus & FLASHERROR_NULL_TOTAL_TIME )
 	{
 		ExtFlash_SER( v, SECTOR2_PACK4_ADDR );
@@ -323,6 +331,18 @@ void ExtFlash_Init( ExtFlash_t *v )
 	else
 	{
 		v->TotalTimeQWAddress = TempAddr;
+	}
+
+	// Search Current Calibration in external flash
+	TempAddr = ExtFlash_SearchNumQW( v, CURRENT_CALIB_FIRST_ADDR, CURRENT_CALIB_END_ADDR, CURRENT_CALIB_SIZE_IN_QW, TOTAL_CURRENT_CALIB_8QW, FLASHERROR_NULL_CURR_CAL_BACKUP );
+	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+	{
+		ExtFlash_SER( v, SECTOR4_PACK8_ADDR );
+		v->CurrentCalib8QWAddress = CURRENT_CALIB_END_ADDR;
+	}
+	else
+	{
+		v->CurrentCalib8QWAddress = TempAddr;
 	}
 }
 
@@ -519,6 +539,117 @@ void ExtFlash_CheckExtFlashVersion ( ExtFlash_t *v, uint32_t PACK_ADDR )
 
 	// normal operation
 	v->pParaReadEnableTable = (uint8_t *)ParaReadEnableTable1p4;
+}
+
+void ExtFlash_LoadBufferCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibration_t* pBufferCurrCalib, DriveParams_t *pDriveParams )
+{
+	uint8_t CurrentCalibrationSize = 36;		// byte, P2-40 to P2-57
+	memcpy( ((uint8_t*)pBufferCurrCalib), &pDriveParams->PCUParams.Axis1_Iu_Scale[0], CurrentCalibrationSize );
+}
+
+void ExtFlash_CurrentCalibrationBackup( ExtFlash_t *v, DriveParams_t *pDriveParams )
+{
+	uint16_t i;
+	uint32_t NextSector, Next8QW;
+	ExtFlash_Current_Calibration_t TempBufferCurrCalib = {0};
+
+	// Load Current Calibration to Buffer
+	ExtFlash_LoadBufferCurrentCalibration( v, &TempBufferCurrCalib, pDriveParams );
+
+	// Search next pack and sector.
+	NextSector = GET_SECTOR_NUMBER( v->CurrentCalib8QWAddress ) + 1;
+	if( NextSector > GET_SECTOR_NUMBER( CURRENT_CALIB_END_ADDR ) )
+	{
+		NextSector = GET_SECTOR_NUMBER( CURRENT_CALIB_FIRST_ADDR );
+	}
+
+	Next8QW = GET_8QW_NUMBER( v->CurrentCalib8QWAddress ) + 1;
+	if( Next8QW > GET_8QW_NUMBER( CURRENT_CALIB_END_ADDR ) )
+	{
+		Next8QW = GET_8QW_NUMBER( CURRENT_CALIB_FIRST_ADDR );
+	}
+
+	TempBufferCurrCalib.CheckWord = CHECK_WORD;
+
+	// write check sum, note: checksum including CHECK_WORD.
+	for( i = 0; i < sizeof(TempBufferCurrCalib) / sizeof(uint8_t) - 1; i++ )
+	{
+		TempBufferCurrCalib.CheckSum += *(((uint8_t*)&TempBufferCurrCalib) + i);
+	}
+
+	// Erase Next total time Sector, when next QW is the final QW in this sector.
+	if( (Next8QW & 0x1ff) == 0x1ff )
+	{
+		ExtFlash_SER( v, GET_SECTOR_ADDR( NextSector ) );
+	}
+
+	// Write Enable
+	ExtFlash_WREN();
+
+	// Page Programming. Write data into 8QWord
+	ExtFlash_PP( v, GET_8QW_ADDR( Next8QW ), (uint8_t*)(&TempBufferCurrCalib), PP_LEN + CURRENT_CALIB_LEN );
+	// Check done
+	ExtFlash_RDSR( v );
+	do
+	{
+		ExtFlash_RDSR( v );
+	}
+	while( (v->StatusRegister & SR_WIP) == SR_WIP );
+
+	v->CurrentCalib8QWAddress =  GET_8QW_ADDR( Next8QW );
+}
+
+void ExtFlash_ReadCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibration_t *pCurrentCalibration )
+{
+	uint32_t i;
+	uint8_t TempCheckSum = 0;
+	uint32_t ReadyOffest = FLASH_QW_SIZE * 8 - 2;
+
+	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+	{
+		// stop read data from external flash.
+		return;
+	}
+
+	if( v->CurrentCalib8QWAddress > CURRENT_CALIB_END_ADDR || v->CurrentCalib8QWAddress < CURRENT_CALIB_FIRST_ADDR )
+	{
+		// stop read data from external flash
+		return;
+	}
+
+	// Reset CheckWord warning
+	v->WarningStatus &= ~FLASHWARNING_CURRCLB_CHECK_WORD_ERR;
+
+	// check CheckWord
+	ExtFlash_NORD( v, v->CurrentCalib8QWAddress + ReadyOffest, NORD_LEN + 1 );
+
+	if( v->RxBuff[NORD_LEN] != CHECK_WORD )
+	{
+		v->WarningStatus |= FLASHWARNING_CURRCLB_CHECK_WORD_ERR;
+		return;
+	}
+	v->RetryCount = 0;
+	do
+	{
+		ExtFlash_NORD( v, v->CurrentCalib8QWAddress, NORD_LEN + FLASH_8QW_SIZE );
+		memcpy( ((uint8_t*)pCurrentCalibration), &v->RxBuff[NORD_LEN], FLASH_8QW_SIZE );
+
+		// Check checksum
+		TempCheckSum = 0;
+		for( i = 0; i < sizeof(ExtFlash_Current_Calibration_t) / sizeof(uint8_t) - 1; i++ )
+		{
+			TempCheckSum += *(((uint8_t*)pCurrentCalibration) + i);
+		}
+		v->RetryCount++;
+		if( v->RetryCount == RETRY_COUNT )
+		{
+			v->AlarmStatus |= FLASHERROR_CHECKSUM_FAIL_CURR_CAL_BACKUP;
+			return;
+		}
+	}
+	while( pCurrentCalibration->CheckSum != TempCheckSum );
+
+	v->Curr_Calib_Store.ReadDoneFlag = 1;
 }
 
 void ExtFlash_LogTotalTime( ExtFlash_t *v )
