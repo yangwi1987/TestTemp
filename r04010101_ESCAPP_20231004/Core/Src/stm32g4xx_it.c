@@ -331,7 +331,7 @@ void ADC1_2_IRQHandler(void)
   HAL_ADC_IRQHandler(&hadc2);
   /* USER CODE BEGIN ADC1_2_IRQn 1 */
 #endif
-  USER_HAL_ADC_IRQHandler( &hadc1 );
+//  USER_HAL_ADC_IRQHandler( &hadc1 ); No ADC 1 injection channel in E10 project
   USER_HAL_ADC_IRQHandler( &hadc2 );
 #if MEASURE_CPU_LOAD_ADC_INJ
   EndTimeStamp =  DWT->CYCCNT;
@@ -552,9 +552,14 @@ void FDCAN2_IT1_IRQHandler(void)
 /* USER CODE BEGIN 1 */
 void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
+	/* The following are the general injection reading */
 //	AdcStation1.ReadInjectionGroupValue( &AdcStation1, hadc );
 //	AdcStation1.MarkInjectionGroupReadFlag( &AdcStation1, hadc );
-	ADC_HANDLE_INJECTION_GROUP_MACRO( (&AdcStation1), hadc )
+
+//	ADC_HANDLE_INJECTION_GROUP_MACRO( (&AdcStation1), hadc ) // newX setting
+	ADC_HANDLE_INJECTION_GROUP_MACRO_E10( (&AdcStation1), hadc ) // E10 setting
+
+	// Check if all ADC injection groups are finish and start to do current loop
 	if( AdcStation1.AdcInjGroup == AdcStation1.AdcInjGroupFlag )
 	{
 

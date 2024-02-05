@@ -111,18 +111,18 @@ typedef struct{
 	float  Iv[2];
 	float  Iw[2];
 	float  BatVdc;
-	float  Idc;
+	float  Idc; // no use
 	float  HwID1;
 	float  HwID2;
-	float  ES5V;
-	float  E5V;
-	float  EA5V;
-	float  PreC;
+	float  ES5V; // sense 5V for monitor voltage source of I2C
+	float  E5V; // sense 5V for monitor voltage source of position sensor
+	float  EA5V; // sense 5V for monitor voltage source of pedal sensor
+	float  PreC; // analog input pin to indicate the precharge finish
 	float  S13V8;
 	float  Pedal_V1;
 	float  Pedal_V2;
 	float  PCU_NTC[3];
-	float  MOTOR_NTC;
+	float  MOTOR_NTC_0;
 	float  MOTOR_NTC_1;
 	float  MOTOR_NTC_2;
 	float  Throttle;
@@ -301,6 +301,42 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 		} 										\
 		else if( hadc->Instance == ADC4 ) 		\
 		{										\
+			v->AdcInjGroup |= 0x08;				\
+		} 										\
+		else if( hadc->Instance == ADC5 ) 		\
+		{										\
+			v->AdcInjGroup |= 0x10;				\
+		}										\
+	}
+
+
+/* Brief this function ADC_HANDLE_INJECTION_GROUP_MACRO_E10.
+ * Add enabled ADC group in the flow control of "hadc->Instance"
+ * The index of v->AdcRawData.Inj[index] is the row number of AdcInjectionGroupTable started from 0.
+ * The x of hadc->Instance->JDRx is the ADC injection rank of the ADC group.
+ * */
+#define ADC_HANDLE_INJECTION_GROUP_MACRO_E10( v, hadc ) \
+	if( __HAL_ADC_GET_FLAG( hadc, ADC_FLAG_JEOS ) )	\
+	{												\
+/*		if( hadc->Instance == ADC1 ) 			\
+		{										\
+			v->AdcInjGroup |= 0x01;				\
+		} 										\
+		else if( hadc->Instance == ADC2 ) 	  */\
+		if( hadc->Instance == ADC2 ) 			\
+		{										\
+			v->AdcRawData.Inj[2].RawAdcValue = hadc->Instance->JDR1;	\
+			v->AdcInjGroup |= 0x02;				\
+		} 										\
+		else if( hadc->Instance == ADC3 ) 		\
+		{										\
+			v->AdcRawData.Inj[0].RawAdcValue = hadc->Instance->JDR1;	\
+			v->AdcRawData.Inj[6].RawAdcValue = hadc->Instance->JDR2;	\
+			v->AdcInjGroup |= 0x04;				\
+		} 										\
+		else if( hadc->Instance == ADC4 ) 		\
+		{										\
+			v->AdcRawData.Inj[1].RawAdcValue = hadc->Instance->JDR1;	\
 			v->AdcInjGroup |= 0x08;				\
 		} 										\
 		else if( hadc->Instance == ADC5 ) 		\
