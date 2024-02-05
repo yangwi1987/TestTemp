@@ -127,10 +127,12 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
 */
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
-        v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0;	//Motor
+        v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0;		//Motor0
         v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]; //MOS1
         v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//CAP
+        v->pCANTxInterface->NTCTemp[4] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor1
+        v->pCANTxInterface->NTCTemp[5] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor2
     }
 
     if( v->PcuPowerState == PWR_SM_INITIAL )

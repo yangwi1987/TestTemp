@@ -124,14 +124,13 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       }
 
       v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 0;
-      p->EscLogInfo0.MotorTemp = (uint8_t)(v->NTCTemp[0]+40);
+      p->EscLogInfo0.Motor0Temp = (uint8_t)(v->NTCTemp[0]+40);
       p->EscLogInfo0.EscMos1Temp = (uint8_t)(v->NTCTemp[1]+40);
       p->EscLogInfo0.EscMos2Temp = (uint8_t)(v->NTCTemp[2]+40);
       p->EscLogInfo0.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
-      p->EscLogInfo0.FoilPosition = v->FoilPos;
-//      p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
-      p->EscLogInfo0.FoilSensorVolt = (int8_t)(v->Debugf[IDX_FOIL_SENSOR_VOLT]*10.0f);
-      p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;
+      p->EscLogInfo0.Motor1Temp = (uint8_t)(v->NTCTemp[4]+40);
+      p->EscLogInfo0.Motor2Temp = (uint8_t)(v->NTCTemp[5]+40);
+      p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;  // todo modify to pedal ADC
       p->EscLogInfo0.ThrottleFinal = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_FINAL]);
       break;
     }
@@ -241,9 +240,6 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
-        p->EscLogInfo6.PwrLv = r->PowerLevel;
-        p->EscLogInfo6.RcConnStatus = r->RcConnStatus;
-
         /*todo: assign true value for signals*/
         i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_AC_POWER]);
         ByteOrderReverse((void*)&p->EscLogInfo6.AvgPwr , (void*)&i16Temp, 2);
@@ -253,6 +249,17 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
         /*todo: assign true value for signals*/
         u16Temp = (uint16_t)(v->Debugf[IDX_REMAIN_TIME]);
         ByteOrderReverse((void*)&p->EscLogInfo6.TimeRemain , (void*)&u16Temp, 2);
+
+        p->EscLogInfo6.KillSwitchDI = (uint8_t)HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port, Kill_Switch_DI_Pin);
+        p->EscLogInfo6.BoostDI = (uint8_t)HAL_GPIO_ReadPin(Boost_DI_GPIO_Port, Boost_DI_Pin);
+        p->EscLogInfo6.ReverseDI = (uint8_t)HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port, Reverse_DI_Pin);
+        p->EscLogInfo6.BrakeDI = (uint8_t)HAL_GPIO_ReadPin(Brake_DI_GPIO_Port, Brake_DI_Pin);
+        p->EscLogInfo6.RearLedFaultDI = (uint8_t)HAL_GPIO_ReadPin(Rear_Fault_DI_GPIO_Port, Rear_Fault_DI_Pin);
+        p->EscLogInfo6.FrontLedFaultDI = (uint8_t)HAL_GPIO_ReadPin(Front_Fault_DI_GPIO_Port, Front_Fault_DI_Pin);
+        p->EscLogInfo6.BufFbDI = (uint8_t)HAL_GPIO_ReadPin(BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin);
+        p->EscLogInfo6.ISenUFaultDI = (uint8_t)HAL_GPIO_ReadPin(ISEN_UFault_DI_GPIO_Port, ISEN_UFault_DI_Pin);
+        p->EscLogInfo6.ISenVFaultDI = (uint8_t)HAL_GPIO_ReadPin(ISEN_VFault_DI_GPIO_Port, ISEN_VFault_DI_Pin);
+        p->EscLogInfo6.ISenWFaultDI = (uint8_t)HAL_GPIO_ReadPin(ISEN_WFault_DI_GPIO_Port, ISEN_WFault_DI_Pin);
       }
       else
       {
