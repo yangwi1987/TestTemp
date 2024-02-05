@@ -178,7 +178,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_MOTOR_0_NTC_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.MOTOR_NTC * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.MOTOR_NTC_0 * 10.0f );
 		break;
 
 	case DN_PCU_NTC_0_TEMP:
@@ -794,7 +794,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC008_Motor_Temperature                        :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC_0 );
         	break;
         }
         case DID_0xC009_Motor_Temperature_Minimum                :
@@ -1422,7 +1422,7 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100.0f;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC_0;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC];
@@ -2419,7 +2419,7 @@ void drive_Do100HzLoop(void)
 	static uint8_t IsNotFirstLoop = 0;
 	int i;
 	AdcStation1.Do100HzLoop( &AdcStation1 );
-	Axis[0].MotorControl.Sensorless.EEMF.WindingTemp = AdcStation1.AdcTraOut.MOTOR_NTC;
+	//Axis[0].MotorControl.Sensorless.EEMF.WindingTemp = AdcStation1.AdcTraOut.MOTOR_NTC_0;
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
 		Axis[i].Do100HzLoop(&Axis[i]);
@@ -2452,9 +2452,9 @@ void drive_Do100HzLoop(void)
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
-	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC_0);
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.MOTOR_NTC);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.MOTOR_NTC_0);
 
 	    IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec = MAX2( IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec, Axis[0].MotorControl.Sensorless.EEMF.Res );
 

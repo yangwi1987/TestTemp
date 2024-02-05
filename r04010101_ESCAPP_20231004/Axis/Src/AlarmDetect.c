@@ -302,8 +302,8 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 		}
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOTOR_NTC_0_A0) ) == 0 )
 		{
-			AlarmDetect_Accumulation( v, &v->OTP_Motor_0, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC );
-			AlarmDetect_Accumulation( v, &v->OTP_Motor_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC );
+			AlarmDetect_Accumulation( v, &v->OTP_Motor_0, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0 );
+			AlarmDetect_Accumulation( v, &v->OTP_Motor_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0 );
 		}
 		AlarmDetect_Accumulation( v, &v->CAN1Timeout, 1 );
 	}

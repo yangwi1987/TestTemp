@@ -73,7 +73,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
-				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_1,				RANK_1			},
+				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_1,				RANK_1	},
 				{MOTOR_NTC_1_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,	    ADC_2,		        RANK_2	},
 				{MOTOR_NTC_2_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,	    ADC_2,		        RANK_3	},
 				// Axis - 1 Thermal

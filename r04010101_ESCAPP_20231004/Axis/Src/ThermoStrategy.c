@@ -56,7 +56,7 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 	v->TempNow[MOS_NTC_1] = &(pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]);
 	v->TempNow[MOS_NTC_2] = &(pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]);
 	v->TempNow[CAP_NTC] = &(pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]);
-	v->TempNow[MOTOR_NTC_0_A0] = &(pAdcStation->AdcTraOut.MOTOR_NTC);
+	v->TempNow[MOTOR_NTC_0_A0] = &(pAdcStation->AdcTraOut.MOTOR_NTC_0);
 
 }
 

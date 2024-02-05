@@ -355,7 +355,7 @@ void AdcStation_Do100HzLoop( AdcStation *v )
 	v->ThermoTraIndex = CAP_NTC;
 	v->AdcTraOut.PCU_NTC[CAP_NTC] = AdcStation_DoThermoTransition(v);
 	v->ThermoTraIndex = MOTOR_NTC_0_A0;
-	v->AdcTraOut.MOTOR_NTC = AdcStation_DoThermoTransition(v);
+	v->AdcTraOut.MOTOR_NTC_0 = AdcStation_DoThermoTransition(v);
 	v->ThermoTraIndex = MOTOR_NTC_1_A0;
 	v->AdcTraOut.MOTOR_NTC_1 = AdcStation_DoThermoTransition(v);
 	v->ThermoTraIndex = MOTOR_NTC_2_A0;
