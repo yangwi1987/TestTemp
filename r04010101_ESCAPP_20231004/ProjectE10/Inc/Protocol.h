@@ -223,8 +223,8 @@ typedef struct
   int16_t VdCmdI16;         /* unit: 0.1V */
   int16_t VqCmdI16;         /* unit: 0.1V */
   int16_t PerformanceTqI16; /* unit: 0.1Nm */
-  uint8_t Byte06;           /* unused byte 06 */
-  uint8_t Byte07;           /* unused byte 07 */
+  uint8_t AccPedal1Volt;    /* unit: 0.02V */
+  uint8_t EA5V;             /* unit: 0.02V */
 } CanTxMsg_EscLogInfo4_t;
 
 typedef struct

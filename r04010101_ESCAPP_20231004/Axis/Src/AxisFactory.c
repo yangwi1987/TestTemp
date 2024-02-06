@@ -182,8 +182,10 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_VQ_CMD] = v->MotorControl.VoltCmd.VqCmd;
         v->pCANTxInterface->Debugf[IDX_MOTOR_RPM] = v->SpeedInfo.MotorMechSpeedRPM;
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] = v->pAdcStation->AdcTraOut.Throttle;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL] = v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_ACC_PEDAL1_VOLT] = v->pAdcStation->AdcTraOut.Pedal_V1;
+        v->pCANTxInterface->Debugf[IDX_EA5V] = v->pAdcStation->AdcTraOut.EA5V;
         v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
         v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
 

@@ -334,6 +334,8 @@ typedef enum DebugFloatIdx_e
   IDX_INSTANT_AC_POWER,
   IDX_AVERAGE_AC_POWER,
   IDX_REMAIN_TIME,
+  IDX_ACC_PEDAL1_VOLT,
+  IDX_EA5V,
 
   IDC_DEBUG_FLOAT_MAX = 24, /* no more than this value*/
 } DebugFloatIdx_t;

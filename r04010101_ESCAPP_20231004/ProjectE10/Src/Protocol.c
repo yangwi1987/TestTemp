@@ -130,7 +130,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       p->EscLogInfo0.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
       p->EscLogInfo0.Motor1Temp = (uint8_t)(v->NTCTemp[4]+40);
       p->EscLogInfo0.Motor2Temp = (uint8_t)(v->NTCTemp[5]+40);
-      p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;  // todo modify to pedal ADC
+      p->EscLogInfo0.ThrottleRaw = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_RAW]);
       p->EscLogInfo0.ThrottleFinal = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_FINAL]);
       break;
     }
@@ -217,6 +217,9 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
 
         i16Temp = (int16_t)(v->Debugf[IDX_PERFROMANCE_TQ]*10.0f);
         ByteOrderReverse((void*)&p->EscLogInfo4.PerformanceTqI16 , (void*)&i16Temp, 2);
+
+        p->EscLogInfo4.AccPedal1Volt = (uint8_t)( 50.0f * v->Debugf[IDX_ACC_PEDAL1_VOLT]);
+        p->EscLogInfo4.EA5V = (uint8_t)( 50.0f * v->Debugf[IDX_EA5V]);
       }
       else
       {
