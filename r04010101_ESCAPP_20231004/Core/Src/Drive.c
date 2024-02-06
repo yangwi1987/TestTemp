@@ -1840,13 +1840,13 @@ void Drive_VehicleStateMachine( void )
       {
         EnterVehicleStandbyState();
       }
+			else if( ESCMainState == ESC_OP_WARNING)
+      {
+        EnterVehicleWarningState();
+      }
       else if( ESCMainState == ESC_OP_LIMPHOME)
       {
         EnterVehicleLimpHomeState();
-      }
-      else if( ESCMainState == ESC_OP_WARNING)
-      {
-        EnterVehicleWarningState();
       }
       else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
       {
@@ -1871,7 +1871,7 @@ void Drive_VehicleStateMachine( void )
         if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
             (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
             (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
-            (ABS(Axis[0].SpeedInfo.MotorMechSpeedRPM) < 100.0))
+            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
         {
           DualBtnTimeCnt ++;
 
@@ -1923,7 +1923,7 @@ void Drive_VehicleStateMachine( void )
         if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
             (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
             (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
-            (ABS(Axis[0].SpeedInfo.MotorMechSpeedRPM) < 100.0))
+            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
         {
           DualBtnTimeCnt ++;
 
