@@ -89,25 +89,25 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	0, 		Reserved7},	// 69
 	{0, 	1, 		5},	        // 70 FN_OPEN_POSITION_CMD_ENABLE
 	{0, 	62832, 		5},	    // 71 FN_OPEN_POSITION_CMD
-	{27768, 	37768, 		5},	// 72 FN_CURRENT_ID_CMD
-	{27768, 	37768, 		5},	// 73 FN_CURRENT_IQ_CMD
+	{27768, 37768, 		5},	// 72 FN_CURRENT_ID_CMD
+	{27768, 37768, 		5},	// 73 FN_CURRENT_IQ_CMD
 	{0, 	5000, 		5},	// 74 FN_CURRENT_IS_CMD
-	{0, 	62832, 		5},	    // 75 FN_CURRENT_THETA_CMD
+	{0, 	62832, 		5},	// 75 FN_CURRENT_THETA_CMD
 	{0, 	10000, 		5},	// 76 FN_PWM_U_CMD
 	{0, 	10000, 		5},	// 77 FN_PWM_V_CMD
 	{0, 	10000, 		5},	// 78 FN_PWM_W_CMD
 	{0, 	3, 		5},	// 79 FN_PWM_Mode
-	{0, 	0, 		5},	// 80
-	{0, 	1, 		6},			// 81-MC TEST MODE SETUP
-	{0, 	65535, 	6}, 		// 82-FN_MOTOR_CTRL_FUN_SEL1
-	{0, 	65535, 	6}, 		// 83-FN_MOTOR_CTRL_FUN_SEL2
-	{0, 	10, 	6}, 		// 84-FN_MOTOR_CTRL_PER_UINT_ITEM
-	{0, 	32000, 	6}, 		// 85-FN_MOTOR_CTRL_PER_UINT_RANGE
-	{0, 	65535, 	6}, 		// 86-FN_IDQ_CMD_ID
-	{0, 	65535, 	6}, 		// 87-FN_IDQ_CMD_IQ
-	{0, 	65535, 	6}, 		// 88-FN_IDQ_CMD_SYNC
-	{1, 	10, 	6},			// 89-FN_POWER_LEVEL
-	{0, 	65535, 	5},			// 90
+	{0, 	0, 		Reserved7},	// 80
+	{0, 	0, 		Reserved7},	// 81
+	{0, 	0, 		Reserved7}, // 82
+	{0, 	0, 		Reserved7}, // 83
+	{0, 	0, 		Reserved7}, // 84
+	{0, 	0, 		Reserved7}, // 85
+	{0, 	0, 		Reserved7}, // 86
+	{0, 	0, 		Reserved7}, // 87
+	{0, 	0, 		Reserved7}, // 88
+	{0, 	0, 		Reserved7},	// 89
+	{0, 	0, 		Reserved7},	// 90
 	{0, 	0, 		Reserved7},	// 91
 	{0, 	0, 		Reserved7},	// 92
 	{0, 	0, 		Reserved7},	// 93
