@@ -16,6 +16,7 @@
 #include "SmoothCurveChange.h"
 #include "filter.h"
 #include "ParamMgr.h"
+#include "GearMode.h"
 
 #define ONE_PERCENT	1
 #define PLC_LOOP_TS 0.001f
@@ -25,6 +26,8 @@ enum FOUR_QUAD_STATE {
 	FourQuadState_None = 0,
 	FourQuadState_Driving_I = 1,
 	FourQuadState_BackRoll_II = 2,
+	FourQuadState_Reverse_III = 3,
+	FourQuadState_Regen_IV = 4
 };
 
 typedef void ( *functypeFourQuadControl_Init )( void * );
@@ -57,18 +60,11 @@ typedef struct {
 	float DCDrainLimit;
 	float DrainRisingRamp;
 	float DrainFallingRamp;
-	float DrivePowerLevelTarget;
-	float DrivePowerLevelGain;
 	float DrivePowerCmd;
 	float Throttle;
-	float DrivePowerLevelRampUp;
-	float DrivePowerLevelRampDown;
-	float DrivePowerLevelRampUpParamA[DRIVE_TABLE_LENGTH];
-	float DrivePowerLevelRampUpParamB[DRIVE_TABLE_LENGTH];
-	float DrivePowerLevelRampDownParamA[DRIVE_TABLE_LENGTH];
-	float DrivePowerLevelRampDownParamB[DRIVE_TABLE_LENGTH];
 	BACK_ROLL_TABLE_TYPE BackRollTable;
 	DRIVE_TABLE_TYPE DriveCurve[DRIVE_TABLE_LENGTH];
+	GearModeSel_e DriveGearModeSelect;
 	functypeFourQuadControl_Init Init;
 	functypeFourQuadControl_Switch Switch;
 	functypeFourQuadControl_Calc Calc;
@@ -106,18 +102,11 @@ float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCu
     0.0f,      /* DCDrainLimit;                                     */\
     0.0f,      /* DrainRisingRamp;                                  */\
     0.0f,      /* DrainFallingRamp;                                 */\
-    0.0f,      /* DrivePowerLevelTarget;                            */\
-    0.0f,      /* DrivePowerLevelGain;                              */\
     0.0f,      /* DrivePowerCmd;                                    */\
     0.0f,      /* Throttle;                                         */\
-    0.0f,      /* DrivePowerLevelRampUp;                            */\
-    0.0f,      /* DrivePowerLevelRampDown;                          */\
-    {0.0f},    /* DrivePowerLevelRampUpParamA[DRIVE_TABLE_LENGTH];  */\
-    {0.0f},    /* DrivePowerLevelRampUpParamB[DRIVE_TABLE_LENGTH];  */\
-    {0.0f},    /* DrivePowerLevelRampDownParamA[DRIVE_TABLE_LENGTH];*/\
-    {0.0f},    /* DrivePowerLevelRampDownParamB[DRIVE_TABLE_LENGTH];*/\
 	BACK_ROLL_TABLE_DEFAULT, \
 	{DRIVE_TABLE_DEFAULT}, \
+	NORMAL_MODE,\
 	(functypeFourQuadControl_Init)FourQuadControl_Init, \
 	(functypeFourQuadControl_Switch)FourQuadControl_Switch, \
 	(functypeFourQuadControl_Calc)FourQuadControl_Calc, \

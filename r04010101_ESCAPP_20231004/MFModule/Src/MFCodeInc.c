@@ -75,8 +75,8 @@ void MFFunc_RootMeanSquare( MFStation *p, uint16_t Authority )
 
 void MFFunc_GpioReadInformation( MFStation *p)
 {
-	p->MFGpioInfo.Bits.DI1 = HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
-	p->MFGpioInfo.Bits.DI2 = HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin);
-	p->MFGpioInfo.Bits.DI3 = HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin);
-	p->MFGpioInfo.Bits.HWOCP_State 	= HAL_GPIO_ReadPin( HWOCP_GPIO_Port, HWOCP_Pin);
+//	p->MFGpioInfo.Bits.DI1 = HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
+//	p->MFGpioInfo.Bits.DI2 = HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin);
+//	p->MFGpioInfo.Bits.DI3 = HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin);
+//	p->MFGpioInfo.Bits.HWOCP_State 	= HAL_GPIO_ReadPin( HWOCP_GPIO_Port, HWOCP_Pin);
 }

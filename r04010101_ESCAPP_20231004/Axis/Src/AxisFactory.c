@@ -89,7 +89,6 @@ void AxisFactory_UpdateCANRxInterface( Axis_t *v )
         v->AlarmDetect.CAN1Timeout.Counter = 0;
     }
     v->pCANRxInterface->ReceivedCANID = 0;
-    v->FourQuadCtrl.DrivePowerLevelTarget = ((float)v->pCANRxInterface->PowerLevel) * 0.1f;
 }
 
 void AxisFactory_UpdateCANTxInterface( Axis_t *v )
@@ -128,10 +127,12 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
 */
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
-        v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC;	//Motor
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]; //CAP
+        v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0;		//Motor0
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]; //MOS2
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//CAP
+        v->pCANTxInterface->NTCTemp[4] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor1
+        v->pCANTxInterface->NTCTemp[5] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor2
     }
 
     if( v->PcuPowerState == PWR_SM_INITIAL )
@@ -181,13 +182,13 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_VQ_CMD] = v->MotorControl.VoltCmd.VqCmd;
         v->pCANTxInterface->Debugf[IDX_MOTOR_RPM] = v->SpeedInfo.MotorMechSpeedRPM;
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] =v->PwmRc.DutyRaw;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL]= v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] = v->pAdcStation->AdcTraOut.Throttle;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL] = v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_ACC_PEDAL1_VOLT] = v->pAdcStation->AdcTraOut.Pedal_V1;
+        v->pCANTxInterface->Debugf[IDX_EA5V] = v->pAdcStation->AdcTraOut.EA5V;
         v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
         v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-        v->pCANTxInterface->Debugf[IDX_FOIL_SENSOR_VOLT] = v->pAdcStation->AdcTraOut.Foil;
-#endif
+
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
         v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
@@ -258,10 +259,7 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
-                	if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
-                	{
-                		v->ServoOnOffState = MOTOR_STATE_ON;
-                	}
+                	v->ServoOnOffState = MOTOR_STATE_ON;
 
                     if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
                     {
@@ -422,9 +420,10 @@ void AxisFactory_GetScooterThrottle( Axis_t *v )
 void AxisFactory_GetScooterThrottle( Axis_t *v )
 {
     //Throttle detect code
+	//TODO: should refer break signal as well?
     v->ThrotMapping.ThrottleDI = ENABLE;
 
-    v->ThrotMapping.ThrottleRawIn = (float)(v->pCANRxInterface->ThrottleCmd)*0.01f;
+    v->ThrotMapping.ThrottleRawIn = v->pAdcStation->AdcTraOut.Throttle;
 
     v->ThrotMapping.ChangeTime = v->FourQuadCtrl.DriveChangeTime;
     v->ThrotMapping.Calc( &v->ThrotMapping );
@@ -563,16 +562,6 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 
     v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
 
-    // Init analog foil sensor boundary
-    v->AnalogFoilInfo.MaxSurf = v->pDriveParams->SystemParams.MaxAnaFoilSenSurf0p1V * 0.1f;
-    v->AnalogFoilInfo.MinSurf = v->pDriveParams->SystemParams.MinAnaFoilSenSurf0p1V * 0.1f;
-    v->AnalogFoilInfo.MaxFoil = v->pDriveParams->SystemParams.MaxAnaFoilSenFoil0p1V * 0.1f;
-    v->AnalogFoilInfo.MinFoil = v->pDriveParams->SystemParams.MinAnaFoilSenFoil0p1V * 0.1f;
-
-    //Load TimeToStopDriving_InPLCLoop, convert s to ms
-    v->DriveLockInfo.IsUseDriveLockFn = v->pDriveParams->PCUParams.DebugParam2;
-    v->DriveLockInfo.TimeToStopDriving_InPLCLoop = v->pDriveParams->SystemParams.SecTimeThresholdForDriveLock * 1000;
-    v->DriveLockInfo.RpmToStartCntDriveLock = v->pDriveParams->SystemParams.RpmToStartCntDriveLock;
 #if USE_HIGH_RESO_MOTOR_TABLE
     HiResoMotorTable_Init();
 #endif
@@ -626,53 +615,11 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     // Detect PLC loop signals and register alarm.
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
-    // Detect Digital Foil Position Sensor Read
-    v->FoilState.Bit.FOIL_DI2= HAL_GPIO_ReadPin( FOIL_DI2_GPIO_Port, FOIL_DI2_Pin );
-    v->FoilState.Bit.FOIL_DI3= HAL_GPIO_ReadPin( FOIL_DI3_GPIO_Port, FOIL_DI3_Pin );
-
-    // Detect foil sensor by different hardware setting
-    if(IsUseDigitalFoilSensor == 1) // use digitals foil sensor
-    {
-        if( v->FoilState.All== MAST_PADDLE )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-            v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-        else if( v->FoilState.All== MAST_SURF )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-            v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else if( v->FoilState.All== MAST_FOIL )
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_NONE;
-        }
-    }
-    else // use Analog foil sensor
-    {
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-        if( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinFoil ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxFoil  ) )  // Foil mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_FOIL;
-            v->pCANTxInterface->FoilPos = FOIL_POS_FOIL;
-        }
-        else if ( ( v->pAdcStation->AdcTraOut.Foil >= v->AnalogFoilInfo.MinSurf ) && ( v->pAdcStation->AdcTraOut.Foil <= v->AnalogFoilInfo.MaxSurf ) )	// Surf mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_SURF;
-        v->pCANTxInterface->FoilPos = FOIL_POS_SURF;
-        }
-        else	// PADDLE mode
-        {
-            v->pCANRxInterface->OutputModeCmd = DRIVE_PADDLE;
-        v->pCANTxInterface->FoilPos = FOIL_POS_PADDLE;
-        }
-#endif
-    }
+    //GearMode
+    //v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(???)
+    GearMode_DoPLCLoop( &v->GearModeVar );
+    v->FourQuadCtrl.DriveGearModeSelect = v->GearModeVar.GearModeSelect;
+    v->pCANRxInterface->OutputModeCmd = ( v->GearModeVar.GearModeSelect == NORMAL_MODE ) ? 1 : ( v->GearModeVar.GearModeSelect == BOOST_MODE ) ? 2 : 0;
 
     // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
     // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
@@ -680,7 +627,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     if( v->TriggerLimpHome == 1)
     {
         v->pCANRxInterface->OutputModeCmd = 0;
-        v->pCANRxInterface->PowerLevel = 10;
     }
     else
     {
@@ -756,15 +702,6 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
             v->MotorControl.TorqueToIdq.GetAllowFluxRec( &(v->MotorControl.TorqueToIdq), v->MotorControl.SensorFb.EleSpeed, \
                     v->MotorControl.SensorFb.Vbus, v->MotorControl.PwmDutyCmd.MaxDuty, &(v->MotorControl.SensorFb.AllowFluxRec), &(v->TorqCommandGenerator.AllowFluxRec) );
 
-            /*
-             * code below is to fix a motor reverse bug.
-             * We found if user pull the trigger before angle initial align complete, motor reverse may occur
-             * We thing the cause is in this condition, the throttle filter is bypassed, step torque command cause motor react too fast make sensorless failed.
-             * Solution is replace throttle command (after filter) as 0 before angle initial align complete, then the throttle filter can work well.
-             */
-
-            v->ThrotMapping.PercentageOut = v->MotorControl.Sensorless.AngleInit.Start == FUNCTION_NO ? v->ThrotMapping.PercentageOut : 0.0f;
-
             v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
             v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
             v->FourQuadCtrl.Throttle = v->ThrotMapping.PercentageOut;
@@ -807,47 +744,13 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     if( v->AlarmDetect.BufICEnable )
     {
-        HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_SET );		//Disable Buffer Enable
+        HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_SET );		//Disable Buffer Enable
     }
     else
     {
-        HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
+        HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );	//Enable  Buffer Enable
     }
 
-    //check Drive lock state.
-    if ( v->DriveLockInfo.IsUseDriveLockFn )
-    {
-        if ( v->DriveLockInfo.DriveStateFlag == Drive_Start_Flag )
-        {
-            if (( RCCommCtrl.pRxInterface->RcConnStatus <= RC_CONN_STATUS_RC_THROTTLE_LOCKED ) && ( v->SpeedInfo.MotorMechSpeedRPMAbs < (float)v->DriveLockInfo.RpmToStartCntDriveLock ))
-            {
-            	if ( v->DriveLockInfo.TimeToStopDriving_cnt >= v->DriveLockInfo.TimeToStopDriving_InPLCLoop )
-            	{
-            		v->DriveLockInfo.DriveStateFlag = Drive_Stop_Flag;
-            		v->DriveLockInfo.TimeToStopDriving_cnt = 0;
-            	}
-            	else
-            	{
-            		v->DriveLockInfo.TimeToStopDriving_cnt++;
-            	}
-            }
-            else
-            {
-            	v->DriveLockInfo.TimeToStopDriving_cnt = 0;
-            }
-        }
-        else
-        {
-        	if ( RCCommCtrl.pRxInterface->RcConnStatus > RC_CONN_STATUS_RC_THROTTLE_LOCKED )
-        	{
-        		v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
-        	}
-        }
-    }
-    else
-    {
-    	v->DriveLockInfo.DriveStateFlag = Drive_Start_Flag;
-    }
 }
 
 void AxisFactory_Do100HzLoop( Axis_t *v )

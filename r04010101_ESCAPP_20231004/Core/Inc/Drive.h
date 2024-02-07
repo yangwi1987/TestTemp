@@ -112,21 +112,15 @@ extern AlarmMgr_t AlarmMgr1;
 extern ExtranetCANStation_t ExtranetCANStation;
 extern PS_t PSStation1;
 
-extern FDCAN_HandleTypeDef hfdcan1;
 extern FDCAN_HandleTypeDef hfdcan2;
-extern TIM_HandleTypeDef htim6;
-extern TIM_HandleTypeDef htim7;
-extern TIM_HandleTypeDef htim16;
+extern TIM_HandleTypeDef htim6; // PLC loop
+extern TIM_HandleTypeDef htim7; // 100Hz loop
 extern DAC_HandleTypeDef hdac1;
 extern CORDIC_HandleTypeDef hcordic;
-extern UART_HandleTypeDef huart5;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim5;
-extern USART_HandleTypeDef husart2;
+extern TIM_HandleTypeDef htim3; // total time
+extern TIM_HandleTypeDef htim2; // QEP
 extern CRC_HandleTypeDef hcrc;
-//extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart3;
 
 extern uint8_t PCUStatus;
 

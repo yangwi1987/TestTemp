@@ -70,6 +70,21 @@ int32_t ParamMgr_ReadFnRegs( ParamMgr_t *v, uint16_t FN,uint8_t *pError );
 int32_t ParamMgr_WriteFnRegs( ParamMgr_t *v, uint16_t FN, uint32_t value,uint8_t *pError );
 extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float *Out );
 
+#if USE_INIT_HIGH_SESSION_AND_SRCURITY
+#define PARAM_MGR_DEFAULT { \
+	0, \
+	Session_0x60_SystemSupplierSpecific, /* Session */ \
+	Session_0x60_SystemSupplierSpecific, /* NextSession */ \
+	DEFAULT_SECURITY_LEVEL, /* Security */ \
+	0, /* pFlashParaReadEnableTable */ \
+	0, /* pParamTable */\
+	(functypeParamMgr_Init)ParamMgr_Init, \
+	0, \
+	(functypeParamMgr_ReadParam)ParamMgr_ReadParam, \
+	(functypeParamMgr_WriteParam)ParamMgr_WriteParam, \
+	(functypeParamMgr_ReadFnRegs)ParamMgr_ReadFnRegs, \
+	(functypeParamMgr_WriteFnRegs)ParamMgr_WriteFnRegs }
+#else
 #define PARAM_MGR_DEFAULT { \
 	0, \
 	Session_0x01_Default, /* Session */ \
@@ -83,5 +98,6 @@ extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float
 	(functypeParamMgr_WriteParam)ParamMgr_WriteParam, \
 	(functypeParamMgr_ReadFnRegs)ParamMgr_ReadFnRegs, \
 	(functypeParamMgr_WriteFnRegs)ParamMgr_WriteFnRegs }
+#endif
 
 #endif /* INC_PARAMMGR_H_ */

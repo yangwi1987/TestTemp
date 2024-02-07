@@ -863,10 +863,17 @@ void UdsServiceCtrl_DoPLC( NetWorkService_t *v )
 	{
 		if ( v->SessionCNT >= MF_SESSION_MAX_MS )
 		{
+#if USE_INIT_HIGH_SESSION_AND_SRCURITY
+			v->pParamMgr->NextSession = Session_0x60_SystemSupplierSpecific;
+		    v->SessionCNTEnable = 0;
+		    v->SessionCNT = 0;
+		    v->pSecurityCtrl->SecureLvNow = SECURITY_LEVEL_5;
+#else
 			v->pParamMgr->NextSession = Session_0x01_Default;
 		    v->SessionCNTEnable = 0;
 		    v->SessionCNT = 0;
 		    v->pSecurityCtrl->SecureLvNow = SECURITY_LEVEL_0;
+#endif
 		}
 		else
 		{

@@ -6,6 +6,7 @@
  */
 
 #include "UdsSecurityAccess.h"
+#include "ConstantParamAndUseFunction.h"
 
 //uint8_t keymul[2][8]= {
 //		{0x3D, 0x02, 0x83, 0xEE, 0xCB, 0xF4, 0x89, 0x71},
@@ -25,7 +26,13 @@ uint32_t SecurityAccessMask[8]= { 	0,		0x0920,		0x0920, 	0x0828,		0x0828,		0x082
 void UdsSecurityAccess_Init ( UdsSecurityAccessCtrl_t *p )
 {
 	p->SecureLvReq = 0;
-//	p->SecureLvNow = DEFAULT_SECURITY_LEVEL; // read from external flash
+
+
+#if USE_INIT_HIGH_SESSION_AND_SRCURITY
+	p->SecureLvNow = DEFAULT_SECURITY_LEVEL;
+#else
+	//	p->SecureLvNow = DEFAULT_SECURITY_LEVEL; // read from external flash
+#endif
 	p->SecureState = UDS_SECURE_STATE_IDLE;
 	p->SecureResult = UDS_SECURE_RESULT_IDLE;
 	p->Seed = 0;

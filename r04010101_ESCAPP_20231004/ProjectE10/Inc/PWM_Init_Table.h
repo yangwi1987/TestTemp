@@ -91,9 +91,9 @@ typedef struct {
 typedef struct{
 	TIM_TypeDef* GroupIdx;
 	TIM_HandleTypeDef *TimGroup;
-	uint16_t Channel1;
-	uint16_t Channel2;
-	uint16_t Channel3;
+	uint16_t ChannelU;
+	uint16_t ChannelV;
+	uint16_t ChannelW;
 	uint16_t PreScale;
 	uint16_t CounterMode;
 	uint16_t Period;
@@ -108,14 +108,14 @@ typedef struct{
 	uint16_t BreakSourceEanble :8;
 	uint16_t BreakSourcePriority;
 	uint16_t OCMode;
-	uint16_t InitDutyCntCh1st;
+	uint16_t InitDutyCntChU;
 	uint16_t OCPolarity;
 	uint16_t OCNPolarity;
 	uint16_t OCFastMode;
 	uint16_t OCIdleState;
 	uint16_t OCNIdleState;
-	uint16_t InitDutyCntCh2ed;
-	uint16_t InitDutyCntCh3rd;
+	uint16_t InitDutyCntChV;
+	uint16_t InitDutyCntChW;
 	uint16_t OffStateRunMode;
 	uint16_t OffStateIDLEMode;
 	uint16_t LockLevel;
@@ -135,12 +135,13 @@ typedef struct{
 #define PWM_TIM_INIT_PARA_DEFAULT { \
 	0, /*	GroupIdx			*/\
 	0, /*	TimGroup			*/\
-	0, /*	Channel1			*/\
-	0, /*	Channel2			*/\
-	0, /*	Channel3			*/\
+	0, /*	ChannelU			*/\
+	0, /*	ChannelV			*/\
+	0, /*	ChannelW			*/\
 	0, /*	PreScale			*/\
 	0, /*	CounterMode			*/\
 	0, /*	Period				*/\
+	0, /*	Division			*/\
 	0, /*	RcrPara				*/\
 	0, /*	AutoPreloadMode		*/\
 	0, /*	ClkSource			*/\
@@ -151,14 +152,14 @@ typedef struct{
 	0, /*	BreakSourceEanble	*/\
 	0, /*	BreakSourcePriority	*/\
 	0, /*	OCMode				*/\
-	(8500-1), /*	InitDutyCntCh1st	*/\
+	(8501), /*	InitDutyCntChU	*/\
 	0, /*	OCPolarity			*/\
 	0, /*	OCNPolarity			*/\
 	0, /*	OCFastMode			*/\
 	0, /*	OCIdleState			*/\
 	0, /*	OCNIdleState		*/\
-	(8500-1), /*	InitDutyCntCh2ed	*/\
-	(8500-1), /*	InitDutyCntCh3rd	*/\
+	(8501), /*	InitDutyCntChV	*/\
+	(8501), /*	InitDutyCntChW	*/\
 	0, /*	OffStateRunMode		*/\
 	0, /*	OffStateIDLEMode	*/\
 	0, /*	LockLevel			*/\

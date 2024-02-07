@@ -1,8 +1,8 @@
 /*
  * ADC_Init_Table.h
  *
- *  Created on: 2020年2月7日
- *      Author: MikeSFWen
+ *  Created on: 2024年2月1日
+ *      Author:
  */
 
 #if E10
@@ -18,7 +18,8 @@ extern ADC_HandleTypeDef hadc3;
 extern ADC_HandleTypeDef hadc4;
 extern ADC_HandleTypeDef hadc5;
 
-/* WARNING: DO NOT CHANGE THE ORDER*/
+/* WARNING: DO NOT CHANGE THE ORDE
+ * keep the same order as AdcInjectionGroupTable*/
 enum AdcInjGroupEnum {
 	ISE_U_A0 = 0,
 	ISE_V_A0,
@@ -31,27 +32,29 @@ enum AdcInjGroupEnum {
 	INJ_REVD_9
 };
 
-/* WARNING: DO NOT CHANGE THE ORDER*/
+/* WARNING: DO NOT CHANGE THE ORDER
+ * keep the same order as AdcRegularGroupTable*/
 enum AdcRegGroupEnum {
-	FOIL_AD = 0,
-	P13V_AD,
+	HW_ID2 = 0,
+	ES5V_FB,
 	HW_ID1,
-	HW_ID2,
-	REG_REVD_4,
-	REG_REVD_5,
-	REG_REVD_6,
-	REG_REVD_7,
-	REG_REVD_8,
+	E5V_FB,
+	EA5V_FB,
+	PREC_FB,
+	S13V8,
+	ACC_FB2,
+	ACC_FB1,
 	REG_REVD_9,
 	REG_REVD_10,
 	REG_REVD_11,
 	REG_REVD_12
 };
 
-/* WARNING: DO NOT CHANGE THE ORDER*/
+/* WARNING: DO NOT CHANGE THE ORDER,
+ * keep the same order as AdcThermoTable*/
 enum AdcThermoNameEnum {
-	MOS_NTC_CENTER = 0,
-	MOS_NTC_SIDE,
+	MOS_NTC_1 = 0,
+	MOS_NTC_2,
 	CAP_NTC,
 	PCU_NTC_3,
 	PCU_NTC_4,
@@ -100,7 +103,7 @@ enum AdcEnable {
 
 enum AdcThermoTableIdxEnum {
 	NO_TABLE = 0,
-	NTCS0603E3103,				// On board NTC
+	NTCG163JX103DT1S,			// On board NTC for MOS
 	GWX_LS103H20,				// Motor NTC
 	GWX_LS103H12,				// On board NTC for CAP
 };
@@ -118,13 +121,13 @@ enum AdcThermoTableIdxEnum {
 #define NTC_TYPE_NUMBER							3
 
 /* Gain AD to V */
-#define AD2VGAIN								( float )0.000805600f
-#define AC_CURR_GAIN							( float )0.181469727f
-#define DC_VOLT_GAIN							( float )0.019306152f
-#define V13V_GAIN								( float )0.004736328f
-#define FOIL_GAIN								( float )0.001220703f
-
-#define DEFAULT_GAIN							( float )1.0f
+#define ADC_THERMAL_GAIN						( float )0.000805664f 	// thermal ADC to 3.3V; 3.3/4096
+#define AC_CURR_GAIN							( float )-0.372265625f 	// motor phase current sensor
+#define DC_VOLT_GAIN							( float )0.019306152f 	// battery DC BUS, pre-charge input
+#define E5V_GAIN								( float )0.002416992f 	// sense 5V pins (E5V, EA5V, ES5V) but the max analog input value is 9.9V
+#define S13V8_GAIN								( float )0.004672852f 	// sense 13V analog input, but the max analog input value is 19.14V
+#define PEDAL_GAIN								( float )0.001220703f 	// pedal analog inputs, max analog input 5V
+#define DEFAULT_GAIN							( float )1.0f  			// HW ID1,2
 
 /* NTC Table Define */
 #define NTC_TYPE_CNT							4
