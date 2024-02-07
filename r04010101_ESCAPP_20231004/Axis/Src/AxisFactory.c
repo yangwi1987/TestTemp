@@ -122,26 +122,45 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
 	}
 
-    if( v->PcuPowerState == PWR_SM_INITIAL )
-    {
-        v->pCANTxInterface->InvState = PCU_STATE_INITIAL;
+// set BMS LED control in Drive_ESCOPVehicleStateMachine
+/*	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
+		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
+*/
+    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
+        v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0;		//Motor0
+        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]; //MOS1
+        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]; //MOS2
+        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//CAP
+        v->pCANTxInterface->NTCTemp[4] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor1
+        v->pCANTxInterface->NTCTemp[5] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor2
     }
-    else if( v->PcuPowerState == PWR_SM_POWER_ON )
-    {
-        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
-            v->pCANTxInterface->InvState = PCU_STATE_OUTPUT;
-        }else{
-            v->pCANTxInterface->InvState = PCU_STATE_STANDBY;
+
+//    if( v->PcuPowerState == PWR_SM_INITIAL )
+//    {
+//        v->pCANTxInterface->PcuStateReport = PCU_STATE_INITIAL;
+//    }
+//    else if( v->PcuPowerState == PWR_SM_POWER_ON )
+//    {
+//        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
+//            v->pCANTxInterface->PcuStateReport = PCU_STATE_OUTPUT;
+//        }else{
+//            v->pCANTxInterface->PcuStateReport = PCU_STATE_STANDBY;
+//        }
+//    }
+//    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
+//    {
+//        v->pCANTxInterface->PcuStateReport = PCU_STATE_POWER_OFF;
+//    }
+//    else
+//    {
+//        // undefined value, register error
+//        v->pCANTxInterface->PcuStateReport = PCU_STATE_ERROR;
+//    }
+
+    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
+        for(i=0;i<10;i++){
+            v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
         }
-    }
-    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
-    {
-        v->pCANTxInterface->InvState = PCU_STATE_POWER_OFF;
-    }
-    else 
-    {
-        // undefined value, register error
-        v->pCANTxInterface->InvState = PCU_STATE_ERROR;
     }
 
     v->pCANTxInterface->DeratingSrc = v->ThermoStrategy.ThermoDeratingSrc;
@@ -198,32 +217,7 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 
 static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 {
-    switch(v->PcuPowerState)
-    {
-        case PWR_SM_POWER_ON:
-        {
-        	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 0)
-            {
-        		v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            }
-        	else
-        	{
-        		v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-        	}
 
-            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-            break;
-        }
-        case PWR_SM_INITIAL :
-        case PWR_SM_POWER_OFF :
-        case PWR_SM_WAIT_FOR_RESET :
-        default :
-        {
-            v->AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            v->AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-            break;
-        }
-    }
 }
 
 // This function execute in current loop.

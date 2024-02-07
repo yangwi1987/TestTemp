@@ -96,15 +96,4 @@ void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int Ta
 
 void GlobalAlarmDetect_ConfigAlarmSystem( void )
 {
-	// Enable alarm registering mechanism when "entering" PWR_SM_POWER_ON
-	if( Axis[0].PcuPowerState == PWR_SM_POWER_ON )
-	{
-		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
-	}
-
-	// Disable alarm registering mechanism when "entering" PWR_SM_POWER_OFF
-	if( Axis[0].PcuPowerState == PWR_SM_POWER_OFF )
-	{
-		AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
-	}
 }

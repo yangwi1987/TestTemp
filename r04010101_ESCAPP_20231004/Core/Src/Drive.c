@@ -69,7 +69,8 @@ RemainingTime_t RemainingTime1 = REMAININGTIME_DEFAULT;
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
 ESC_OP_STATE_e ESCMainState = ESC_OP_INITIALIZING;
 VEHICLE_STATE_e VehicleMainState = VEHICLE_STATE_INITIALIZING;
-
+uint16_t DualBtnTimeCnt = 0;
+uint8_t ButtonReleasedFlags = 0;
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
@@ -1452,93 +1453,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 
 void Drive_PcuPowerStateMachine( void )
 {
-	switch( Axis[0].PcuPowerState )
-	{
-		case PWR_SM_INITIAL:
-
-			/* Wait for
-			 * 1. PCU initial state Ready flag is set and
-			 * 2. BMS report pre-charge completed */
-			if((IsPcuInitReady == PcuInitState_Ready)  &&
-			   (Axis[0].pCANRxInterface->BmsReportInfo.PrchSM == BMS_PRECHG_STATE_SUCCESSFUL))
-			{
-				Axis[0].PcuPowerState = PWR_SM_POWER_ON;
-			}
-			else if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
-			{
-				/* Receive shutdown request before battery complete pre-charge sequence */
-				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-
-				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
-				GlobalAlarmDetect_ConfigAlarmSystem();
-			}
-			break;
-
-		case PWR_SM_POWER_ON:
-
-			if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
-			{
-				/*Receive turn off command from user , transfer state to power off */ 
-				Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-				Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-				
-				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
-				GlobalAlarmDetect_ConfigAlarmSystem();
-			}
-			else
-			{
-				/* Check if ESC can start to output Power if
-				 * 1. Safety sensor is connected (Digital input = low = 0) and
-				 * 2. Receive correct Battery status from BMS via CAN and
-				 * 3. RC and RF is properly connected */
-
-				if(
-				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
-					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
-					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
-				   (Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0))
-
-				{
-					/* Output substate */
-					Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
-					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
-				}
-				else
-				{
-					/* Standby substate */
-					Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-				}
-			}
-			
-			break;
-
-		case PWR_SM_POWER_OFF:
-
-			/* Send shutdown command to BMS if shutdown request from BMS is received */
-			if(Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown)
-			{
-				Axis[0].pCANTxInterface->BmsCtrlCmd.ShutDownReq = ENABLE;
-			}
-
-			/*if SW reboot is requested ,change state to "PWR_SM_WAIT_FOR_RESET" here */
-
-			break;
-
-		case PWR_SM_WAIT_FOR_RESET:
-			// Do nothing and wait for JumpCtrlFunction.
-			break;
-
-		default:
-			// Abnormal PcuPowerState value, put PCU to "servo off" and "P shift", then go to "POWER OFF" state
-			Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-			Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-			Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-			break;
-
-	}
-
 	/*update ESCOperationState, Dealer_Test_Mode, Power_Off_ESC TBD*/
 	if( Axis[0].HasCriAlarm == ENABLE )
 	{
@@ -1726,11 +1640,30 @@ void Drive_ESCStateMachine( void )
 	}
 }
 
+
+void Inv_ServoOnReq()
+{
+  Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
+  Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
+  RCCommCtrl.pRxInterface->RcConnStatus = RC_CONN_STATUS_RC_THROTTLE_UNLOCKING;
+}
+
+void Inv_ServoOffReq()
+{
+  Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+  Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
+  RCCommCtrl.pRxInterface->RcConnStatus = RC_CONN_STATUS_RC_THROTTLE_LOCKED;
+}
+
 __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 {
 	// todo set RC alarm flag
 	// todo clear RC warning/limp flag
-	// todo set DC ramp?
+
+	/* put INV to servo off */
+  Inv_ServoOffReq();
+
+  VehicleMainState = VEHICLE_STATE_ALARM;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
@@ -1740,183 +1673,350 @@ __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
 	// todo set RC limp home flag;
 	// todo clear RC warning
 	// todo set DC ramp?
+  VehicleMainState = VEHICLE_STATE_LIMPHOME;  
 }
 
 __STATIC_FORCEINLINE void EnterVehicleWarningState( void )
 {
-	// todo set RC warning
-	// todo set DC ramp?
+
+  VehicleMainState = VEHICLE_STATE_WARNING;
 }
 
-__STATIC_FORCEINLINE void EnterVehicleNormalState( void )
+__STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 {
 	// set Axis trigger limp home flag
 	Axis[0].TriggerLimpHome = 0;
-	// todo clear RC warning/limp/alarm flag
+  
+	if(VehicleMainState == VEHICLE_STATE_STANDBY)
+	{
+		ButtonReleasedFlags = 0;
+	}
+
+	DualBtnTimeCnt = 0;
+
+	VehicleMainState = VEHICLE_STATE_DRIVE;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleIdleState( void )
+{
+  /* Enable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
+  VehicleMainState = VEHICLE_STATE_IDLE;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleStartupState( void )
+{
+  BatStation.PwrOnReq();
+  VehicleMainState = VEHICLE_STATE_STARTUP;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
 {
-	// set Axis trigger limp home flag
-	Axis[0].TriggerLimpHome = 0;
-	// todo clear RC warning/limp/alarm flag
+  // set Axis trigger limp home flag
+  Axis[0].TriggerLimpHome = 0;
+  DualBtnTimeCnt = 0;
+  
+  /* Enable CAN1 timeout detection */
+  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+  /* Enable UVP detection */
+  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+  /* Clear button release flags */
+  ButtonReleasedFlags = 0;
+  /* Put INV to servo-off */
+  Inv_ServoOffReq();
+
+  VehicleMainState = VEHICLE_STATE_STANDBY;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
+{
+
+  /* Disable CAN1 timeout detection */
+  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+
+  /* Disable UVP detection */
+  /* Note : the INV level Alarm detection control should be applied by INV station
+    but not in vehicle station, this is a short-term solution before we have a 
+    individual INV control module
+   */
+  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+
+  /* Request BMS to turn off battery */
+  BatStation.PwrOffReq();
+  
+  VehicleMainState = VEHICLE_STATE_SHUTDOWN;
+}
+
+__STATIC_FORCEINLINE void EnterVehiclePowerOffState( void )
+{
+  /* Disable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
+  
+  VehicleMainState = VEHICLE_STATE_POWER_OFF;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleInitialState( void )
+{
+  /* Disable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
+  BootAppTrig = BOOT_ENA;
+  ESCMainState = ESC_OP_INITIALIZING;
+  VehicleMainState = VEHICLE_STATE_INITIALIZING;
+  /* Disable CAN1 timeout detection */
+  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+  /* Disable UVP detection */
+  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Drive_VehicleStateMachine( void )
 {
-	switch( VehicleMainState )
-	{
-		case VEHICLE_STATE_INITIALIZING:
+  switch( VehicleMainState )
+  {
+    case VEHICLE_STATE_INITIALIZING:
 
-			// normal transition
-			if( ESCMainState == ESC_OP_STANDBY /* todo BMS precharge finish*/)
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
+      // normal transition
+      if( ESCMainState == ESC_OP_STANDBY )
+      {
+        EnterVehicleIdleState();
+      }
 
-			// action
-			// do CAN and RC initial communication at drive_Init
-			break;
+      // action
 
-		case VEHICLE_STATE_STANDBY:
+      break;
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
-			{
-				EnterVehicleWarningState();
-				VehicleMainState = VEHICLE_STATE_WARNING;
-			}
+    case VEHICLE_STATE_IDLE:
+    
+      /* waiting for killing switch to transfer to startup state */
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
+      {
+        EnterVehicleStartupState();
+      }
 
-			// normal transitions
-			else if( ESCMainState == ESC_OP_NORMAL )
-			{
-				EnterVehicleNormalState();
-				VehicleMainState = VEHICLE_STATE_NORMAL;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do CAN and RC communication at drive_DoPLC
-				// no motor power output
-			}
-			break;
+      break;
 
-		case VEHICLE_STATE_NORMAL:
+    case VEHICLE_STATE_STARTUP:
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
-			{
-				EnterVehicleWarningState();
-				VehicleMainState = VEHICLE_STATE_WARNING;
-			}
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      {
+          EnterVehicleShutdownState();
+      }
+      else
+      {
+        switch (BatStation.MainSMGet())
+        {
+          case BAT_MAIN_ACTIVATED:
+            EnterVehicleStandbyState();
+            break;
 
-			// normal transitions
-			else if( ESCMainState == ESC_OP_STANDBY )
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// allow full power output depending on driving mode
-			}
-			break;
+          default:
+            break;
+        }
+      }
 
-		case VEHICLE_STATE_WARNING:
+      break;
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			// recovery paths
-			else if( ESCMainState == ESC_OP_NORMAL && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
-			{
-				EnterVehicleNormalState();
-				VehicleMainState = VEHICLE_STATE_NORMAL;
-			}
-			else if( ESCMainState == ESC_OP_STANDBY && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-			}
-			break;
+    case VEHICLE_STATE_STANDBY:
 
-		case VEHICLE_STATE_LIMPHOME:
+      // error situation
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      { 
+        EnterVehicleShutdownState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-				// have triggered limp home while entering limp home state, and limited max power.
-			}
-			break;
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
 
-		case VEHICLE_STATE_ALARM:
+      }
+      else
+      {
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ))
+        {
+          DualBtnTimeCnt ++;
 
-			// error situation
-			if( ESCMainState != ESC_OP_ALARM && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-				// if previous state is limphome, then keep TriggerLimpHome flag, or follow the DC limit rule.
-				// if ESC is ESCOP_Alarm, then vehicle have been servo off.
-			}
-			break;
+          if(DualBtnTimeCnt > 100)
+          {
+          	EnterVehicleDriveState();
+          }
+        }
+        else
+        {
+          DualBtnTimeCnt = 0;
+        }
 
-		// abnormal PcuPowerState value
-		case VEHICLE_STATE_POWER_OFF:
-		default:
-			break;
+      }
 
-	}
+      break;
+
+    case VEHICLE_STATE_DRIVE:
+
+      // error situation
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM )
+      {
+        EnterVehicleAlarmState();
+      }
+	  else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+			else if( ESCMainState == ESC_OP_WARNING)
+      {
+        EnterVehicleWarningState();
+      }
+      else if( ESCMainState == ESC_OP_LIMPHOME)
+      {
+        EnterVehicleLimpHomeState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
+
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
+
+        if(ButtonReleasedFlags == VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)
+        {
+      		/* Put INV to servo on */
+      		Inv_ServoOnReq();
+        }
+      }
+      else
+      { 
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
+            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
+        {
+          DualBtnTimeCnt ++;
+
+          if(DualBtnTimeCnt > 300)
+          {
+            EnterVehicleStandbyState();
+          }
+        }
+        else
+        {
+        	DualBtnTimeCnt = 0;
+        }
+      }
+      break;
+
+    case VEHICLE_STATE_WARNING:
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)	// error situation
+      {
+        EnterVehicleAlarmState();
+      }
+	    else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+      else if( ESCMainState == ESC_OP_NORMAL )
+      {
+        EnterVehicleDriveState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
+
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
+
+        if(ButtonReleasedFlags == VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)
+        {
+      		/* Put INV to servo on */
+      		Inv_ServoOnReq();
+        }
+      }
+      else
+      { 
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
+            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
+        {
+          DualBtnTimeCnt ++;
+
+          if(DualBtnTimeCnt > 300)
+          {
+            EnterVehicleStandbyState();
+          }
+        }
+        else
+        {
+        	DualBtnTimeCnt = 0;
+        }
+      }
+      break;
+
+    case VEHICLE_STATE_LIMPHOME:
+      /* for E10-P0, Transfer to warning state directly */
+      EnterVehicleWarningState();
+      break;
+
+    case VEHICLE_STATE_ALARM:
+
+      // error situation
+      if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+          EnterVehicleShutdownState();
+      }
+      break;
+
+    case VEHICLE_STATE_SHUTDOWN:
+      
+      /* check if shutdown process is completed*/
+      if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
+      {
+    	  EnterVehicleStartupState();
+      }
+      else if((Bat_MainSMGet() == BAT_MAIN_SM_IDLE) || (Bat_MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleInitialState();
+      }
+
+      break; 
+
+    case VEHICLE_STATE_POWER_OFF:
+    default:
+      break;
+
+  }
+
+  Axis[0].pCANTxInterface->PcuStateReport = VehicleMainState;
+  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_L] = (uint8_t)(DualBtnTimeCnt & 0x00FF);
+  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_H] = DualBtnTimeCnt >> 8;
+  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_FLAG] =ButtonReleasedFlags;
 }
 
 void HAL_TIM_Base_Start_TOTAL_TIME( TIM_HandleTypeDef *htim )
@@ -1986,7 +2086,7 @@ void drive_Init(void)
 	else
 	{
 		// Buffer IC Error State
-		Axis[0].AlarmDetect.BufICEnable = PULL_HIGH;
+		Axis[0].AlarmDetect.BufICEnable  = PULL_HIGH;
 	}
 
 	// Init Pwm Station
@@ -2801,6 +2901,7 @@ void JumpCtrlFunction( void )
 	{
 		if( ( Axis[0].ServoOn == MOTOR_STATE_OFF ) )
 		{
+			BootAppTrig = BOOT_DIS;
 			HAL_Delay(5);
 			JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 		}
@@ -2821,12 +2922,6 @@ void JumpCtrlFunction( void )
 			JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 		}
 	}
-	else if( (Axis[0].PcuPowerState == PWR_SM_WAIT_FOR_RESET) && \
-			 (Axis[0].ServoOn == MOTOR_STATE_OFF) )
-	{
-		HAL_Delay(100);
-		 JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
-	 }
 	else;
 
 	if (( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || ( IntranetCANStation.ECUSoftResetEnable == 1 ))
