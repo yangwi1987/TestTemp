@@ -603,7 +603,7 @@ void ExtFlash_ReadCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibratio
 {
 	uint32_t i;
 	uint8_t TempCheckSum = 0;
-	uint32_t ReadyOffest = FLASH_QW_SIZE * 8 - 2;
+	uint32_t ReadyOffest = FLASH_8QW_SIZE - 2;
 
 	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
 	{

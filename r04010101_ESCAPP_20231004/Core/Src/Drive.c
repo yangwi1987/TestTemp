@@ -2660,16 +2660,26 @@ void drive_DoHouseKeeping(void)
 
 	ExtFlash1.ParamBackupRequest = DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE];
 
-	if( ( ExtFlash1.ParamBackupRequest == Target_EFlash ) && ( Axis[0].ServoOn == 0 ) )
+	if( Axis[0].ServoOn == 0 )
 	{
-		// Param Backup
-		ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
+		if( ExtFlash1.ParamBackupRequest == Target_EFlash )
+		{
+			// Param Backup
+			ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
 
-		// Current Calibration Backup
-		ExtFlash1.Curr_Calib_Store.CurrentCalibrationBackup( &ExtFlash1, &DriveParams );
+			ExtFlash1.ParamBackupRequest = 0;
+			DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
+		}
+		else if( DriveFnRegs[FN_ORIGIN_PARAM_BACKUP - FN_BASE] )
+		{
+			// Param Backup
+			ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
 
-		ExtFlash1.ParamBackupRequest = 0;
-		DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
+			// Backup Current Calibration to another section of external flash
+			ExtFlash1.Curr_Calib_Store.CurrentCalibrationBackup( &ExtFlash1, &DriveParams );
+
+			DriveFnRegs[FN_ORIGIN_PARAM_BACKUP - FN_BASE] = 0;
+		}
 	}
 
 	Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam10 );
