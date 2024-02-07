@@ -995,7 +995,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC02E_Power_Level                          :
         {
-        	uint8_t tempPowerLevel = Axis[0].pCANRxInterface->PowerLevel;
+        	uint8_t tempPowerLevel = 0;//Axis[0].pCANRxInterface->PowerLevel;
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1091,7 +1091,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC037_RC_connetion_status                      :
         {
-        	UdsDIDRCConnectionStatus_e tempRCConnct = Axis[0].pCANRxInterface->RcConnStatus;
+        	UdsDIDRCConnectionStatus_e tempRCConnct = 0;//Axis[0].pCANRxInterface->RcConnStatus;
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1437,7 +1437,7 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 			                                                             ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_MOTOR_0 ) ? NTC_Short : NTC_Normal );
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Sensorless_State = Axis[0].MotorControl.Sensorless.SensorlessState;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Operation_State = Axis[0].ESCOperationState;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status = Axis[0].pCANRxInterface->RcConnStatus;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.RC_Connection_Status = Axis[0].pCANRxInterface->RcConnStatus;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.BMS_Status_Read_By_ESC
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Session_Time = TotalTime1.LocalThisTime * 3;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Vehicle_Hour = TotalTime1.LocalTotalTime * 3;
@@ -1582,19 +1582,19 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 1 ) // normal transitions
@@ -1616,19 +1616,19 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 0 ) // normal transitions
@@ -1650,13 +1650,13 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 
@@ -1687,7 +1687,7 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_ALARM;
 			}
 			else
@@ -1709,7 +1709,7 @@ void Drive_ESCStateMachine( void )
 			if( Axis[0].HasCriAlarm == 0 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_ESC_ERROR;
+				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				ESCMainState = ESC_OP_LIMPHOME;
 			}
 			else
