@@ -33,7 +33,7 @@ const CANProtocol ExtranetInformInSystemTableExample =
 /*
  * "LscCanIdTableExtra" will be stored in system table bin
  */
-const CanIdConfig_t LscCanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
+const CanIdConfig_t CanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
 {
   //	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
   {CANRXID_BMS_STATUS_01,	CANRXID_BMS_STATUS_02,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
@@ -176,7 +176,7 @@ uint8_t BME060CAN_TxDataTranslate( uint32_t pIdIn, uint8_t *pDataIn, STRUCT_CANT
       p->EscLogInfo0.EscMos2Temp = (uint8_t)(v->NTCTemp[2]+40);
       p->EscLogInfo0.EscCapTemp = (uint8_t)(v->NTCTemp[3]+40);
       p->EscLogInfo0.FoilPosition = v->FoilPos;
-      p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
+ //     p->EscLogInfo0.TetherSensor = (uint8_t)HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
       p->EscLogInfo0.FoilSensorVolt = (int8_t)(v->Debugf[IDX_FOIL_SENSOR_VOLT]*10.0f);
       p->EscLogInfo0.ThrottleRaw = r->ThrottleCmd;
       p->EscLogInfo0.ThrottleFinal = (uint8_t)( 100.0f * v->Debugf[IDX_THROTTLE_FINAL]);

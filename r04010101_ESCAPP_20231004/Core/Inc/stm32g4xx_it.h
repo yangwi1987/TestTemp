@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2024 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
  ******************************************************************************
   */
@@ -24,7 +23,7 @@
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -62,17 +61,17 @@ void DMA1_Channel3_IRQHandler(void);
 void DMA1_Channel4_IRQHandler(void);
 void DMA1_Channel5_IRQHandler(void);
 void ADC1_2_IRQHandler(void);
-void FDCAN1_IT0_IRQHandler(void);
-void FDCAN1_IT1_IRQHandler(void);
-void USART2_IRQHandler(void);
-void TIM2_IRQHandler(void);
-void TIM5_IRQHandler(void);
+void TIM3_IRQHandler(void);
+void TIM8_BRK_IRQHandler(void);
+void TIM8_UP_IRQHandler(void);
+void ADC3_IRQHandler(void);
 void TIM7_DAC_IRQHandler(void);
-void TIM20_BRK_IRQHandler(void);
-void TIM20_UP_IRQHandler(void);
+void ADC4_IRQHandler(void);
+void TIM20_CC_IRQHandler(void);
 void FDCAN2_IT0_IRQHandler(void);
 void FDCAN2_IT1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
+
 /* USER CODE END EFP */
 
 #ifdef __cplusplus
@@ -80,5 +79,3 @@ void FDCAN2_IT1_IRQHandler(void);
 #endif
 
 #endif /* __STM32G4xx_IT_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

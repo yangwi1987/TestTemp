@@ -274,7 +274,7 @@ float AdcStation_DoThermoTransition( AdcStation *v )
 	float Item2nd = 0.0f;
 	float Item1st = 0.0f;
 
-	float RawVoltage = v->ThermoADCCatchValue[v->ThermoTraIndex] * AD2VGAIN;
+	float RawVoltage = v->ThermoADCCatchValue[v->ThermoTraIndex] * ADC_THERMAL_GAIN;
 
 	Item1st = RawVoltage;
 	Item2nd = Item1st * Item1st;
@@ -309,34 +309,57 @@ void AdcStation_DoNTCBreakReplaceStrategy( NTC_BREAK_REPLACE_t *v, uint16_t NTCI
 void AdcStation_DoPLCLoop( AdcStation *v )
 {
 	AdcStation_ZeroCalibRegularGroup(v);
-#if USE_ANALOG_FOIL_SENSOR_FUNC
-	v->AdcTraOut.Foil 	  = (float)v->RegCh[FOIL_AD].GainValue * (v->AdcDmaData[v->RegCh[FOIL_AD].AdcGroupIndex][v->RegCh[FOIL_AD].AdcRankIndex]);
-#endif
-	v->AdcTraOut.V13 	  = (float)v->RegCh[P13V_AD].GainValue * (v->AdcDmaData[v->RegCh[P13V_AD].AdcGroupIndex][v->RegCh[P13V_AD].AdcRankIndex]);
+	v->AdcTraOut.Pedal_V1    = (float)v->RegCh[ACC_FB1].GainValue  * (v->AdcDmaData[v->RegCh[ACC_FB1].AdcGroupIndex][v->RegCh[ACC_FB1].AdcRankIndex]);
+	v->AdcTraOut.Pedal_V2    = (float)v->RegCh[ACC_FB2].GainValue  * (v->AdcDmaData[v->RegCh[ACC_FB2].AdcGroupIndex][v->RegCh[ACC_FB2].AdcRankIndex]);
+	v->AdcTraOut.S13V8    = (float)v->RegCh[S13V8].GainValue  * (v->AdcDmaData[v->RegCh[S13V8].AdcGroupIndex][v->RegCh[S13V8].AdcRankIndex]);
+	v->AdcTraOut.PreC    = (float)v->RegCh[PREC_FB].GainValue  * (v->AdcDmaData[v->RegCh[PREC_FB].AdcGroupIndex][v->RegCh[PREC_FB].AdcRankIndex]);
+	v->AdcTraOut.EA5V    = (float)v->RegCh[EA5V_FB].GainValue  * (v->AdcDmaData[v->RegCh[EA5V_FB].AdcGroupIndex][v->RegCh[EA5V_FB].AdcRankIndex]);
+	v->AdcTraOut.E5V    = (float)v->RegCh[E5V_FB].GainValue  * (v->AdcDmaData[v->RegCh[E5V_FB].AdcGroupIndex][v->RegCh[E5V_FB].AdcRankIndex]);
+	v->AdcTraOut.ES5V    = (float)v->RegCh[ES5V_FB].GainValue  * (v->AdcDmaData[v->RegCh[ES5V_FB].AdcGroupIndex][v->RegCh[ES5V_FB].AdcRankIndex]);
 	v->AdcTraOut.HwID1    = (float)v->RegCh[HW_ID1].GainValue  * (v->AdcDmaData[v->RegCh[HW_ID1].AdcGroupIndex][v->RegCh[HW_ID1].AdcRankIndex]);
 	v->AdcTraOut.HwID2    = (float)v->RegCh[HW_ID2].GainValue  * (v->AdcDmaData[v->RegCh[HW_ID2].AdcGroupIndex][v->RegCh[HW_ID2].AdcRankIndex]);
 
 	v->ThermoADCCatcher++;
 	if( v->ThermoADCCatcher >= 10 ) //10ms
 	{
-		v->ThermoADCCatchValue[MOS_NTC_CENTER] = (*v->pTempADCValue[MOS_NTC_CENTER]);
-		v->ThermoADCCatchValue[MOS_NTC_SIDE] = (*v->pTempADCValue[MOS_NTC_SIDE]);
+		v->ThermoADCCatchValue[MOS_NTC_1] = (*v->pTempADCValue[MOS_NTC_1]);
+		v->ThermoADCCatchValue[MOS_NTC_2] = (*v->pTempADCValue[MOS_NTC_2]);
 		v->ThermoADCCatchValue[CAP_NTC] = (*v->pTempADCValue[CAP_NTC]);
 		v->ThermoADCCatchValue[MOTOR_NTC_0_A0] = (*v->pTempADCValue[MOTOR_NTC_0_A0]);
+		v->ThermoADCCatchValue[MOTOR_NTC_1_A0] = (*v->pTempADCValue[MOTOR_NTC_1_A0]);
+		v->ThermoADCCatchValue[MOTOR_NTC_2_A0] = (*v->pTempADCValue[MOTOR_NTC_2_A0]);
 		v->ThermoADCCatcher = 0;
 	}
+
+	v->ThrotADCRawRatio = ( v->AdcTraOut.EA5V > 1.0f ) ? v->AdcTraOut.Pedal_V1 / v->AdcTraOut.EA5V : v->AdcTraOut.Pedal_V1;
+
+	float tempThrotADCRawRatio = v->ThrotADCRawRatio;
+	if ( tempThrotADCRawRatio > v->AdcExeThrotMax )
+	{
+		tempThrotADCRawRatio = v->AdcExeThrotMax;
+	}
+	else if ( tempThrotADCRawRatio < v->AdcExeThrotZero )
+	{
+		tempThrotADCRawRatio = v->AdcExeThrotZero;
+	}
+
+	v->AdcTraOut.Throttle = v->AdcExeThrotGain.FDta * ( tempThrotADCRawRatio - v->AdcExeThrotZero );
 }
 
 void AdcStation_Do100HzLoop( AdcStation *v )
 {
-	v->ThermoTraIndex = MOS_NTC_CENTER;
-	v->AdcTraOut.PCU_NTC[MOS_NTC_CENTER] = AdcStation_DoThermoTransition(v);
-	v->ThermoTraIndex = MOS_NTC_SIDE;
-	v->AdcTraOut.PCU_NTC[MOS_NTC_SIDE] = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = MOS_NTC_1;
+	v->AdcTraOut.PCU_NTC[MOS_NTC_1] = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = MOS_NTC_2;
+	v->AdcTraOut.PCU_NTC[MOS_NTC_2] = AdcStation_DoThermoTransition(v);
 	v->ThermoTraIndex = CAP_NTC;
 	v->AdcTraOut.PCU_NTC[CAP_NTC] = AdcStation_DoThermoTransition(v);
 	v->ThermoTraIndex = MOTOR_NTC_0_A0;
-	v->AdcTraOut.MOTOR_NTC = AdcStation_DoThermoTransition(v);
+	v->AdcTraOut.MOTOR_NTC_0 = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = MOTOR_NTC_1_A0;
+	v->AdcTraOut.MOTOR_NTC_1 = AdcStation_DoThermoTransition(v);
+	v->ThermoTraIndex = MOTOR_NTC_2_A0;
+	v->AdcTraOut.MOTOR_NTC_2 = AdcStation_DoThermoTransition(v);
 }
 
 

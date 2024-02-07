@@ -141,6 +141,7 @@ typedef struct{
 	0, /*	PreScale			*/\
 	0, /*	CounterMode			*/\
 	0, /*	Period				*/\
+	0, /*	Division			*/\
 	0, /*	RcrPara				*/\
 	0, /*	AutoPreloadMode		*/\
 	0, /*	ClkSource			*/\

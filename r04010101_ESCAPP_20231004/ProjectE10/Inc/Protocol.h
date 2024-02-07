@@ -15,9 +15,8 @@
 #include "math.h"
 
 
+
 /* ==== macro for CANTX IDs for transmit ==== */
-#define CANTXID_BMS_CONTROL_01  0x500   /* command to control BMS actions #1 */
-#define CANTXID_BMS_CONTROL_02  0x501   /* command to control BMS actions #2 */
 
 #define CANTXID_ESC_LOG_INFO_0  0x720   /*Debug information for ESC develop 00*/
 #define CANTXID_ESC_LOG_INFO_1  0x721   /*Debug information for ESC develop 01*/
@@ -29,13 +28,21 @@
 #define CANTXID_ESC_LOG_INFO_7  0x727   /*Debug information for ESC develop 07*/
 
 /* ==== macro for CANRX IDs for receive ==== */
-#define CANRXID_BMS_STATUS_01         0x402   /* info shows BMS status */
-#define CANRXID_BMS_STATUS_02         0x403   /* info shows BMS status */
+#define CANRXID_BMS_FILTER_START_01   0x402   /* info shows BMS status */
+#define CANRXID_BMS_FILTER_START_02   0x403   /* info shows BMS status */
 
 #define CAN_TX_CRI_ALARM_MASK 0x01
 #define CAN_TX_NON_CRI_ALARM_MASK 0x02
 #define CAN_TX_WARNING_MASK 0x04
 
+
+/*========CAN RX ID definition========*/
+
+#define CAN_ID_BMS_MASK     0xFFFF00FF
+#define CAN_ID_BMS_FILTER   0x08020017
+
+#define CAN_ID_DEV_CMD_START	0x710
+#define CAN_ID_DEV_CMD_END		0x71F
 
 /*======================================
  *  Enum definition
@@ -174,13 +181,12 @@ typedef struct
 
 typedef struct
 {
-  uint8_t MotorTemp;        /* unit: 'C, offset: -40 */
+  uint8_t Motor0Temp;        /* unit: 'C, offset: -40 */
   uint8_t EscMos1Temp;      /* unit: 'C, offset: -40 */
   uint8_t EscMos2Temp;      /* unit: 'C, offset: -40 */
   uint8_t EscCapTemp;       /* unit: 'C, offset: -40 */
-  uint8_t TetherSensor :4;  /* 0: not ready, 1: ready to go */ 
-  FoilPos_t	FoilPosition :4;  /* 0 = Paddle, 1= Surf, 2 = Foil, refer to "FoilPos_t" */
-  uint8_t FoilSensorVolt;   /* unit: 0.1V */
+  uint8_t Motor1Temp;        /* unit: 'C, offset: -40 */
+  uint8_t Motor2Temp;        /* unit: 'C, offset: -40 */
   uint8_t ThrottleRaw;      /* unit 1%, throttle command received from RC */
   uint8_t ThrottleFinal;    /* unit 1%, throttle command handled by throttle mapping strategy */
 } CanTxMsg_EscLogInfo0_t;
@@ -217,8 +223,8 @@ typedef struct
   int16_t VdCmdI16;         /* unit: 0.1V */
   int16_t VqCmdI16;         /* unit: 0.1V */
   int16_t PerformanceTqI16; /* unit: 0.1Nm */
-  uint8_t Byte06;           /* unused byte 06 */
-  uint8_t Byte07;           /* unused byte 07 */
+  uint8_t AccPedal1Volt;    /* unit: 0.02V */
+  uint8_t EA5V;             /* unit: 0.02V */
 } CanTxMsg_EscLogInfo4_t;
 
 typedef struct
@@ -231,9 +237,23 @@ typedef struct
   int16_t InstPwr;          /* unit: W, instant output power */
   int16_t AvgPwr;           /* unit: W, average output power */
   uint16_t TimeRemain;      /* unit: sec, operation time remained */
-  uint8_t RcConnStatus:4;   /* 0: RC is not connected, 1: RC is connected */
-  uint8_t PwrLv:4;          /* power level applied now */
-  uint8_t Byte07;           /* unused byte 07 */
+  //bit 48~51
+  uint8_t KillSwitchDI:1;   /* digital input flag of kill switch */
+  uint8_t BoostDI:1; 		/* digital input flag of Boost Button */
+  uint8_t ReverseDI:1; 		/* digital input flag of Reverse Button */
+  uint8_t BrakeDI:1; 		/* digital input flag of Brake Button */
+  //bit 52~55
+  uint8_t Reserve52to55bits:4;
+  //bit 56~59
+  uint8_t RearLedFaultDI:1;	/* digital input flag of fault of rear LED */
+  uint8_t FrontLedFaultDI:1;/* digital input flag of fault of Front LED */
+  uint8_t BufFbDI:1;		/* digital input flag of the feedback pin in buffer IC*/
+  uint8_t Reserve59bit:1;
+  //bit 60~63
+  uint8_t ISenUFaultDI:1;	/* digital input flag of fault of U current sensor */
+  uint8_t ISenVFaultDI:1;	/* digital input flag of fault of V current sensor */
+  uint8_t ISenWFaultDI:1;	/* digital input flag of fault of W current sensor */
+  uint8_t Reserve63bit:1;
 } CanTxMsg_EscLogInfo6_t;
 
 
@@ -352,7 +372,7 @@ typedef struct
   0.0f,	/*BatInstPwr*/		  \
 }                               \
 
-extern const CanIdConfig_t LscCanIdTableExtra[];
+extern const CanIdConfig_t CanIdTableExtra[];
 
 #endif /* INC_PROTOCOL_H_ */
 #endif /* E10 */

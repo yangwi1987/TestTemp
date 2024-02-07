@@ -10,8 +10,6 @@
 #include "stdlib.h"
 #include "UtilityBase.h"
 
-#define ABS(x) ((x) > 0 ? (x) : -(x))
-
 __IO uint32_t uwCRCValue = 0;
 
 uint8_t CrcBuff[40];
@@ -184,7 +182,7 @@ void RcComm_MsgHandlerVP3(StructUartCtrl *p, uint8_t *pData)
 			p->TxBuff[15] = p->pRxInterface->BmsReportInfo.Soc;
 
 			/*Safety sensor*/
-			p->TxBuff[16] = (uint8_t)!HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
+//			p->TxBuff[16] = (uint8_t)!HAL_GPIO_ReadPin(SAFTYSSR_GPIO_Port, SAFTYSSR_Pin);
 
 			/*Instant Power*/
 			lTempI16 = (int16_t)p->pTxInterface->Debugf[IDX_INSTANT_AC_POWER];

@@ -8,9 +8,6 @@
 #include "UtilityBase.h"
 #include "UiApp.h"
 #include "Drive.h"
-#define ABS(x) 	( (x) > 0 ? (x) : -(x) )
-#define MAX2(a,b)  ( ((a) >= (b)) ? (a) : (b) )
-#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
 
 /*
  * Header Information
@@ -53,6 +50,7 @@ CPUCounter_t CPUCounter = CPU_COUNTER_DEFAULT;
 PwmStation PwmStation1 = PWM_STATION_DEFAULT;
 AdcStation AdcStation1 = ADC_STATION_DEFAULT;
 ExtranetCANStation_t ExtranetCANStation = EXTRANET_CAN_STATION_DEFAULT;
+PS_t PSStation1 = PS_DEFAULT;
 
 ExtFlash_t ExtFlash1 = EXT_FLASH_DEFAULT;
 uint16_t BootAppTrig __attribute__((section(".dta_ss.word1st"))) = 0;
@@ -71,7 +69,8 @@ RemainingTime_t RemainingTime1 = REMAININGTIME_DEFAULT;
 int32_t AccessParam( uint16_t TargetID, uint16_t Index, int32_t *pData, uint16_t RW , uint8_t *pResult);
 ESC_OP_STATE_e ESCMainState = ESC_OP_INITIALIZING;
 VEHICLE_STATE_e VehicleMainState = VEHICLE_STATE_INITIALIZING;
-
+uint16_t DualBtnTimeCnt = 0;
+uint8_t ButtonReleasedFlags = 0;
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
@@ -83,6 +82,21 @@ DTCStation_t DTCStation1 = DTC_STATION_DEFFAULT;
 void Drive_OnParamValueChanged( uint16_t AxisID, uint16_t PN );
 extern const CANProtocol ExtranetInformInSystemTableExample;
 
+#if JUDGE_FUNCTION_DELAY
+extern Judge_Delay TIM8INT_Judge_Delay;
+extern Judge_Delay CurrentLoop_Judge_Delay;
+extern Judge_Delay PLCLoop_Judge_Delay;
+extern Judge_Delay _100HzLoop_Judge_Delay;
+#endif
+#if MEASURE_CPU_LOAD
+extern float Max_100Hz_Load_pct;
+extern float Max_PLCLoop_Load_pct;
+extern float Max_CurrentLoop_Load_pct;
+extern float Max_ADC_Inj_Load_pct;
+extern float Ave_100Hz_Load_pct;
+extern float Ave_PLCLoop_Load_pct;
+extern float Ave_CurrentLoop_Load_pct;
+#endif
 uint32_t VersionAddressArray[5] =
 {
 		APP_START_ADDRESS,
@@ -165,19 +179,19 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_MOTOR_0_NTC_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.MOTOR_NTC * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.MOTOR_NTC_0 * 10.0f );
 		break;
 
 	case DN_PCU_NTC_0_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1] * 10.0f );
 		break;
 
 	case DN_PCU_NTC_1_TEMP:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] * 10.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2] * 10.0f );
 		break;
 
 	case DN_GATE_DRIVE_VOLT:	// 13V VOltage
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.V13 * 100.0f );
+		RetValue = (int32_t)( AdcStation1.AdcTraOut.S13V8 * 100.0f );
 		break;
 
 	case DN_IA_CURR_RMS:
@@ -197,7 +211,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DN_FOIL_VOLTAGE:
-		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
+//		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
 		break;
 
 	case DN_CURRENT_LIMIT :
@@ -205,7 +219,7 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 
 	case DC_FOIL_ADC:
-		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
+//		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
 		break;
 
 	case DN_U_CURR_ADC:
@@ -454,6 +468,55 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 	case DN_ACC_CAN_ERROR_CNT :
 		RetValue = Axis[0].pCANRxInterface->AccCANErrorCnt;
 		break;
+#if JUDGE_FUNCTION_DELAY
+    case DN_MAX_TIM8INT_INTERVAL   :
+		RetValue = (uint16_t)(TIM8INT_Judge_Delay.Max_Intervals_us * 100.0f);
+		break;
+    case DN_AVE_TIM8INT_INTERVAL   :
+		RetValue = (uint16_t)(TIM8INT_Judge_Delay.Ave_Intervals_us * 100.0f);
+		break;
+    case DN_MAX_CURRENTLOOP_INTERVAL:
+		RetValue = (uint16_t)(CurrentLoop_Judge_Delay.Max_Intervals_us * 100.0f);
+		break;
+    case DN_AVE_CURRENTLOOP_INTERVAL:
+		RetValue = (uint16_t)(CurrentLoop_Judge_Delay.Ave_Intervals_us * 100.0f);
+		break;
+    case DN_MAX_PLCLOOP_INTERVAL    :
+		RetValue = (uint16_t)(PLCLoop_Judge_Delay.Max_Intervals_us * 10.0f);
+		break;
+    case DN_AVE_PLCLOOP_INTERVAL    :
+		RetValue = (uint16_t)(PLCLoop_Judge_Delay.Ave_Intervals_us * 10.0f);
+		break;
+    case DN_MAX_100HZLOOP_INTERVAL  :
+		RetValue = (uint16_t)(_100HzLoop_Judge_Delay.Max_Intervals_us);
+		break;
+    case DN_AVE_100HZLOOP_INTERVAL  :
+		RetValue = (uint16_t)(_100HzLoop_Judge_Delay.Ave_Intervals_us);
+		break;
+#endif
+#if MEASURE_CPU_LOAD
+    case DN_MAX_100HZLOOP_LOAD_PCT  :
+		RetValue = (uint16_t)(Max_100Hz_Load_pct * 100.0f);
+		break;
+    case DN_MAX_PLCLOOP_LOAD_PCT    :
+		RetValue = (uint16_t)(Max_PLCLoop_Load_pct * 100.0f);
+		break;
+    case DN_MAX_CURRENTLOOP_LOAD_PCT:
+		RetValue = (uint16_t)(Max_CurrentLoop_Load_pct * 100.0f);
+		break;
+    case DN_MAX_ADC_INJ_LOAD_PCT    :
+		RetValue = (uint16_t)(Max_ADC_Inj_Load_pct * 100.0f);
+		break;
+    case DN_AVE_100HZLOOP_LOAD_PCT  :
+		RetValue = (uint16_t)(Ave_100Hz_Load_pct * 100.0f);
+		break;
+    case DN_AVE_PLCLOOP_LOAD_PCT    :
+		RetValue = (uint16_t)(Ave_PLCLoop_Load_pct * 100.0f);
+		break;
+    case DN_AVE_CURRENTLOOP_LOAD_PCT:
+		RetValue = (uint16_t)(Ave_CurrentLoop_Load_pct * 100.0f);
+		break;
+#endif
 	default :
 		RetValue = 0;
 		break;
@@ -687,13 +750,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC001_Throttle_Raw:
         {
-        	int8_t tempReturnValue = Axis[0].pCANRxInterface->ThrottleCmd;
-    	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
-    	    pTx->Data[1] = pRx->Data[1];
-    	    pTx->Data[2] = pRx->Data[2];
-    		pTx->Data[3] = tempReturnValue;
-    		pTx->LengthTotal = 4;
-    	    tempRsp = NRC_0x00_PR;
+    	    tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.ThrotADCRawRatio * 10000.0f);
         	break;
         }
         case DID_0xC002_Throttle_Position:
@@ -738,7 +795,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC008_Motor_Temperature                        :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC_0 );
         	break;
         }
         case DID_0xC009_Motor_Temperature_Minimum                :
@@ -763,7 +820,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC00E_ESC_Mosfets_Center_Temperature           :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1] );
         	break;
         }
         case DID_0xC00F_ESC_Mosfets_Center_Temperature_Minimum   :
@@ -778,7 +835,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC011_ESC_Mosfets_Side_Temperature             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE] );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2] );
         	break;
         }
         case DID_0xC012_ESC_Mosfets_Side_Temperature_Minimum     :
@@ -930,7 +987,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC02C_ESC_Internal_circuit_voltage             :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.V13 );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.S13V8 );
         	break;
         }
         case DID_0xC02D_DC_Current_Limit                    :
@@ -951,11 +1008,6 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC02F_Foil_Position_State                      :
         {
         	UdsDIDFoilPositionState_e tempFoilPosState = 0;
-        	tempFoilPosState = ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_BREAK == 1 )) ? Foil_Position_Circuit_Break : \
-                               ( AlarmStack->FlagRead( AlarmStack, ALARMID_FOIL_SHORT == 1 )) ? Foil_Position_Circuit_Short : \
-        	                   (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinFoil ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxFoil )) ? Foil_Position_Foil : /*// Foil mode*/\
-                               (( AdcStation1.AdcTraOut.Foil >= Axis[0].AnalogFoilInfo.MinSurf ) && ( AdcStation1.AdcTraOut.Foil <= Axis[0].AnalogFoilInfo.MaxSurf ))	? Foil_Position_Surf : Foil_Position_Paddle;// Surf mode
-                                                                                                                                                  // PADDLE mode
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -966,7 +1018,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC030_Tether_Cord_State                        :
         {
-        	UdsDIDTetherCordState_e tempTetherCordState = HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
+        	UdsDIDTetherCordState_e tempTetherCordState = 0;//HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin );
     	    pTx->Data[0] = pRx->Data[0] + POSITIVE_RESPONSE_OFFSET;
     	    pTx->Data[1] = pRx->Data[1];
     	    pTx->Data[2] = pRx->Data[2];
@@ -1063,7 +1115,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC03B_Foil_Position_Voltage                 :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+//        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
         	break;
         }
         case DID_0xC03C_ESC_Error_Code                 :
@@ -1218,11 +1270,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P0563_System_voltage_high;
 	        	break;
 		    }
-		    case ALARMID_RC_INVALID:
-		    {
-		    	tempDTC_Number = DTC_RecordNumber_U0408_Invalid_data_received_from_RF_RC_module;
-	        	break;
-		    }
 		    case ALARMID_POWER_TRANSISTOR_OC:
 		    {
 		    	continue;
@@ -1265,8 +1312,8 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P0219_Motor_Overspeed;
 	        	break;
 		    }
-		    case ALARMID_FOIL_BREAK:
-		    case ALARMID_FOIL_SHORT:
+		    case ALARMID_ACC_PEDAL_BREAK:
+		    case ALARMID_ACC_PEDAL_SHORT:
 		    {
 		    	tempDTC_Number = DTC_RecordNumber_P18A6_Foil_Position_sensor_abnormal;
 	        	break;
@@ -1324,11 +1371,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Data_to_Store( AlarmStack_t *AlarmSta
 		    	tempDTC_Number = DTC_RecordNumber_P1F14_Motor_High_temperature_warning;
 	        	break;
 		    }
-		    case ALARMID_MOTOR_REVERSE :
-		    {
-		    	tempDTC_Number = DTC_RecordNumber_P021A_Motor_Reverse;
-	        	break;
-		    }
 		    default:
 		    {
 		    	break;
@@ -1377,15 +1419,15 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Set_Point_For_Vq = Axis[0].MotorControl.VoltCmd.VqCmd;
 //	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.DC_Current_Limit
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Electrical_Angle  = Axis[0].MotorControl.CurrentControl.EleAngle;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Internal_circuit_voltage = AdcStation1.AdcTraOut.V13;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Throttle_Position = Axis[0].ThrotMapping.PercentageOut * 100.0f;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Speed = Axis[0].SpeedInfo.MotorMechSpeedRPM;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Torque_Reference = Axis[0].TorqCommandGenerator.Out;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC;
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Motor_Temperature = AdcStation1.AdcTraOut.MOTOR_NTC_0;
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Center_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1];
+	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfets_Side_Temperature = AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2];
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Capacitor_Temperature = AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC];
-	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
+//	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.Foil_Position_Voltage = AdcStation1.AdcTraOut.Foil;
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Center_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_0 )) ? NTC_Break : \
                                                                                       ( AlarmStack->FlagRead( AlarmStack, ALARMID_SHORT_NTC_PCU_0 ) ? NTC_Short : NTC_Normal );
 	v->DTCStorePackge[DTC_Record_Number].StoreContent.DTCStoredData.ESC_Mosfet_Side_NTC_Status = ( AlarmStack->FlagRead( AlarmStack, ALARMID_BREAK_NTC_PCU_1 )) ? NTC_Break : \
@@ -1411,94 +1453,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 
 void Drive_PcuPowerStateMachine( void )
 {
-	switch( Axis[0].PcuPowerState )
-	{
-		case PWR_SM_INITIAL:
-
-			/* Wait for
-			 * 1. PCU initial state Ready flag is set and
-			 * 2. BMS report pre-charge completed */
-			if((IsPcuInitReady == PcuInitState_Ready)  &&
-			   (Axis[0].pCANRxInterface->BmsReportInfo.PrchSM == BMS_PRECHG_STATE_SUCCESSFUL))
-			{
-				Axis[0].PcuPowerState = PWR_SM_POWER_ON;
-			}
-			else if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
-			{
-				/* Receive shutdown request before battery complete pre-charge sequence */
-				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-
-				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
-				GlobalAlarmDetect_ConfigAlarmSystem();
-			}
-			break;
-
-		case PWR_SM_POWER_ON:
-
-			if((Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown))
-			{
-				/*Receive turn off command from user , transfer state to power off */ 
-				Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-				Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-				Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-				
-				/* Disable register alarm if PcuPowerState = PWR_SM_POWER_OFF */
-				GlobalAlarmDetect_ConfigAlarmSystem();
-			}
-			else
-			{
-				/* Check if ESC can start to output Power if
-				 * 1. Safety sensor is connected (Digital input = low = 0) and
-				 * 2. Receive correct Battery status from BMS via CAN and
-				 * 3. RC and RF is properly connected */
-
-				if((HAL_GPIO_ReadPin( SAFTYSSR_GPIO_Port, SAFTYSSR_Pin ) == SAFETY_SENSOR_SIGNAL_CONNECTED ) &&
-				   ((Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_DISCHARGE )||
-					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_REQUPERATION )||
-					(Axis[0].pCANRxInterface->BmsReportInfo.MainSm == BMS_ACTIVE_STATE_CHARGE ))&&
-				   (RCCommCtrl.pRxInterface->RcConnStatus >= RC_CONN_STATUS_RC_THROTTLE_LOCKED)&&
-				   (Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0))
-
-				{
-					/* Output substate */
-					Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
-					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
-				}
-				else
-				{
-					/* Standby substate */
-					Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-					Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-				}
-			}
-			
-			break;
-
-		case PWR_SM_POWER_OFF:
-
-			/* Send shutdown command to BMS if shutdown request from BMS is received */
-			if(Axis[0].pCANRxInterface->PcuStateCmd == PcuCmd_Shutdown)
-			{
-				Axis[0].pCANTxInterface->BmsCtrlCmd.ShutDownReq = ENABLE;
-			}
-
-			/*if SW reboot is requested ,change state to "PWR_SM_WAIT_FOR_RESET" here */
-
-			break;
-
-		case PWR_SM_WAIT_FOR_RESET:
-			// Do nothing and wait for JumpCtrlFunction.
-			break;
-
-		default:
-			// Abnormal PcuPowerState value, put PCU to "servo off" and "P shift", then go to "POWER OFF" state
-			Axis[0].PcuPowerState = PWR_SM_POWER_OFF;
-			Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-			Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-			break;
-
-	}
-
 	/*update ESCOperationState, Dealer_Test_Mode, Power_Off_ESC TBD*/
 	if( Axis[0].HasCriAlarm == ENABLE )
 	{
@@ -1686,11 +1640,30 @@ void Drive_ESCStateMachine( void )
 	}
 }
 
+
+void Inv_ServoOnReq()
+{
+  Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
+  Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
+  RCCommCtrl.pRxInterface->RcConnStatus = RC_CONN_STATUS_RC_THROTTLE_UNLOCKING;
+}
+
+void Inv_ServoOffReq()
+{
+  Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+  Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
+  RCCommCtrl.pRxInterface->RcConnStatus = RC_CONN_STATUS_RC_THROTTLE_LOCKED;
+}
+
 __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 {
 	// todo set RC alarm flag
 	// todo clear RC warning/limp flag
-	// todo set DC ramp?
+
+	/* put INV to servo off */
+  Inv_ServoOffReq();
+
+  VehicleMainState = VEHICLE_STATE_ALARM;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
@@ -1700,183 +1673,350 @@ __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
 	// todo set RC limp home flag;
 	// todo clear RC warning
 	// todo set DC ramp?
+  VehicleMainState = VEHICLE_STATE_LIMPHOME;  
 }
 
 __STATIC_FORCEINLINE void EnterVehicleWarningState( void )
 {
-	// todo set RC warning
-	// todo set DC ramp?
+
+  VehicleMainState = VEHICLE_STATE_WARNING;
 }
 
-__STATIC_FORCEINLINE void EnterVehicleNormalState( void )
+__STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 {
 	// set Axis trigger limp home flag
 	Axis[0].TriggerLimpHome = 0;
-	// todo clear RC warning/limp/alarm flag
+  
+	if(VehicleMainState == VEHICLE_STATE_STANDBY)
+	{
+		ButtonReleasedFlags = 0;
+	}
+
+	DualBtnTimeCnt = 0;
+
+	VehicleMainState = VEHICLE_STATE_DRIVE;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleIdleState( void )
+{
+  /* Enable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
+  VehicleMainState = VEHICLE_STATE_IDLE;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleStartupState( void )
+{
+  BatStation.PwrOnReq();
+  VehicleMainState = VEHICLE_STATE_STARTUP;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
 {
-	// set Axis trigger limp home flag
-	Axis[0].TriggerLimpHome = 0;
-	// todo clear RC warning/limp/alarm flag
+  // set Axis trigger limp home flag
+  Axis[0].TriggerLimpHome = 0;
+  DualBtnTimeCnt = 0;
+  
+  /* Enable CAN1 timeout detection */
+  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+  /* Enable UVP detection */
+  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+  /* Clear button release flags */
+  ButtonReleasedFlags = 0;
+  /* Put INV to servo-off */
+  Inv_ServoOffReq();
+
+  VehicleMainState = VEHICLE_STATE_STANDBY;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
+{
+
+  /* Disable CAN1 timeout detection */
+  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+
+  /* Disable UVP detection */
+  /* Note : the INV level Alarm detection control should be applied by INV station
+    but not in vehicle station, this is a short-term solution before we have a 
+    individual INV control module
+   */
+  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+
+  /* Request BMS to turn off battery */
+  BatStation.PwrOffReq();
+  
+  VehicleMainState = VEHICLE_STATE_SHUTDOWN;
+}
+
+__STATIC_FORCEINLINE void EnterVehiclePowerOffState( void )
+{
+  /* Disable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
+  
+  VehicleMainState = VEHICLE_STATE_POWER_OFF;
+}
+
+__STATIC_FORCEINLINE void EnterVehicleInitialState( void )
+{
+  /* Disable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
+  BootAppTrig = BOOT_ENA;
+  ESCMainState = ESC_OP_INITIALIZING;
+  VehicleMainState = VEHICLE_STATE_INITIALIZING;
+  /* Disable CAN1 timeout detection */
+  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+  /* Disable UVP detection */
+  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Drive_VehicleStateMachine( void )
 {
-	switch( VehicleMainState )
-	{
-		case VEHICLE_STATE_INITIALIZING:
+  switch( VehicleMainState )
+  {
+    case VEHICLE_STATE_INITIALIZING:
 
-			// normal transition
-			if( ESCMainState == ESC_OP_STANDBY /* todo BMS precharge finish*/)
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
+      // normal transition
+      if( ESCMainState == ESC_OP_STANDBY )
+      {
+        EnterVehicleIdleState();
+      }
 
-			// action
-			// do CAN and RC initial communication at drive_Init
-			break;
+      // action
 
-		case VEHICLE_STATE_STANDBY:
+      break;
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
-			{
-				EnterVehicleWarningState();
-				VehicleMainState = VEHICLE_STATE_WARNING;
-			}
+    case VEHICLE_STATE_IDLE:
+    
+      /* waiting for killing switch to transfer to startup state */
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
+      {
+        EnterVehicleStartupState();
+      }
 
-			// normal transitions
-			else if( ESCMainState == ESC_OP_NORMAL )
-			{
-				EnterVehicleNormalState();
-				VehicleMainState = VEHICLE_STATE_NORMAL;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do CAN and RC communication at drive_DoPLC
-				// no motor power output
-			}
-			break;
+      break;
 
-		case VEHICLE_STATE_NORMAL:
+    case VEHICLE_STATE_STARTUP:
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else if( ESCMainState == ESC_OP_WARNING || Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 1 )
-			{
-				EnterVehicleWarningState();
-				VehicleMainState = VEHICLE_STATE_WARNING;
-			}
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      {
+          EnterVehicleShutdownState();
+      }
+      else
+      {
+        switch (BatStation.MainSMGet())
+        {
+          case BAT_MAIN_ACTIVATED:
+            EnterVehicleStandbyState();
+            break;
 
-			// normal transitions
-			else if( ESCMainState == ESC_OP_STANDBY )
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// allow full power output depending on driving mode
-			}
-			break;
+          default:
+            break;
+        }
+      }
 
-		case VEHICLE_STATE_WARNING:
+      break;
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else if( ESCMainState == ESC_OP_LIMPHOME || Axis[0].pCANRxInterface->BmsReportInfo.LimpFlag == 1 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			// recovery paths
-			else if( ESCMainState == ESC_OP_NORMAL && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
-			{
-				EnterVehicleNormalState();
-				VehicleMainState = VEHICLE_STATE_NORMAL;
-			}
-			else if( ESCMainState == ESC_OP_STANDBY && Axis[0].pCANRxInterface->BmsReportInfo.WarningFlag == 0 )
-			{
-				EnterVehicleStandbyState();
-				VehicleMainState = VEHICLE_STATE_STANDBY;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-			}
-			break;
+    case VEHICLE_STATE_STANDBY:
 
-		case VEHICLE_STATE_LIMPHOME:
+      // error situation
+      if ((ESCMainState == ESC_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleAlarmState();
+      }
+      else if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      { 
+        EnterVehicleShutdownState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
 
-			// error situation
-			if( ESCMainState == ESC_OP_ALARM || Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 1 )
-			{
-				EnterVehicleAlarmState();
-				VehicleMainState = VEHICLE_STATE_ALARM;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-				// have triggered limp home while entering limp home state, and limited max power.
-			}
-			break;
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
 
-		case VEHICLE_STATE_ALARM:
+      }
+      else
+      {
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ))
+        {
+          DualBtnTimeCnt ++;
 
-			// error situation
-			if( ESCMainState != ESC_OP_ALARM && Axis[0].pCANRxInterface->BmsReportInfo.AlarmFlag == 0 )
-			{
-				EnterVehicleLimpHomeState();
-				VehicleMainState = VEHICLE_STATE_LIMPHOME;
-			}
-			else
-			{
-				// keep in the same state, action:
-				// do DC limit
-				// do AC limit
-				// if previous state is limphome, then keep TriggerLimpHome flag, or follow the DC limit rule.
-				// if ESC is ESCOP_Alarm, then vehicle have been servo off.
-			}
-			break;
+          if(DualBtnTimeCnt > 100)
+          {
+          	EnterVehicleDriveState();
+          }
+        }
+        else
+        {
+          DualBtnTimeCnt = 0;
+        }
 
-		// abnormal PcuPowerState value
-		case VEHICLE_STATE_POWER_OFF:
-		default:
-			break;
+      }
 
-	}
+      break;
+
+    case VEHICLE_STATE_DRIVE:
+
+      // error situation
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM )
+      {
+        EnterVehicleAlarmState();
+      }
+	  else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+			else if( ESCMainState == ESC_OP_WARNING)
+      {
+        EnterVehicleWarningState();
+      }
+      else if( ESCMainState == ESC_OP_LIMPHOME)
+      {
+        EnterVehicleLimpHomeState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
+
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
+
+        if(ButtonReleasedFlags == VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)
+        {
+      		/* Put INV to servo on */
+      		Inv_ServoOnReq();
+        }
+      }
+      else
+      { 
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
+            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
+        {
+          DualBtnTimeCnt ++;
+
+          if(DualBtnTimeCnt > 300)
+          {
+            EnterVehicleStandbyState();
+          }
+        }
+        else
+        {
+        	DualBtnTimeCnt = 0;
+        }
+      }
+      break;
+
+    case VEHICLE_STATE_WARNING:
+      if( ESCMainState == ESC_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)	// error situation
+      {
+        EnterVehicleAlarmState();
+      }
+	    else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+        EnterVehicleStandbyState();
+      }
+      else if( ESCMainState == ESC_OP_NORMAL )
+      {
+        EnterVehicleDriveState();
+      }
+      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
+      {
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
+        }
+
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        {
+          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
+        }
+
+        if(ButtonReleasedFlags == VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)
+        {
+      		/* Put INV to servo on */
+      		Inv_ServoOnReq();
+        }
+      }
+      else
+      { 
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
+            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
+        {
+          DualBtnTimeCnt ++;
+
+          if(DualBtnTimeCnt > 300)
+          {
+            EnterVehicleStandbyState();
+          }
+        }
+        else
+        {
+        	DualBtnTimeCnt = 0;
+        }
+      }
+      break;
+
+    case VEHICLE_STATE_LIMPHOME:
+      /* for E10-P0, Transfer to warning state directly */
+      EnterVehicleWarningState();
+      break;
+
+    case VEHICLE_STATE_ALARM:
+
+      // error situation
+      if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      {
+          EnterVehicleShutdownState();
+      }
+      break;
+
+    case VEHICLE_STATE_SHUTDOWN:
+      
+      /* check if shutdown process is completed*/
+      if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
+      {
+    	  EnterVehicleStartupState();
+      }
+      else if((Bat_MainSMGet() == BAT_MAIN_SM_IDLE) || (Bat_MainSMGet() == BAT_MAIN_ALARM))
+      {
+        EnterVehicleInitialState();
+      }
+
+      break; 
+
+    case VEHICLE_STATE_POWER_OFF:
+    default:
+      break;
+
+  }
+
+  Axis[0].pCANTxInterface->PcuStateReport = VehicleMainState;
+  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_L] = (uint8_t)(DualBtnTimeCnt & 0x00FF);
+  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_H] = DualBtnTimeCnt >> 8;
+  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_FLAG] =ButtonReleasedFlags;
 }
 
 void HAL_TIM_Base_Start_TOTAL_TIME( TIM_HandleTypeDef *htim )
@@ -1894,8 +2034,8 @@ void drive_Init(void)
 	uint16_t AxisIndex;
 	uint16_t IoState;
 	uint16_t IoState_2;
-	// Start timer 2 and avoid first interrupt request.
-	HAL_TIM_Base_Start_TOTAL_TIME(&htim2);
+	// Start timer 3 for total time function and avoid first interrupt request.
+	HAL_TIM_Base_Start_TOTAL_TIME(&htim3);
 	ParamMgr1.OnParamValueChanged = &Drive_OnParamValueChanged;
 	IntranetCANStation.AccessParam = &AccessParam;
 	IntranetCANStation.pParamMgr = &ParamMgr1;
@@ -1936,17 +2076,17 @@ void drive_Init(void)
 	Axis[0].ThermoStrategy.Init( &Axis[0].ThermoStrategy, &SystemTable.WindingDeratingInfo, &SystemTable.MosDeratingInfo, &SystemTable.CapDeratingInfo, &AdcStation1 );
 
 	// Init Buffer IC (Pull low BUffer enable gpio)
-	IoState = HAL_GPIO_ReadPin( BUF_FB_GPIO_Port, BUF_FB_Pin);
-	IoState_2 = HAL_GPIO_ReadPin( BUF_ENA_GPIO_Port, BUF_ENA_Pin);
+	IoState = HAL_GPIO_ReadPin( BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin);
+	IoState_2 = HAL_GPIO_ReadPin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin);
 	if( ( IoState == SIGNAL_HIGH ) && ( IoState_2 == SIGNAL_HIGH )  )
 	{
-		HAL_GPIO_WritePin( BUF_ENA_GPIO_Port, BUF_ENA_Pin, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin( BUF_ENA_DO_GPIO_Port, BUF_ENA_DO_Pin, GPIO_PIN_RESET );
 		Axis[0].AlarmDetect.BufICEnable = PULL_LOW;
 	}
 	else
 	{
 		// Buffer IC Error State
-		Axis[0].AlarmDetect.BufICEnable = PULL_HIGH;
+		Axis[0].AlarmDetect.BufICEnable  = PULL_HIGH;
 	}
 
 	// Init Pwm Station
@@ -1954,6 +2094,8 @@ void drive_Init(void)
 
 	// Init ADC from tables
 	AdcStation1.Init( &AdcStation1 );
+
+	PSStation1.Init( &PSStation1 );
 	/*
 	 * To calculate the throttle gain after read the external memory data
 	 */
@@ -1966,7 +2108,7 @@ void drive_Init(void)
 #endif
 	// Init CAN external
 	ExtranetCANStation.TxInfo.pAlarmStack = &AlarmStack[0];
-	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, LscCanIdTableExtra );
+	ExtranetCANStation.DriveSetup.LoadParam( &ExtranetCANStation.DriveSetup, &CANModuleConfigExtra, CanIdTableExtra );
 	ExtranetCANStation.Init( &ExtranetCANStation,&ExtranetInformInSystemTableExample, &hfdcan2);
 
 	// Init CAN internal
@@ -1982,7 +2124,7 @@ void drive_Init(void)
 	Drive_BinCheckWordCompare( &AppCheckWord );
 
 	// MCU LED light On
-	HAL_GPIO_WritePin( MCU_State_LED_GPIO_Port, MCU_State_LED_Pin, GPIO_PIN_SET );
+//	HAL_GPIO_WritePin( MCU_State_LED_GPIO_Port, MCU_State_LED_Pin, GPIO_PIN_SET );
 
 
 	IntFlashCtrl.Init ( &IntFlashCtrl );
@@ -1990,8 +2132,8 @@ void drive_Init(void)
 	ExtranetCANStation.Enable = ENABLE;
 	ExtranetCANStation.ForceDisable = DISABLE;
 
-	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
-	RCCommCtrl.Init(&RCCommCtrl,&huart5,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
+//	RCCommCtrl.VerConfig = DriveParams.PCUParams.DebugParam8;
+//	RCCommCtrl.Init(&RCCommCtrl,&huart3,&hcrc,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
 
 	// DTC Init
 	DTCStation1.Init( &DTCStation1 );
@@ -1999,6 +2141,12 @@ void drive_Init(void)
 	// Register alarm depend on AlarmTableInfo table and error status of each module.
 	GlobalAlarmDetect_init();
 
+	/* Button control init */
+	Btn_Init();
+	
+	/*Init BAT control unit*/
+	BatStation.CanHandleLoad(&ExtranetCANStation);
+  
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
 }
@@ -2033,32 +2181,35 @@ void drive_DoLoad_DataToAdcGain(void)
 	Axis[ 0 ].pAdcStation->ZeroCalibInjDone = ( Axis[ 0 ].pAdcStation->ZeroCalibInjChCount == 0 )? ADC_DONE:ADC_NONE;
 
 //  Throttle Gain and Zero Point load
-	if( Axis[0].ThrottleGainState == GAIN_STATE_NORMAL )
-	{
+	//TODO: use calibration values in the future
+//	if( Axis[0].ThrottleGainState == GAIN_STATE_NORMAL )
+//	{
 		Axis[ 0 ].pAdcStation->AdcExeThrotGain.FDta = Axis[ 0 ].ThrottleGain;
-	}else;
-	Axis[ 0 ].pAdcStation->AdcExeThrotZero = ( DriveParams.SystemParams.ThrottleMinAdc > 0 )? DriveParams.SystemParams.ThrottleMinAdc: 0;
-	Axis[ 0 ].pAdcStation->AdcExeThrotMax = ( DriveParams.SystemParams.ThrottleMaxAdc > 2048 )? DriveParams.SystemParams.ThrottleMaxAdc: 4095;
+//	}else;
+
+	Axis[ 0 ].pAdcStation->AdcExeThrotZero = (float)DriveParams.SystemParams.ThrottleMinRawRatio * 0.0001;
+	Axis[ 0 ].pAdcStation->AdcExeThrotMax = (float)DriveParams.SystemParams.ThrottleMaxRawRatio * 0.0001;
 
 }
 
 #if USE_THROTTLE_CALIBRATION == USE_FUNCTION
 void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a )
 {
-	if( ( d->SystemParams.ThrottleMaxAdc == 2300 ) && (d->SystemParams.ThrottleMinAdc == 130) )
-	{
-		Axis[0].ThrottleGainState = GAIN_STATE_EMPTY;
-		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
-	}
-	else if( d->SystemParams.ThrottleMaxAdc < d->SystemParams.ThrottleMinAdc )
+//	if( ( d->SystemParams.ThrottleMaxAdc == 4095 ) && (d->SystemParams.ThrottleMinAdc == 0) )
+//	{
+//		Axis[0].ThrottleGainState = GAIN_STATE_EMPTY;
+//		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
+//	}
+//	else
+		if( d->SystemParams.ThrottleMaxRawRatio < d->SystemParams.ThrottleMinRawRatio )
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_ABNORMAL;
-		Axis[0].ThrottleGain = GAIN_STATE_EMPTY;
+		Axis[0].ThrottleGain = 0;
 	}
 	else
 	{
 		Axis[0].ThrottleGainState = GAIN_STATE_NORMAL;
-		Axis[0].ThrottleGain = ( float )( 1.0f /( float )( d->SystemParams.ThrottleMaxAdc - d->SystemParams.ThrottleMinAdc ) );
+		Axis[0].ThrottleGain = ( float )( 10000.0f /( float )( d->SystemParams.ThrottleMaxRawRatio - d->SystemParams.ThrottleMinRawRatio ) );
 	}
 }
 #endif
@@ -2134,27 +2285,56 @@ void drive_DoPwmRcCatch(void)
 }
 #endif
 
+void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
+{
+	uint32_t IC2Val = 0;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    {
+          /* Get the Input Capture value */
+        IC2Val = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+        if (IC2Val != 0)
+        {
+            /* Duty cycle computation */
+            PSStation1.DutyFromPwm = ((float)(HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1) * 100)) / (float)IC2Val;
+
+            PSStation1.FreqFromPwm = ( (float)HAL_RCC_GetSysClockFreq()  ) / ((float)(IC2Val) * 17.0f);
+
+        }
+        else
+        {
+        	PSStation1.DutyFromPwm = 0;
+        	PSStation1.FreqFromPwm = 0;
+        }
+    }
+
+}
+
 void drive_DoCurrentLoop(void)
 {
-	int i;
+//	int i;
 
 	AdcStation1.DoCurrentLoop( &AdcStation1 );
+
+	PSStation1.DoCurrentLoop( &PSStation1 );
 #if USE_CALC_SUM_ROOT==USE_FUNCTION
 	MFStation1.CalSumRoot( &MFStation1, &AdcStation1, PcuAuthorityCtrl.SecureLvNow );
 #endif
 
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
-	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
-	{
+//	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
+//	{
 		// Update Control Feedback
-		Axis[i].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[i];
-		Axis[i].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[i];
-		Axis[i].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[i];
-		Axis[i].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+		Axis[0].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[0];
+		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[0];
+		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[0];
+		Axis[0].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+
+		Axis[0].MotorControl.CurrentControl.EleAngle = PSStation1.ElecPosition;
+		Axis[0].MotorControl.CurrentControl.EleSpeed = PSStation1.ElecSpeed;
 
 		// Do Current Loop Tasks
-		Axis[i].DoCurrentLoop(&Axis[i]);
-	}
+		Axis[0].DoCurrentLoop(&Axis[0]);
+//	}
 }
 
 void Session_DoPLCLoop(void)
@@ -2249,7 +2429,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
 	pAxis->MotorStall.Enable = ALARM_ENABLE;
-	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
 void DisableAlarmWhenSessionChange(Axis_t *pAxis)
@@ -2260,7 +2440,7 @@ void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
 	pAxis->MotorStall.Enable = ALARM_DISABLE;
-	pAxis->AlarmDetect.FOIL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Session_DoWhileSessionChange(void)
@@ -2308,7 +2488,7 @@ void drive_DoPLCLoop(void)
 {
 	int i;
 	AdcStation1.DoPLCLoop( &AdcStation1 );
-
+	PSStation1.DoPLCLoop( &PSStation1 );
 	//TODO add "GlobalAlarmDetect_Accumulation" here.
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
@@ -2339,7 +2519,7 @@ void drive_Do100HzLoop(void)
 	static uint8_t IsNotFirstLoop = 0;
 	int i;
 	AdcStation1.Do100HzLoop( &AdcStation1 );
-	Axis[0].MotorControl.Sensorless.EEMF.WindingTemp = AdcStation1.AdcTraOut.MOTOR_NTC;
+	//Axis[0].MotorControl.Sensorless.EEMF.WindingTemp = AdcStation1.AdcTraOut.MOTOR_NTC_0;
 	for( i = 0; i < ACTIVE_AXIS_NUM; i++ )
 	{
 		Axis[i].Do100HzLoop(&Axis[i]);
@@ -2362,19 +2542,19 @@ void drive_Do100HzLoop(void)
 			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max = \
-			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
+			MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_1]);
 
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max = \
-	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 	    IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.PCU_NTC[MOS_NTC_2]);
 
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max = \
-	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC);
+	        MAX2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max, AdcStation1.AdcTraOut.MOTOR_NTC_0);
 	    IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min = \
-			MIN2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.MOTOR_NTC);
+			MIN2( IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min, AdcStation1.AdcTraOut.MOTOR_NTC_0);
 
 	    IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec = MAX2( IntranetCANStation.ServiceCtrlBRP.Res_Max_Rec, Axis[0].MotorControl.Sensorless.EEMF.Res );
 
@@ -2383,8 +2563,12 @@ void drive_Do100HzLoop(void)
 	{
 	    IsNotFirstLoop = 1;
 	}
+
+	Btn_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_ESCStateMachine();
+	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
+	BatStation.Do100HzLoop();
 
 }
 
@@ -2392,12 +2576,12 @@ void drive_Do100HzLoop(void)
 static uint8_t IsCompTempOverWarningTemp( ThermoStrategy_t *v )
 {
 	uint8_t IsOverTempFlag = 0;
-	if( *(v->TempNow[MOS_NTC_CENTER]) > v->MosDerating.X.InputMin )
+	if( *(v->TempNow[MOS_NTC_1]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
 	}
-	else if( *(v->TempNow[MOS_NTC_SIDE]) > v->MosDerating.X.InputMin )
+	else if( *(v->TempNow[MOS_NTC_2]) > v->MosDerating.X.InputMin )
 	{
 		IsOverTempFlag = 1;
 		v->ThermoDeratingSrc |= MOS_DERATING;
@@ -2449,7 +2633,7 @@ void drive_Do10HzLoop(void)
 		Axis[i].Do10HzLoop(&Axis[i]);
 
 	}
-	RCCommCtrl._10HzLoop(&RCCommCtrl);
+//	RCCommCtrl._10HzLoop(&RCCommCtrl);
 
 	// Because ESC does not receive RECEIVED_BAT_ID_1 for 100 ms, CAN1Timeout.Counter will be greater than 10;
 	// Note: CAN1Timeout.Counter increase every 100Hz in AlarmDetect_Do100HzLoop function
@@ -2469,11 +2653,11 @@ void drive_DoTotalTime(void)
 	// When TIM2 ARPE = 0, ARR change directly. The setting influence the end of THIS CNT.
 	if( TotalTime1.BufferServoOnState == MOTOR_STATE_OFF)
 	{
-		TIM2->ARR = (15000-1); // 3 sec
+		TIM3->ARR = (15000-1); // 3 sec
 	}
 	else
 	{
-		TIM2->ARR = (150000-1); // 30 sec
+		TIM3->ARR = (150000-1); // 30 sec
 	}
 
 	// In THIS interrupt, time elapsed should consider last servo on/off state.
@@ -2585,7 +2769,7 @@ void drive_DoHouseKeeping(void)
 	GlobalAlarmDetect_DoHouseKeeping();
 
 	//RCCommCtrl.MsgHandler(&RCCommCtrl,RCCommCtrl.RxBuff,Axis[0].pCANTxInterface,Axis[0].pCANRxInterface);
-	RCCommCtrl.MsgDecoder(&RCCommCtrl);
+//	RCCommCtrl.MsgDecoder(&RCCommCtrl);
 	
 	//DTC process to ExtFlash
 	if ( Axis[0].ServoOn == MOTOR_STATE_OFF)
@@ -2717,6 +2901,7 @@ void JumpCtrlFunction( void )
 	{
 		if( ( Axis[0].ServoOn == MOTOR_STATE_OFF ) )
 		{
+			BootAppTrig = BOOT_DIS;
 			HAL_Delay(5);
 			JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 		}
@@ -2737,12 +2922,6 @@ void JumpCtrlFunction( void )
 			JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
 		}
 	}
-	else if( (Axis[0].PcuPowerState == PWR_SM_WAIT_FOR_RESET) && \
-			 (Axis[0].ServoOn == MOTOR_STATE_OFF) )
-	{
-		HAL_Delay(100);
-		 JumpCode_ApplicationToBootloader( BOOT_ADDRESS );
-	 }
 	else;
 
 	if (( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || ( IntranetCANStation.ECUSoftResetEnable == 1 ))
@@ -2784,9 +2963,6 @@ void DisableMcuModule( void )
 	/*
 	 * DeInit All Communication Function
 	 */
-	// CAN 1
-	HAL_FDCAN_DeactivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE);
-	HAL_FDCAN_MspDeInit(&hfdcan1);
 
 	// CAN 2
 	HAL_FDCAN_DeactivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO0_NEW_MESSAGE);
@@ -2794,7 +2970,7 @@ void DisableMcuModule( void )
 	__HAL_RCC_FDCAN_FORCE_RESET();
 
 	//UART
-//	HAL_UART_MspDeInit(&huart5);
+//	HAL_UART_MspDeInit(&huart3);
 //	__HAL_RCC_UART5_FORCE_RESET();
 
 	//USART
@@ -2831,27 +3007,15 @@ void DisableMcuModule( void )
      */
 
 	// Timer 2
-    HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_ALL);
-    __HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
-    HAL_TIM_Base_DeInit( &htim2 );
-    __HAL_RCC_TIM2_FORCE_RESET();
+    HAL_TIM_Base_Stop_IT( &htim2 );
+	__HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
+    HAL_TIM_Base_MspDeInit( &htim2 );
+	__HAL_RCC_TIM2_FORCE_RESET();
 
 	// Timer 3
-//    HAL_TIM_Base_Stop_IT( &htim3 );
-//	__HAL_TIM_DISABLE_IT( &htim3, TIM_IT_IDX );
-//    HAL_TIM_Base_MspDeInit( &htim3 );
-//	__HAL_RCC_TIM3_FORCE_RESET();
-
-	// Timer 4
-//    HAL_TIM_Base_Stop_IT( &htim4 );
-//    HAL_TIM_Base_MspDeInit( &htim4 );
-//    __HAL_RCC_TIM4_FORCE_RESET();
-
-	// Timer 5
-    HAL_TIM_IC_Stop_IT(&htim5, TIM_CHANNEL_ALL);
-    __HAL_TIM_DISABLE_IT( &htim5, TIM_IT_IDX );
-    HAL_TIM_Base_DeInit( &htim5 );
-    __HAL_RCC_TIM2_FORCE_RESET();
+    HAL_TIM_Base_Stop_IT( &htim3 );
+    HAL_TIM_Base_MspDeInit( &htim3 );
+    __HAL_RCC_TIM3_FORCE_RESET();
 
     // Timer 6
     HAL_TIM_Base_Stop_IT( &htim6 );
@@ -2863,10 +3027,10 @@ void DisableMcuModule( void )
     HAL_TIM_Base_MspDeInit( &htim7 );
     __HAL_RCC_TIM7_FORCE_RESET();
 
-    // Timer 16
-    HAL_TIM_Base_Stop_IT( &htim16 );
-    HAL_TIM_Base_MspDeInit( &htim16 );
-    __HAL_RCC_TIM16_FORCE_RESET();
+    // Timer 8
+    HAL_TIM_Base_Stop_IT( &htim8 );
+    HAL_TIM_Base_MspDeInit( &htim8 );
+    __HAL_RCC_TIM8_FORCE_RESET();
 
 	// Timer 20
 	HAL_TIM_Base_Stop_IT( &htim20 );
@@ -2876,18 +3040,17 @@ void DisableMcuModule( void )
 	/*
 	 * DeInit ADC & DAC
 	 */
-	//ADC
-	HAL_ADCEx_InjectedStop_IT(&hadc1);
-	HAL_ADC_MspDeInit(&hadc1);
-
-	// ADC 2
+	//ADC2
 	HAL_ADCEx_InjectedStop_IT(&hadc2);
 	HAL_ADC_MspDeInit(&hadc2);
 	__HAL_RCC_ADC12_FORCE_RESET();
-
 	// ADC 3
 	HAL_ADCEx_InjectedStop_IT(&hadc3);
 	HAL_ADC_MspDeInit(&hadc3);
+
+	// ADC 4
+	HAL_ADCEx_InjectedStop_IT(&hadc4);
+	HAL_ADC_MspDeInit(&hadc4);
 	__HAL_RCC_ADC345_FORCE_RESET();
 
 	//DAC

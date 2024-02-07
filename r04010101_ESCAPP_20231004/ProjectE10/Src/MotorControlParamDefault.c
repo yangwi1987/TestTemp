@@ -14,22 +14,22 @@ extern const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault;
 
 const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 {
-#if MOTOR_STAGE==MOTOR_P1_3
-	.PmMotorFlux = 0.0077f,
-	.PmMotorLd = 0.0000193f,		//0.00002090405251
-	.PmMotorLq = 0.0000281f,		//0.00003069411535
-	.PmMotorRes = 0.0117f,			//0.008733
-	.PmMotorPolepair = 4.0f,
-	.PmMotorJ = 0.000365063f,
-	.MosfetDriverDeadTime = 0.000002f,
-	.MosfetDriverLowerBridgeMinTime = 0.0000016f,
+#if MOTOR_STAGE==MOTOR_P0
+	.PmMotorFlux = 0.0051f,     // When 120 degree C
+	.PmMotorLd = 0.0000096f,		// 9.6 uh
+	.PmMotorLq = 0.0000136f,    // 13.6 uh
+	.PmMotorRes = 0.001f,			//1mohm
+	.PmMotorPolepair = 5.0f,
+	.PmMotorJ = 0.00697189f,
+	.MosfetDriverDeadTime = 0.000002f, /*todo check with EE*/
+	.MosfetDriverLowerBridgeMinTime = 0.0000025f, /*todo check with EE*/
 	.MosfetDriverPwmPeriodCnt = (float)(INITIAL_CURRENT_LOOP_FREQ),
 	.MosfetDriverShuntRisingTime = 0.0f,
-	.MosfetDriverMinTimeChangeEleSpeedAbs = 1256.637f, //Mech RPM = 3000->Ele Speed = 3000/60*4*2*pi
+	.MosfetDriverMinTimeChangeEleSpeedAbs = 3141.59f, //Mech RPM = 6000->Ele Speed = 6000/60*5*2*pi
 	.PwmPeriod = 0.0001f,
 	.IdHz = 100.0f,
 	.IqHz = 100.0f,
-	.Ilimit = 260.0f,
+	.Ilimit = 531.0f,
 	.IfGain = 0.056f,
 	.IfAecel = 500.0f,
 	.IfDecel = 500.0f,
@@ -37,32 +37,6 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 	.VfGain = 0.012f,
 	.VfAecel = 100.0f,
 	.VfDecel = 100.0f,
-	.PwmPeriod = 0.0001f,
-	.pMotorTableHeader = &MotorTable,
-#elif MOTOR_STAGE==MOTOR_P1
-	.PmMotorFlux = 0.00728f,
-	.PmMotorLd = 0.0000192f,
-	.PmMotorLq = 0.0000266f,
-	.PmMotorRes = 0.0117f,
-	.PmMotorPolepair = 4.0f,
-	.PmMotorJ = 0.000365063f,
-	.MosfetDriverDeadTime = 0.000002f,
-	.MosfetDriverLowerBridgeMinTime = 0.0000016f,
-	.MosfetDriverPwmPeriodCnt = (float)(INITIAL_CURRENT_LOOP_FREQ),
-	.MosfetDriverShuntRisingTime = 0.0f,
-	.MosfetDriverMinTimeChangeEleSpeedAbs = 1256.637f, //Mech RPM = 3000->Ele Speed = 3000/60*4*2*pi
-	.PwmPeriod = 0.0001f,
-	.IdHz = 100.0f,
-	.IqHz = 100.0f,
-	.Ilimit = 260.0f,
-	.IfGain = 0.056f,
-	.IfAecel = 500.0f,
-	.IfDecel = 500.0f,
-
-	.VfGain = 0.012f,
-	.VfAecel = 100.0f,
-	.VfDecel = 100.0f,
-	.PwmPeriod = 0.0001f,
 	.pMotorTableHeader = &MotorTable,
 #endif
 };
