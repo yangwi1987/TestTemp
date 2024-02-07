@@ -2722,13 +2722,26 @@ void drive_DoHouseKeeping(void)
 
 	ExtFlash1.ParamBackupRequest = DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE];
 
-	if( ( ExtFlash1.ParamBackupRequest == Target_EFlash ) && ( Axis[0].ServoOn == 0 ) )
+	if( Axis[0].ServoOn == 0 )
 	{
-		// Param Backup
-		ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
+		if( ExtFlash1.ParamBackupRequest == Target_EFlash )
+		{
+			// Param Backup
+			ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
 
-		ExtFlash1.ParamBackupRequest = 0;
-		DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
+			ExtFlash1.ParamBackupRequest = 0;
+			DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
+		}
+		else if( DriveFnRegs[FN_ORIGIN_PARAM_BACKUP - FN_BASE] )
+		{
+			// Param Backup
+			ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
+
+			// Backup Current Calibration to another section of external flash
+			ExtFlash1.Curr_Calib_Store.CurrentCalibrationBackup( &ExtFlash1, &DriveParams );
+
+			DriveFnRegs[FN_ORIGIN_PARAM_BACKUP - FN_BASE] = 0;
+		}
 	}
 
 	Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] =(uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam10 );
@@ -2745,6 +2758,8 @@ void drive_DoHouseKeeping(void)
 							  &PCUTable, \
 							  &DriveParams.PCUParams);
 
+	// Load Current Calibration from another section of external flash
+	drive_DoExtFlashLoadCurrentCalib();
 
 	// Check error flag in housekeeping every time. If error flag is on and alarm is enable, register alarm "again".
 	GlobalAlarmDetect_DoHouseKeeping();
@@ -2836,8 +2851,55 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 			*BackUpExMemEna = ENABLE;
 			*Setup = DISABLE;
 			*Ena = DISABLE;
+		}
+		else if( *Ena == 3 ) // Reset the System Table and the PCUSystem Table
+		{
+			// Reset the System Table
+			for( tCnt = 0; tCnt< SYS_PARAM_SIZE; tCnt++)
+			{
+				if( ( Ts->SysParamTableInfoArray[tCnt].Property & 0x0007 ) <= PcuAuthorityCtrl.SecureLvNow)
+				{
+					*((&pSysT->Reserved000) + tCnt) =  Ts->SysParamTableInfoArray[tCnt].Default;
+				} else;
+			}
+
+			// Reset the PCUSystem Table
+			for( tCnt = 0; tCnt< PCU_PARAM_SIZE; tCnt++)
+			{
+				if( ( Tp->PcuParamTableInfoArray[tCnt].Property & 0x0007 ) <= PcuAuthorityCtrl.SecureLvNow)
+				{
+					*((&pPcuT->UartBaudrateSelect) + tCnt) =  Tp->PcuParamTableInfoArray[tCnt].Default;
+				} else;
+			}
+			*BackUpExMemEna = ENABLE;
+			*Setup = DISABLE;
+			*Ena = DISABLE;
+
+			ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest = 1;
 		} else; // Do nothing
 	} else;
+}
+
+void drive_DoExtFlashLoadCurrentCalib( void )
+{
+	if( ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest == 0)
+	{
+		return;
+	}
+
+	uint8_t CurrentCalibrationSize = 36;		// byte, P2-40 to P2-57
+	ExtFlash_Current_Calibration_t TempCurrentCalibration = {0};
+
+	// Clear request
+	ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest = 0;
+
+	ExtFlash1.Curr_Calib_Store.ReadCurrentCalibration( &ExtFlash1, &TempCurrentCalibration );
+	if( ExtFlash1.Curr_Calib_Store.ReadDoneFlag )
+	{
+		// Clear flag
+		ExtFlash1.Curr_Calib_Store.ReadDoneFlag = 0;
+		memcpy( &DriveParams.PCUParams.Axis1_Iu_Scale[0], &TempCurrentCalibration, CurrentCalibrationSize );
+	}
 }
 
 void drive_DoHWOCPIRQ(void)
