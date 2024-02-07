@@ -93,11 +93,11 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{27768, 	37768, 		5},	// 73 FN_CURRENT_IQ_CMD
 	{0, 	5000, 		5},	// 74 FN_CURRENT_IS_CMD
 	{0, 	62832, 		5},	    // 75 FN_CURRENT_THETA_CMD
-	{0, 	0, 		Reserved7},	// 76
-	{0, 	0, 		Reserved7},	// 77
-	{0, 	0, 		Reserved7},	// 78
-	{0, 	0, 		Reserved7},	// 79
-	{0, 	0, 		Reserved7},	// 80
+	{0, 	10000, 		5},	// 76 FN_PWM_U_CMD
+	{0, 	10000, 		5},	// 77 FN_PWM_V_CMD
+	{0, 	10000, 		5},	// 78 FN_PWM_W_CMD
+	{0, 	3, 		5},	// 79 FN_PWM_Mode
+	{0, 	0, 		5},	// 80
 	{0, 	1, 		6},			// 81-MC TEST MODE SETUP
 	{0, 	65535, 	6}, 		// 82-FN_MOTOR_CTRL_FUN_SEL1
 	{0, 	65535, 	6}, 		// 83-FN_MOTOR_CTRL_FUN_SEL2

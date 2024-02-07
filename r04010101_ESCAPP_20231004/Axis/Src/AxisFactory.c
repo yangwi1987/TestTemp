@@ -329,6 +329,43 @@ void AxisFactory_GetSetting( Axis_t *v )
             	v->MotorControl.CurrentControl.EnableDirectIdqCmd = FUNCTION_ENABLE;
             	break;
             }
+            case FN_MF_FUNC_SEL_PWM:
+            {
+                CtrlUi.MotorCtrlMode = FUNCTION_MODE_PWM;
+            	v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[0] = 0;
+            	v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[1] = 0;
+            	v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2] = 0;
+            	switch ( DriveFnRegs[ FN_PWM_Mode - FN_BASE ] )
+            	{
+            	    case FN_PWM_MODE_COMPLEMENTARY:
+            	    {
+            	    	v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode = PWM_COMPLEMENTARY;
+            	    	break;
+            	    }
+            	    case FN_PWM_MODE_UV:
+            	    {
+            	    	v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode = PWM_UbVbWx;
+            	    	break;
+            	    }
+            	    case FN_PWM_MODE_VW:
+            	    {
+            	    	v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode = PWM_UxVbWb;
+            	    	break;
+            	    }
+            	    case FN_PWM_MODE_UW:
+            	    {
+            	    	v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode = PWM_UbVxWb;
+            	    	break;
+            	    }
+            	    default:
+            	    {
+            	    	v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode = PWM_COMPLEMENTARY;
+            	    	break;
+            	    }
+
+            	}
+            	break;
+            }
             default:
             {
                 AxisFactory_CleanParameter();
@@ -343,6 +380,7 @@ void AxisFactory_GetSetting( Axis_t *v )
         case FN_MF_FUNC_SEL_IF:
         case FN_MF_FUNC_SEL_IDQ:
         case FN_MF_FUNC_SEL_ISTHETA:
+        case FN_MF_FUNC_SEL_PWM:
         {
             v->CtrlUiEnable = ( DriveFnRegs[ FN_ENABLE - FN_BASE ] == FN_ENABLE_MF_START) ? 1 : 0;
             break;
@@ -474,6 +512,13 @@ void AxisFactory_GetUiCmd( Axis_t *v )
         	CosValue = cosf(tempThetaCmd);
         	v->MotorControl.Cmd.IdCmd = (float)DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] * 0.1f * CosValue;
         	v->MotorControl.Cmd.IqCmd = (float)DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] * 0.1f * SinValue;
+        	break;
+        }
+        case FN_MF_FUNC_SEL_PWM:
+        {
+        	v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[0] = (float)DriveFnRegs[ FN_PWM_U_CMD - FN_BASE ] * 0.0001;
+        	v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[1] = (float)DriveFnRegs[ FN_PWM_V_CMD - FN_BASE ] * 0.0001;
+        	v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2] = (float)DriveFnRegs[ FN_PWM_W_CMD - FN_BASE ] * 0.0001;
         	break;
         }
         default:

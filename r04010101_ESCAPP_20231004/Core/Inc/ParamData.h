@@ -414,6 +414,10 @@
 #define FN_CURRENT_IQ_CMD           973
 #define FN_CURRENT_IS_CMD           974
 #define FN_CURRENT_THETA_CMD        975
+#define FN_PWM_U_CMD                976
+#define FN_PWM_V_CMD                977
+#define FN_PWM_W_CMD                978
+#define FN_PWM_Mode                 979
 
 #define FN_TEST_USAGE				999
 #define PN_MAX						1000
@@ -436,7 +440,16 @@ enum FN_MF_FUNC_SEL_ENUM
 	FN_MF_FUNC_SEL_VF,
 	FN_MF_FUNC_SEL_IF,
 	FN_MF_FUNC_SEL_IDQ,
-	FN_MF_FUNC_SEL_ISTHETA
+	FN_MF_FUNC_SEL_ISTHETA,
+	FN_MF_FUNC_SEL_PWM
+};
+
+enum FN_PWM_ENUM
+{
+	FN_PWM_MODE_COMPLEMENTARY = 0,
+	FN_PWM_MODE_UV,
+	FN_PWM_MODE_VW,
+	FN_PWM_MODE_UW
 };
 
 #define MAX_POWER_LEVEL 10
