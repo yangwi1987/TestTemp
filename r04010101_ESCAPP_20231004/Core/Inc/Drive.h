@@ -84,14 +84,14 @@ typedef enum{
 }VEHICLE_STATE_e;
 
 typedef enum{
-	ESC_OP_INITIALIZING,
-	ESC_OP_STANDBY,
-	ESC_OP_NORMAL,
-	ESC_OP_WARNING,
-	ESC_OP_LIMPHOME,
-	ESC_OP_ALARM,
-	ESC_OP_POWER_OFF,
-}ESC_OP_STATE_e; // ESC operation
+	INV_OP_INITIALIZING,
+	INV_OP_STANDBY,
+	INV_OP_NORMAL,
+	INV_OP_WARNING,
+	INV_OP_LIMPHOME,
+	INV_OP_ALARM,
+	INV_OP_POWER_OFF,
+}INV_OP_STATE_e; // INV operation
 
 // Define the number of different data index
 #define HW_VER_NUM_IDX		7 // PCU hardware version
