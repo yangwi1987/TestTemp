@@ -264,6 +264,10 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->PwmDutyCmd.Set120( p->SixWave120Duty.DutyCmd, &(p->PwmDutyCmd), p->SixWave120Duty.PwmStatus);
 
 	}
+	else
+	{
+    //PWM test mode
+	}
 
 }
 
