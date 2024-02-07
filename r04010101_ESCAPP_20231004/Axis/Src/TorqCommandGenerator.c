@@ -6,7 +6,6 @@
  */
 
 #include <TorqCommandGenerator.h>
-#define MIN3(a,b,c)  (((( a > b ) ? b : a) > c ) ? c : ( a > b ? b : a ))
 
 float TorqCommandGenerator_DCLimitation( TorqCommandGenerator_t *v )
 {

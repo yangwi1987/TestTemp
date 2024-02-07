@@ -49,9 +49,9 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       {
 		  PositionSensor_ReadPosViaPWM(v);
 		  v->MechPosition = v->InitMechPosition;
-          htim4.Instance->CNT = (uint32_t)(v->MechPosition * (float)DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI);
-          HAL_NVIC_DisableIRQ(TIM3_IRQn);
-    	  HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+          htim2.Instance->CNT = (uint32_t)(v->MechPosition * (float)DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI);
+          HAL_NVIC_DisableIRQ(TIM20_CC_IRQn);
+    	  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
     	  v->DoCurrentLoop = (functypePositionSensor_DoCurrentLoop)&PositionSensor_ReadPosViaABZ;
     	  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_OPERATING_POSITION;
     	  break;

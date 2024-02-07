@@ -7,26 +7,6 @@
 
 #include <MotorControl.h>
 
-void CoordinateTransfer_PhaseToStator( float U, float V, float W, PHASE_TO_STATOR_TYPE* p)
-{
-	// It's replaced by COORDINATE_TRANSFER_PHASE_TO_STATOR_MACRO
-}
-
-void CoordinateTransfer_StatorToRotor( float Alpha, float Beta, float Angle, STATOR_TO_ROTOR_TYPE* p)
-{
-	// It's replaced by COORDINATE_TRANSFER_STATOR_TO_ROTOR_MACRO
-}
-
-void CoordinateTransfer_RotorToStator( float D, float Q, float Angle, ROTOR_TO_STATOR_TYPE* p)
-{
-	// It's replaced by COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO
-}
-
-void CoordinateTransfer_StatorToPhase( float Alpha, float Beta, STATOR_TO_PHASE_TYPE* p)
-{
-	// It's replaced by COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO
-}
-
 void CoordinateTransfer_PhaseToStatorClean( PHASE_TO_STATOR_TYPE* p)
 {
 	p->Alpha=0.0f;

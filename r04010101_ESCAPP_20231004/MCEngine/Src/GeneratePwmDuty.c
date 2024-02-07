@@ -79,28 +79,6 @@ void GeneratePwmDuty_DutyCommand120Degree( float DutyCmd, DUTY_COMMAND_TYPE* p2,
 	}
 }
 
-void GeneratePwmDuty_DutyCommand180Degree( DUTY_TYPE* p1, DUTY_COMMAND_TYPE* p2)
-{
-	uint16_t CounterTmp = 0;
-
-	for ( CounterTmp = 0; CounterTmp < MOTOR_PHASE; CounterTmp++ )
-	{
-		if ( p1->Duty[CounterTmp] > p2->MaxDuty )
-		{
-			p2->DutyLimitation.Duty[CounterTmp] = p2->MaxDuty;
-		}
-		else if ( p1->Duty[CounterTmp] < p2->MinDuty )
-		{
-			p2->DutyLimitation.Duty[CounterTmp] = p2->MinDuty;
-		}
-		else
-		{
-			p2->DutyLimitation.Duty[CounterTmp] = p1->Duty[CounterTmp];
-		}
-	}
-	p2->DutyLimitation.PwmMode = PWM_COMPLEMENTARY;
-}
-
 uint16_t GeneratePwmDuty_DutyCommandInit( float PwmPeriod, float DeadTime, float MinTime, DUTY_COMMAND_TYPE* p)
 {
 	p->Clean(p);
@@ -162,11 +140,6 @@ void GeneratePwmDuty_CompensateDeadtimeByPhaseInit( COMPENSATION_DEADTIME_TYPE* 
 	p->CornerCurrN = CornerCurrN;
 	p->SlopeN = p->DeadtimeDutyN / p->CornerCurrN;
 	p->StartCmdSquare = p->CornerCurrP * p->CornerCurrP;
-}
-
-void GeneratePwmDuty_SvpwmCalc( float Alpha, float Beta, float DevideVbus, SVPWM_TYPE* p)
-{
-	// It's replaced by GENERATE_PWM_DUTY_SVPWM_MACRO
 }
 
 void GeneratePwmDuty_SixWave120Calc( SIX_WAVE_120_DUTY_TYPE* p, float DivideVbus )

@@ -7,9 +7,6 @@
 
 #include "ThermoStrategy.h"
 
-#define ABS(x)  ((x) >= 0 ? (x) : -(x))
-#define MIN2(a,b)  ( ((a) <= (b)) ? (a) : (b) )
-#define MIN3(a,b,c)  (((( a > b ) ? b : a) > c ) ? c : ( a > b ? b : a ))
 #define MOS_DERATING_TABLE_NUN 12
 #define WINDING_DERATING_TABLE_NUN 8
 
@@ -56,10 +53,10 @@ void ThermoStrategy_Init( ThermoStrategy_t *v, const LUT_INIT_PARA_INT16_1DIM_TY
 	v->ACCurrentLimit = v->MaxCurrPeak;
 
 	// Link the pointer to AdcStation
-	v->TempNow[MOS_NTC_CENTER] = &(pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_CENTER]);
-	v->TempNow[MOS_NTC_SIDE] = &(pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_SIDE]);
+	v->TempNow[MOS_NTC_1] = &(pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]);
+	v->TempNow[MOS_NTC_2] = &(pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]);
 	v->TempNow[CAP_NTC] = &(pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC]);
-	v->TempNow[MOTOR_NTC_0_A0] = &(pAdcStation->AdcTraOut.MOTOR_NTC);
+	v->TempNow[MOTOR_NTC_0_A0] = &(pAdcStation->AdcTraOut.MOTOR_NTC_0);
 
 }
 
@@ -69,13 +66,13 @@ void ThermoStrategy_Calc( ThermoStrategy_t *v )
 	float ACCurrLimitTarget = v->MaxCurrPeak;
 	float MaxMosTemp = 0; // max MOS temperature between side an center.
 
-	if( *(v->TempNow[MOS_NTC_CENTER]) > *(v->TempNow[MOS_NTC_SIDE]) )
+	if( *(v->TempNow[MOS_NTC_1]) > *(v->TempNow[MOS_NTC_2]) )
 	{
-		MaxMosTemp = *(v->TempNow[MOS_NTC_CENTER]);
+		MaxMosTemp = *(v->TempNow[MOS_NTC_1]);
 	}
 	else
 	{
-		MaxMosTemp = *(v->TempNow[MOS_NTC_SIDE]);
+		MaxMosTemp = *(v->TempNow[MOS_NTC_2]);
 	}
 
 	v->WindingLimit = v->WindingDerating.Calc(&v->WindingDerating,*(v->TempNow[MOTOR_NTC_0_A0]));

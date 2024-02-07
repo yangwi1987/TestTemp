@@ -18,20 +18,20 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcSetupTab =
 		{
 				// Group,		Group Enable,		DMAEna,			InjectedMode
-				{ADC_1,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
+				{ADC_1,			ADC_ENABLE,			ADC_ENABLE,		ADC_DISABLE		},
 				{ADC_2,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
-				{ADC_3,			ADC_ENABLE,			ADC_ENABLE,		ADC_DISABLE		},
-				{ADC_4,			ADC_DISABLE,		ADC_DISABLE,	ADC_DISABLE		},
-				{ADC_5,			ADC_DISABLE,		ADC_DISABLE,	ADC_DISABLE		}
+				{ADC_3,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
+				{ADC_4,			ADC_ENABLE,		    ADC_ENABLE,	    ADC_ENABLE		},
+				{ADC_5,			ADC_ENABLE,		    ADC_ENABLE,	    ADC_DISABLE		}
 		},
 
 		.AdcInjectionGroupTable =
 		{
 				//	Axis 1 Current
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,		Adc Rank, 			GainValue,
-				{ISE_U_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,			RANK_1,	  			AC_CURR_GAIN	},
-				{ISE_V_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,			RANK_1,	  			AC_CURR_GAIN	},
-				{ISE_W_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,			RANK_2,   			AC_CURR_GAIN    },
+				{ISE_U_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,			RANK_1,	  			AC_CURR_GAIN	},
+				{ISE_V_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_4,			RANK_1,	  			AC_CURR_GAIN	},
+				{ISE_W_A0,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,			RANK_1,   			AC_CURR_GAIN    },
 				//	Axis 2 Current
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,		Adc Rank,			GainValue
 				{ISE_U_A1,		ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE, 		DEFAULT_GAIN	},
@@ -39,7 +39,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{ISE_W_A1,		ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE, 		DEFAULT_GAIN	},
 
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,		Adc Rank,			GainValue
-				{BAT_VDC,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,			RANK_3,				DC_VOLT_GAIN	},
+				{BAT_VDC,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,			RANK_2,				DC_VOLT_GAIN	},
 				{INJ_REVD_8,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE,		DEFAULT_GAIN	},
 				{INJ_REVD_9,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,	RANK_DISABLE,		DEFAULT_GAIN	}
 		},
@@ -47,15 +47,15 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcRegularGroupTable =
 		{
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,			Adc Rank,		GainValue
-				{FOIL_AD,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,				RANK_3,			FOIL_GAIN		},
-				{P13V_AD,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_1,			V13V_GAIN		},
-				{HW_ID1,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,				RANK_1,			DEFAULT_GAIN	},
-				{HW_ID2,		ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,				RANK_4,			DEFAULT_GAIN	},
-				{REG_REVD_4,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_5,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_6,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_7,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
-				{REG_REVD_8,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{HW_ID2,	    ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_4,		    DEFAULT_GAIN	},
+				{ES5V_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_2,			E5V_GAIN		},
+				{HW_ID1,    	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_3,			DEFAULT_GAIN	},
+				{E5V_FB,    	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,				RANK_1,			E5V_GAIN    	},
+				{EA5V_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_6,	        E5V_GAIN    	},
+				{PREC_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_4,	        DC_VOLT_GAIN	},
+				{S13V8,     	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_5,	        S13V8_GAIN    	},
+				{ACC_FB2,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_4,		        RANK_1,	        PEDAL_GAIN	    },
+				{ACC_FB1,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_5,        		RANK_1,        	PEDAL_GAIN	    },
 				{REG_REVD_9,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
 				{REG_REVD_10,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
 				{REG_REVD_11,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
@@ -65,17 +65,17 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcThermoTable =
 		{
 				// PCU Thermal
-				//Name			ZeroFlagEnable,		TableIdx,		Channel Enable,	Adc Group,			Adc Rank
-				{MOS_NTC_CENTER,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_2			},	// MOS NTC Center
-				{MOS_NTC_SIDE,		ADC_DISABLE,		NTCS0603E3103,	ADC_ENABLE,		ADC_2,				RANK_3			},	// MOS NTC Side
-				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,	ADC_ENABLE,		ADC_2,				RANK_1			},	// CAP NTC
-				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
-				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
+				//Name			ZeroFlagEnable,		TableIdx,			Channel Enable,		Adc Group,			Adc Rank
+				{MOS_NTC_1,		ADC_DISABLE,		NTCG163JX103DT1S,	ADC_ENABLE,			ADC_3,				RANK_2			},	// MOS NTC Center
+				{MOS_NTC_2,		ADC_DISABLE,		NTCG163JX103DT1S,	ADC_ENABLE,			ADC_3,				RANK_3			},	// MOS NTC Side
+				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,		ADC_ENABLE,			ADC_3,				RANK_1			},	// CAP NTC
+				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
+				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
-				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_3,				RANK_2			},
-				{MOTOR_NTC_1_A0,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
-				{MOTOR_NTC_2_A0,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
+				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_1,				RANK_1	},
+				{MOTOR_NTC_1_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,	    ADC_2,		        RANK_2	},
+				{MOTOR_NTC_2_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,	    ADC_2,		        RANK_3	},
 				// Axis - 1 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
 				{MOTOR_NTC_0_A1,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
@@ -86,7 +86,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcCurveFittingTable =
 		{
 				// A6,			A5,				A4,				A3,				A2,				A1,				A0
-				{ 226.34901f, 	410.00309f, 	-321.93657f, 	46.95519f, 		7.8639097f,		-1.1499592f, 	-0.29832702f},		//	NTC On board number - NTCG163JX103DT1S
+				{ 226.34901f, 	410.00309f, 	-321.93657f, 	46.95519f, 		7.8639097f,		-1.1499592f, 	-0.29832702f},		//	NTC On board number for MOS - NTCG163JX103DT1S
 				{ 286.91117f, 	256.03905f, 	-208.99333f, 	31.554341f,		3.6156109f,		-1.5739555f,	0.12358828f	},		//	NTC Motor Winding number - GWX_LS103H20
 				{ 243.11277f,	-123.32722f,	8.3642276f,		2.0067563f,		0.26944288f,	-0.35931768f,	0.056648032f}		//  NTC On board for CAP - GWX_LS103H12
 		},
@@ -94,25 +94,25 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.PwmStartUpTable_Axis1 =
 		{
 			//Name,			GroupEnable,	Group,		Channel,		Reserved
-			{ CH_PWM_UP, 	PWM_ENABLE, 	TIM_20,		TIM_CH2,		PWM_NONE	},
-			{ CH_PWM_UN, 	PWM_ENABLE,		TIM_20,		TIM_CH2, 		PWM_NONE	},
-			{ CH_PWM_VP, 	PWM_ENABLE,		TIM_20,		TIM_CH1, 		PWM_NONE	},
-			{ CH_PWM_VN, 	PWM_ENABLE,		TIM_20,		TIM_CH1, 		PWM_NONE	},
-			{ CH_PWM_WP, 	PWM_ENABLE,		TIM_20,		TIM_CH4, 		PWM_NONE	},
-			{ CH_PWM_WN, 	PWM_ENABLE,		TIM_20,		TIM_CH4, 		PWM_NONE	}
+			{ CH_PWM_UP, 	PWM_ENABLE, 	TIM_8,		TIM_CH4,		PWM_NONE	},
+			{ CH_PWM_UN, 	PWM_ENABLE,		TIM_8,		TIM_CH4, 		PWM_NONE	},
+			{ CH_PWM_VP, 	PWM_ENABLE,		TIM_8,		TIM_CH1, 		PWM_NONE	},
+			{ CH_PWM_VN, 	PWM_ENABLE,		TIM_8,		TIM_CH1, 		PWM_NONE	},
+			{ CH_PWM_WP, 	PWM_ENABLE,		TIM_8,		TIM_CH3, 		PWM_NONE	},
+			{ CH_PWM_WN, 	PWM_ENABLE,		TIM_8,		TIM_CH3, 		PWM_NONE	}
 		},
 
 		.Pwm_Tim_Initializer_Axis1 =
 		{
-			TIM20,								\
-			&htim20,							\
-			TIM_CHANNEL_1,						\
-			TIM_CHANNEL_2,						\
-			TIM_CHANNEL_4,						\
-			1,									\
+			TIM8,								\
+			&htim8,								\
+			TIM_CHANNEL_4,/*ChannelU*/			\
+			TIM_CHANNEL_1,/*ChannelV*/			\
+			TIM_CHANNEL_3,/*ChannelW*/			\
+			1,	/* PreScale =1, note PSC = 1-1*/\
 			TIM_COUNTERMODE_CENTERALIGNED1,		\
-			INITIAL_PWM_PERIOD,					\
-			TIM_CLOCKDIVISION_DIV1,				\
+			INITIAL_PWM_PERIOD,	/*ARR = 8500-1*/\
+			TIM_CLOCKDIVISION_DIV1,	/*CKD = 00*/\
 			INITIAL_REPET_COUNTER,				\
 			TIM_AUTORELOAD_PRELOAD_ENABLE,		\
 			TIM_CLOCKSOURCE_INTERNAL,			\
@@ -121,30 +121,30 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			TIM_MASTERSLAVEMODE_DISABLE,		\
 			TIM_BREAKINPUTSOURCE_BKIN,			\
 			TIM_BREAKINPUTSOURCE_ENABLE,		\
-			TIM_BREAKINPUTSOURCE_POLARITY_LOW,	\
-			TIM_OCMODE_PWM2,					\
-			4250,								\
-			TIM_OCPOLARITY_LOW,					\
-			TIM_OCNPOLARITY_LOW,				\
+			TIM_BREAKINPUTSOURCE_POLARITY_LOW,	/*BKINP = 1 (low active)*/\
+			TIM_OCMODE_PWM2,	/*no use*/		\
+			8501, /*	InitDutyCntChU	*/		\
+			TIM_OCPOLARITY_LOW,	/*CC1P=1 => low active*/ \
+			TIM_OCNPOLARITY_LOW, /*CC1NP=1 => low active*/ \
 			TIM_OCFAST_DISABLE,					\
 			TIM_OCIDLESTATE_RESET,				\
 			TIM_OCNIDLESTATE_RESET,				\
-			4250,								\
-			4250,								\
+			8501, /*	InitDutyCntChV	*/		\
+			8501, /*	InitDutyCntChW	*/		\
 			TIM_OSSR_DISABLE,					\
 			TIM_OSSI_DISABLE,					\
 			TIM_LOCKLEVEL_OFF,					\
-			203,								\
+			203,	/*DTG 203=>(11+32)x47ns*/	\
 			TIM_BREAK_ENABLE,					\
-			TIM_BREAKPOLARITY_HIGH,				\
-			0,									\
+			TIM_BREAKPOLARITY_HIGH, /*BKP = 1*/	\
+			0, /*	BreakFilter			*/		\
 			TIM_BREAK_AFMODE_INPUT,				\
 			TIM_BREAK2_DISABLE,					\
 			TIM_BREAK2POLARITY_HIGH,			\
-			0,									\
+			0, /*	Break2Filter		*/		\
 			TIM_BREAK_AFMODE_INPUT,				\
 			TIM_AUTOMATICOUTPUT_DISABLE,		\
-			5									\
+			5	/*MinimumTime*/	/*todo check with EE*/\
 		},
 
 		.PcuParamTableInfoArray =
@@ -273,9 +273,9 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved316},	//P3-16 ALARMID_POWER_TRANSISTOR_OC
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved317},	//P3-17 ALARMID_BUFFER_IC_ERROR
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved318},	//P3-18 ALARMID_PHASE_LOSS
-				{		1,		THRE_MAX,		8000,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
+				{		1,		THRE_MAX,		12500,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
 				{		1,		THRE_MAX,		62,				0x45,		&DriveParams.PCUParams.Reserved320},	//P3-20 ALARMID_OVER_VOLTAGE_BUS
-				{		1,		THRE_MAX,		36,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
+				{		1,		THRE_MAX,		35,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
 				{		1,		THRE_MAX,		10,				0x45,		&DriveParams.PCUParams.Reserved322},	//P3-22 ALARMID_UNDER_VOLTAGE_13V
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved323},	//P3-23 ALARMID_IU_OCP
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved324},	//P3-24 ALARMID_IV_OCP
@@ -283,13 +283,13 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved326},	//P3-26 ALARMID_FLASH_UNINITIALIZED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved327},	//P3-27 ALARMID_FLASH_READ_FAILED
 				{		0,		THRE_MAX,		0,				0x45,		&DriveParams.PCUParams.Reserved328},	//P3-28 ALARMID_FLASH_DAMAGED
-				{		1,		1000,		    100,    		0x45,		&DriveParams.PCUParams.Reserved329},	//P3-29 ALARMID_MOTOR_REVERSE
-				{		0,		0,		0,		0,		0},	//P3-30
-				{		0,		0,		0,		0,		0},	//P3-31
+				{		0,		THRE_MAX,		30,				0x45,		&DriveParams.PCUParams.Reserved329},	//P3-29 ALARMID_UNDER_VOLTAGE_E5V
+				{		0,		THRE_MAX,		30,				0x45,		&DriveParams.PCUParams.Reserved330},	//P3-30 ALARMID_UNDER_VOLTAGE_ES5V
+				{		0,		THRE_MAX,		30,				0x45,		&DriveParams.PCUParams.Reserved331},	//P3-31 ALARMID_UNDER_VOLTAGE_EA5V
 				{		0,		0,		0,		0,		0},	//P3-32
 				{		0,		0,		0,		0,		0},	//P3-33
-				{		1,		THRE_MAX,		125,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_FOIL_BREAK in 0.001V
-				{		1,		THRE_MAX,		4752,		0x45,		&DriveParams.PCUParams.Reserved335},	//P3-35 ALARMID_FOIL_SHORT in 0.001V
+				{		1,		THRE_MAX,		125,		0x45,		&DriveParams.PCUParams.Reserved334},	//P3-34 ALARMID_ACC_PEDAL_BREAK in 0.001V
+				{		1,		THRE_MAX,		4752,		0x45,		&DriveParams.PCUParams.Reserved335},	//P3-35 ALARMID_ACC_PEDAL_SHORT in 0.001V
 				{		0,		0,		0,		0,		0},	//P3-36
 				{		0,		0,		0,		0,		0},	//P3-37
 				{		0,		0,		0,		0,		0},	//P3-38
@@ -302,22 +302,22 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-45
 				{		0,		0,		0,		0,		0},	//P3-46
 				{		0,		0,		0,		0,		0},	//P3-47
-				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved348},	//P3-48 ALARMID_OT_PCU_0
+				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved348},	//P3-48 ALARMID_OT_PCU_0
 				{		1,		THRE_MAX,		3900,		0x45,		&DriveParams.PCUParams.Reserved349},	//P3-49 ALARMID_BREAK_NTC_PCU_0
 				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved350},	//P3-50 ALARMID_SHORT_NTC_PCU_0
-				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved351},	//P3-51 ALARMID_OT_PCU_1
+				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved351},	//P3-51 ALARMID_OT_PCU_1
 				{		1,		THRE_MAX,		3900,		0x45,		&DriveParams.PCUParams.Reserved352},	//P3-52 ALARMID_BREAK_NTC_PCU_1
 				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved353},	//P3-53 ALARMID_SHORT_NTC_PCU_1
-				{		1,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved354},	//P3-54 ALARMID_OT_PCU_2
+				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved354},	//P3-54 ALARMID_OT_PCU_2
 				{		1,		THRE_MAX,		4065,		0x45,		&DriveParams.PCUParams.Reserved355},	//P3-55 ALARMID_BREAK_NTC_PCU_2
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved356},	//P3-56 ALARMID_SHORT_NTC_PCU_2
-				{		1,		THRE_MAX,		175,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
+				{		1,		THRE_MAX,		150,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
 				{		1,		THRE_MAX,		4075,		0x45,		&DriveParams.PCUParams.Reserved358},	//P3-58 ALARMID_BREAK_NTC_MOTOR_0
 				{		1,		THRE_MAX,		200,		0x45,		&DriveParams.PCUParams.Reserved359},	//P3-59 ALARMID_SHORT_NTC_MOTOR_0
-				{		1,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
-				{		1,		THRE_MAX,		115,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
-				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
-				{		1,		THRE_MAX,		170,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
+				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
+				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
+				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
+				{		1,		THRE_MAX,		130,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved364},	//P3-64 ALARMID_MOTORSTALL
 				{		0,		0,		0,		0,		0},	//P3-65
 				{		0,		0,		0,		0,		0},	//P3-66
@@ -352,7 +352,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-95
 				{		0,		0,		0,		0,		0},	//P3-96
 				{		0,		0,		0,		0,		0},	//P3-97
-				{		1,		THRE_MAX,		9,		0x45,		&DriveParams.PCUParams.Reserved398},	//P3-98 ALARMID_RC_INVALID
+				{		0,		0,		0,		0,		0},	//P3-98
 				{		0,		0,		0,		0,		0}	//P3-99
 		},
 
