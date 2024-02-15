@@ -210,16 +210,8 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		RetValue = (int32_t)( AdcStation1.AdcTraOut.PCU_NTC[CAP_NTC] * 10.0f );
 		break;
 
-	case DN_FOIL_VOLTAGE:
-//		RetValue = (int32_t)( AdcStation1.AdcTraOut.Foil * 100.0f );
-		break;
-
 	case DN_CURRENT_LIMIT :
 		RetValue = (int32_t)(Axis[0].pCANRxInterface->BatCurrentDrainLimit * 10.0f);
-		break;
-
-	case DC_FOIL_ADC:
-//		RetValue = (int32_t)AdcStation1.AdcDmaData[AdcStation1.RegCh[FOIL_AD].AdcGroupIndex][AdcStation1.RegCh[FOIL_AD].AdcRankIndex];
 		break;
 
 	case DN_U_CURR_ADC:
@@ -461,9 +453,6 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
 	case DN_TOTAL_OP_TIME:
 		RetValue = (uint16_t)(roundf( (float)TotalTime1.LocalTotalTime * 0.0008333333f )); // in hour
-		break;
-	case DN_ACC_UART_ERROR_CNT :
-		RetValue = RCCommCtrl.AccUARTErrorCnt;
 		break;
 	case DN_ACC_CAN_ERROR_CNT :
 		RetValue = Axis[0].pCANRxInterface->AccCANErrorCnt;
