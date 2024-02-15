@@ -139,7 +139,6 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
         i16Temp = (int16_t)v->Debugf[IDX_MOTOR_RPM];
         ByteOrderReverse((void*)&p->InvLogInfo1.MotorRpmI16, (void*)&i16Temp, 2);
 
-//        p->InvLogInfo1.VehicleState = v->VehicleState Jeff
         p->InvLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_CRI_ALARM_MASK)==0) ? 0 : 1;
         p->InvLogInfo1.LimpHomeFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_NON_CRI_ALARM_MASK)==0) ? 0 : 1;
         p->InvLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
@@ -269,7 +268,6 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
-//    	  p->InvLogInfo7.BatSoc =
     	  p->InvLogInfo7.BatMainSm = BatStation.MainSMGet();
     	  p->InvLogInfo7.BatPwrOffState = BatStation.PwrOffSMGet();
     	  p->InvLogInfo7.BatPwrOnState = BatStation.PwrOnSMGet();
