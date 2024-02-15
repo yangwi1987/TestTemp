@@ -631,12 +631,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 	}
 
 }
-#if USE_PWM_RC_FUNCTION == (USE_FUNCTION & EVT)
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-	drive_DoPwmRcCatch();
-}
-#endif
 
 void HAL_TIMEx_EncoderIndexCallback(TIM_HandleTypeDef *htim)
 {

@@ -2205,56 +2205,6 @@ void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a )
 }
 #endif
 
-#if USE_PWM_RC_FUNCTION == (USE_FUNCTION & EVT)
-void drive_DoPwmRcCatch(void)
-{
-	uint32_t PeriodCntTmp = 0;
-	uint32_t UlTemp32=0;
-	float PeriodCnt = 0.0F;
-	float DutyCnt = 0.0F;
-//	uint64_t PeriodTmpU64 = 0;
-
-	if( htim5.Channel == HAL_TIM_ACTIVE_CHANNEL_2 )
-	{
-		/* Get the Input Capture value - period count */
-		Axis[0].PwmRc.PeriodEdgeValue = HAL_TIM_ReadCapturedValue( &htim5, TIM_CHANNEL_2 );
-		Axis[0].PwmRc.DutyEdgeValue = HAL_TIM_ReadCapturedValue( &htim5, TIM_CHANNEL_1 );
-
-//		PeriodCntTmp = ((Axis[0].PwmRc.PeriodEdgeValue- Axis[0].PwmRc.PrevPeriodEdgeValue)&0x00007FFF);
-
-
-		if( Axis[0].PwmRc.PeriodEdgeValue >= Axis[0].PwmRc.PrevPeriodEdgeValue ){
-			PeriodCntTmp = Axis[0].PwmRc.PeriodEdgeValue - Axis[0].PwmRc.PrevPeriodEdgeValue;
-		}else{
-			PeriodCntTmp  = Axis[0].PwmRc.PeriodEdgeValue + 0xFFFF;
-			PeriodCntTmp -= Axis[0].PwmRc.PrevPeriodEdgeValue;
-		}
-
-//		if( ( PeriodCntTmp < 10002 ) & ( PeriodCntTmp> 9800 ) )
-		if( ( PeriodCntTmp < 10200 ) & ( PeriodCntTmp> 9800 ) )
- 		{
-			PeriodCnt = (float)PeriodCntTmp;
-			//DutyCnt = ( float )((Axis[0].PwmRc.DutyEdgeValue-Axis[0].PwmRc.PrevPeriodEdgeValue)&0x00007FFF);
-
-			if( Axis[0].PwmRc.DutyEdgeValue >= Axis[0].PwmRc.PrevPeriodEdgeValue ){
-				UlTemp32 = Axis[0].PwmRc.DutyEdgeValue - Axis[0].PwmRc.PrevPeriodEdgeValue;
-			}else{
-				UlTemp32 = Axis[0].PwmRc.DutyEdgeValue + 0xFFFF ;
-				UlTemp32 -= Axis[0].PwmRc.PrevPeriodEdgeValue;
-			}
-
-			if(UlTemp32 < 2500){
-				DutyCnt = (float)UlTemp32;
-				Axis[0].PwmRc.DutyRaw = DutyCnt / PeriodCnt;
-			}
-		}
-	}
-	Axis[0].PwmRc.PrevPeriodEdgeValue = Axis[0].PwmRc.PeriodEdgeValue;
-	Axis[0].PwmRc.AbnormalCnt = DISABLE;
-	Axis[0].PwmRc.StartFlag = ENABLE;
-}
-#endif
-
 void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
 {
 	uint32_t IC2Val = 0;
