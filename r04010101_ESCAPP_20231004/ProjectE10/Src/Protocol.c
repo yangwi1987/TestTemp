@@ -290,13 +290,13 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
-          i16Temp = (int16_t)(v->Debugf[IDX_IU_FBK]*50.0f);
+          i16Temp = (int16_t)(v->Debugf[IDX_IU_FBK]*40.0f);
           ByteOrderReverse((void*)&p->InvLogInfo8.IuFbk, (void*)&i16Temp, 2);
 
-          i16Temp = (int16_t)(v->Debugf[IDX_IV_FBK]*50.0f);
+          i16Temp = (int16_t)(v->Debugf[IDX_IV_FBK]*40.0f);
           ByteOrderReverse((void*)&p->InvLogInfo8.IvFbk, (void*)&i16Temp, 2);
 
-          i16Temp = (int16_t)(v->Debugf[IDX_IW_FBK]*50.0f);
+          i16Temp = (int16_t)(v->Debugf[IDX_IW_FBK]*40.0f);
           ByteOrderReverse((void*)&p->InvLogInfo8.IwFbk, (void*)&i16Temp, 2);
 
           i16Temp = (int16_t)(v->Debugf[IDX_PREC]*10.0f);
