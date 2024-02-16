@@ -272,8 +272,8 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	}
 
 
-	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_BREAK, v->pAdcStation->AdcTraOut.Pedal_V1 );
-	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_SHORT, v->pAdcStation->AdcTraOut.Pedal_V1 );
+	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_BREAK, v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[ACC_FB1].AdcGroupIndex][v->pAdcStation->RegCh[ACC_FB1].AdcRankIndex] );
+	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_SHORT, v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[ACC_FB1].AdcGroupIndex][v->pAdcStation->RegCh[ACC_FB1].AdcRankIndex] );
 	AlarmDetect_Accumulation( v, &v->UVP_E5V, v->pAdcStation->AdcTraOut.E5V );
 	AlarmDetect_Accumulation( v, &v->UVP_ES5V, v->pAdcStation->AdcTraOut.ES5V );
 	AlarmDetect_Accumulation( v, &v->UVP_EA5V, v->pAdcStation->AdcTraOut.EA5V );
