@@ -1251,15 +1251,15 @@ static void MX_TIM8_Init(void)
   }
   sBreakInputConfig.Source = TIM_BREAKINPUTSOURCE_BKIN;
   sBreakInputConfig.Enable = TIM_BREAKINPUTSOURCE_ENABLE;
-  sBreakInputConfig.Polarity = TIM_BREAKINPUTSOURCE_POLARITY_HIGH; /*todo check high or low*/
+  sBreakInputConfig.Polarity = TIM_BREAKINPUTSOURCE_POLARITY_LOW; // HWOCP pin is low active
   if (HAL_TIMEx_ConfigBreakInput(&htim8, TIM_BREAKINPUT_BRK, &sBreakInputConfig) != HAL_OK)
   {
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM2;
-  sConfigOC.Pulse = 8499;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH; /*todo check high or low*/
-  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH; /*todo check high or low*/
+  sConfigOC.Pulse = 8501;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW; // low active
+  sConfigOC.OCNPolarity = TIM_OCPOLARITY_LOW; // low active
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
@@ -1279,9 +1279,9 @@ static void MX_TIM8_Init(void)
   sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
   sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
   sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 128; /*todo check 203 or 128*/
-  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_LOW; /*todo check high or low*/
+  sBreakDeadTimeConfig.DeadTime = 203;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE; // Avoid to detect HWOCAP when the OCP circuit is unstable.
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH; // overall polarity is high
   sBreakDeadTimeConfig.BreakFilter = 0;
   sBreakDeadTimeConfig.BreakAFMode = TIM_BREAK_AFMODE_INPUT;
   sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
