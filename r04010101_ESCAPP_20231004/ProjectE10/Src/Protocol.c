@@ -314,7 +314,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     	p->InvLogInfo9.AccPedal2Volt = (uint8_t)( 50.0f * v->Debugf[IDX_ACC_PEDAL2_VOLT] );
     	p->InvLogInfo9.S13V8 = (uint8_t)( 10.0f * v->Debugf[IDX_S13V8] );
 #if MEASURE_CPU_LOAD
-    	p->InvLogInfo9.Max10kHzLoopLoad = (uint8_t)( 2.0f * Max_ADC_Inj_Load_pct );
+    	p->InvLogInfo9.Max10kHzLoopLoad = (uint8_t)( 2.0f * Max_CurrentLoop_Load_pct );
     	p->InvLogInfo9.AveCurrentLoopLoad = (uint8_t)( 2.0f * Ave_CurrentLoop_Load_pct );
     	p->InvLogInfo9.MaxPLCLoopLoad = (uint8_t)( 2.0f * Max_PLCLoop_Load_pct );
     	p->InvLogInfo9.AvePLCLoopLoad = (uint8_t)( 2.0f * Ave_PLCLoop_Load_pct );

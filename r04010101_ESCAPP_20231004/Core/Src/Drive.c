@@ -92,7 +92,6 @@ extern Judge_Delay _100HzLoop_Judge_Delay;
 extern float Max_100Hz_Load_pct;
 extern float Max_PLCLoop_Load_pct;
 extern float Max_CurrentLoop_Load_pct;
-extern float Max_ADC_Inj_Load_pct;
 extern float Ave_100Hz_Load_pct;
 extern float Ave_PLCLoop_Load_pct;
 extern float Ave_CurrentLoop_Load_pct;
@@ -492,9 +491,6 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 		break;
     case DN_MAX_CURRENTLOOP_LOAD_PCT:
 		RetValue = (uint16_t)(Max_CurrentLoop_Load_pct * 100.0f);
-		break;
-    case DN_MAX_ADC_INJ_LOAD_PCT    :
-		RetValue = (uint16_t)(Max_ADC_Inj_Load_pct * 100.0f);
 		break;
     case DN_AVE_100HZLOOP_LOAD_PCT  :
 		RetValue = (uint16_t)(Ave_100Hz_Load_pct * 100.0f);

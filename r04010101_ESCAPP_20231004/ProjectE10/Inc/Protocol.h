@@ -394,7 +394,6 @@ extern const CanIdConfig_t CanIdTableExtra[];
 extern float Max_100Hz_Load_pct;
 extern float Max_PLCLoop_Load_pct;
 extern float Max_CurrentLoop_Load_pct;
-extern float Max_ADC_Inj_Load_pct;
 extern float Ave_100Hz_Load_pct;
 extern float Ave_PLCLoop_Load_pct;
 extern float Ave_CurrentLoop_Load_pct;

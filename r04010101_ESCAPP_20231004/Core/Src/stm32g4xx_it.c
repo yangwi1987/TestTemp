@@ -57,8 +57,6 @@ uint32_t Max_PLCLoop_Cnt = 0.0f;
 float Max_PLCLoop_Load_pct = 100.0f;
 uint32_t Max_CurrentLoop_Cnt = 0.0f;
 float Max_CurrentLoop_Load_pct = 100.0f;
-uint32_t Max_ADC_Inj_Cnt = 0.0f;
-float Max_ADC_Inj_Load_pct = 100.0f;
 
 uint32_t Ave_100Hz_Cnt = 0.0f;
 float Ave_100Hz_Load_pct = 100.0f;
@@ -321,10 +319,6 @@ void DMA1_Channel5_IRQHandler(void)
 void ADC1_2_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC1_2_IRQn 0 */
-#if MEASURE_CPU_LOAD_ADC_INJ
-  uint32_t CurrentTimeStamp = DWT->CYCCNT;
-  uint32_t EndTimeStamp = 0;
-#endif
 #if 0
   /* USER CODE END ADC1_2_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
@@ -333,10 +327,6 @@ void ADC1_2_IRQHandler(void)
 #endif
 //  USER_HAL_ADC_IRQHandler( &hadc1 ); No ADC 1 injection channel in E10 project
   USER_HAL_ADC_IRQHandler( &hadc2 );
-#if MEASURE_CPU_LOAD_ADC_INJ
-  EndTimeStamp =  DWT->CYCCNT;
-  Max_ADC_Inj_Cnt = Max_ADC_Inj_Cnt > ( EndTimeStamp - CurrentTimeStamp ) ? Max_ADC_Inj_Cnt : ( EndTimeStamp - CurrentTimeStamp );
-#endif
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
@@ -480,7 +470,6 @@ void TIM7_DAC_IRQHandler(void)
     Max_100Hz_Load_pct = ((float)Max_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
     Max_PLCLoop_Load_pct = ((float)Max_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
     Max_CurrentLoop_Load_pct = ((float)Max_CurrentLoop_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
-    Max_ADC_Inj_Load_pct = ((float)Max_ADC_Inj_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
 
     Ave_100Hz_Cnt = Ave_100Hz_Cnt - aveLoad_filter_coef * 100.0f* ( Ave_100Hz_Cnt - (float)( EndTimeStamp - CurrentTimeStamp ) );
     Ave_100Hz_Load_pct = ((float)Ave_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
