@@ -135,28 +135,6 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->NTCTemp[5] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor2
     }
 
-//    if( v->PcuPowerState == PWR_SM_INITIAL )
-//    {
-//        v->pCANTxInterface->PcuStateReport = PCU_STATE_INITIAL;
-//    }
-//    else if( v->PcuPowerState == PWR_SM_POWER_ON )
-//    {
-//        if (v->FourQuadCtrl.ServoCmdOut == ENABLE ){
-//            v->pCANTxInterface->PcuStateReport = PCU_STATE_OUTPUT;
-//        }else{
-//            v->pCANTxInterface->PcuStateReport = PCU_STATE_STANDBY;
-//        }
-//    }
-//    else if( v->PcuPowerState == PWR_SM_POWER_OFF )
-//    {
-//        v->pCANTxInterface->PcuStateReport = PCU_STATE_POWER_OFF;
-//    }
-//    else
-//    {
-//        // undefined value, register error
-//        v->pCANTxInterface->PcuStateReport = PCU_STATE_ERROR;
-//    }
-
     if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
         for(i=0;i<10;i++){
             v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
@@ -636,7 +614,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
     //GearMode
-    //v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(???)
+    v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(BTN_IDX_BST_BTN);
+    v->GearModeVar.IsReverseBtnPressed = Btn_StateRead(BTN_IDX_REV_BTN);
     GearMode_DoPLCLoop( &v->GearModeVar );
     v->FourQuadCtrl.DriveGearModeSelect = v->GearModeVar.GearModeSelect;
     v->pCANRxInterface->OutputModeCmd = ( v->GearModeVar.GearModeSelect == NORMAL_MODE ) ? 1 : ( v->GearModeVar.GearModeSelect == BOOST_MODE ) ? 2 : 0;
