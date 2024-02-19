@@ -237,7 +237,6 @@ typedef struct {
 	int16_t AxisID;
 	uint16_t PcuID;
 	uint16_t PIDCheckResult;
-	uint16_t ESCOperationState;
 	int16_t ServoOn;
 	int16_t ServoOnOffState;
 	uint16_t HasWarning; // 0: no warning, 1: warning exist
@@ -285,7 +284,6 @@ typedef struct {
 	0,      /*AxisID;             */ \
 	0,      /* PcuID;             */ \
 	0,      /* PIDCheckResult;    */ \
-	0,      /*ESCOperationState   */ \
 	0,      /*ServoOn;            */ \
 	0,      /*ServoOnOffState;    */ \
 	0,      /* HasWarning;        */ \
