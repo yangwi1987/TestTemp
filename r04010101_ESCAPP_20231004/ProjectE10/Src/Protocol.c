@@ -142,6 +142,8 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
         p->InvLogInfo1.AlarmFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_CRI_ALARM_MASK)==0) ? 0 : 1;
         p->InvLogInfo1.LimpHomeFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_NON_CRI_ALARM_MASK)==0) ? 0 : 1;
         p->InvLogInfo1.WarnFlag = ((v->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG]&CAN_TX_WARNING_MASK)==0) ? 0 : 1;
+  	    p->InvLogInfo1.InvState = v->InvState;
+  	    p->InvLogInfo1.VehicleState = v->VehicleState;
         p->InvLogInfo1.OutputMode = r->OutputModeCmd;
         p->InvLogInfo1.DeratingSrc = v->DeratingSrc;
       }
@@ -268,13 +270,16 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
+    	  p->InvLogInfo7.MainBatSoc = BatStation.SocGet(BAT_INSTANCE_MAIN);
+    	  p->InvLogInfo7.ServoOnOffState = v->ServoOnOffState;
     	  p->InvLogInfo7.BatMainSm = BatStation.MainSMGet();
     	  p->InvLogInfo7.BatPwrOffState = BatStation.PwrOffSMGet();
     	  p->InvLogInfo7.BatPwrOnState = BatStation.PwrOnSMGet();
     	  p->InvLogInfo7.E5V = (uint8_t)( 40.0f * v->Debugf[IDX_E5V] );
     	  p->InvLogInfo7.ES5V = (uint8_t)( 40.0f * v->Debugf[IDX_ES5V] );
     	  p->InvLogInfo7.HWID_H =  (uint8_t)( v->HWID[0] >> 4);
-    	  p->InvLogInfo7.HWID_M = (uint8_t)((( v->HWID[0] & 0xF00 ) >> 4 ) | ( v->HWID[1] >> 8 ));
+    	  p->InvLogInfo7.HWID_ID1First4bits = (uint8_t)(( v->HWID[0] & 0xF00 ) >> 8 );
+    	  p->InvLogInfo7.HWID_ID2Last4bits = (uint8_t)( v->HWID[1] >> 8 );
     	  p->InvLogInfo7.HWID_L = (uint8_t)( v->HWID[1] & 0xFF );
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
@@ -313,6 +318,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       {
     	p->InvLogInfo9.AccPedal2Volt = (uint8_t)( 50.0f * v->Debugf[IDX_ACC_PEDAL2_VOLT] );
     	p->InvLogInfo9.S13V8 = (uint8_t)( 10.0f * v->Debugf[IDX_S13V8] );
+    	p->InvLogInfo9.SecBatSoc = BatStation.SocGet(BAT_INSTANCE_SEC);
 #if MEASURE_CPU_LOAD
     	p->InvLogInfo9.Max10kHzLoopLoad = (uint8_t)( 2.0f * Max_CurrentLoop_Load_pct );
     	p->InvLogInfo9.AveCurrentLoopLoad = (uint8_t)( 2.0f * Ave_CurrentLoop_Load_pct );

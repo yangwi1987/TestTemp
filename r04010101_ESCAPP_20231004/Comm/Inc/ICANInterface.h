@@ -296,9 +296,7 @@ typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
   TX_INTERFACE_DBG_IDX_ERROR_FLAG = 1, // include critical alarm, non-critical alarm, and warning
-  TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_H = 2,
-  TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_L = 3,
-  TX_INTERFACE_DBG_IDX_DUAL_BTN_FLAG = 4,
+
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
@@ -368,6 +366,7 @@ typedef struct
     uint8_t DeratingSrc;
 	uint8_t ShutDownReq;
 	uint8_t InvState;
+	uint8_t ServoOnOffState;
 	uint16_t HWID[2];
 	BmsCtrlCmd_t BmsCtrlCmd;
 	AlarmStack_t *pAlarmStack;
@@ -407,6 +406,7 @@ typedef struct {
 	0, /*DeratingSrc*/\
 	0, /*ShutDownReq*/\
 	0, /*InvState*/\
+	0, /*ServoOnOffState*/\
 	{0},/*HWID[2]*/\
 	{0}, /*BmsCtrlCmd*/\
 	0, /**pAlarmStack*/\

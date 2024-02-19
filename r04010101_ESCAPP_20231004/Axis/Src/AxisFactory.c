@@ -168,6 +168,7 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_S13V8] = v->pAdcStation->AdcTraOut.S13V8;
         v->pCANTxInterface->HWID[0] = v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[HW_ID1].AdcGroupIndex][v->pAdcStation->RegCh[HW_ID1].AdcRankIndex];
         v->pCANTxInterface->HWID[1] = v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[HW_ID2].AdcGroupIndex][v->pAdcStation->RegCh[HW_ID2].AdcRankIndex];
+        v->pCANTxInterface->ServoOnOffState = v->ServoOnOffState;
 //        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
     }
 
