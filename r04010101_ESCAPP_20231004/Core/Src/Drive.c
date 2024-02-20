@@ -2003,9 +2003,6 @@ void Drive_VehicleStateMachine( void )
   }
 
   Axis[0].pCANTxInterface->VehicleState = VehicleMainState;
-  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_L] = (uint8_t)(DualBtnTimeCnt & 0x00FF);
-  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_H] = DualBtnTimeCnt >> 8;
-  Axis[0].pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_DUAL_BTN_FLAG] =ButtonReleasedFlags;
 }
 
 void HAL_TIM_Base_Start_TOTAL_TIME( TIM_HandleTypeDef *htim )

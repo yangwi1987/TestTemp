@@ -242,6 +242,7 @@ extern void Bat_Do100HzLoop (void);
 extern BatMainSM_t Bat_MainSMGet (void);
 extern BatPwrOnSM_t Bat_PwrOnSMGet (void);
 extern BatPwrOffSM_t Bat_PwrOffSMGet (void);
+extern uint8_t Bat_SocGet (uint32_t Instance);
 extern void Bat_PwrOffReq(void);
 extern void Bat_PwrOnReq(void);
 extern void Bat_CanHandleLoad(ExtranetCANStation_t *pIn);
@@ -252,6 +253,7 @@ typedef void (*functypBat_Do100HzLoop)(void);
 typedef BatMainSM_t (*functypBat_MainSMGet)(void);
 typedef BatPwrOnSM_t (*functypBat_PwrOnSMGet)(void);
 typedef BatPwrOffSM_t (*functypBat_PwrOffSMGet)(void);
+typedef uint8_t (*functypBat_SocGet) (uint32_t);
 typedef void (*functypBat_PwrOffReq)(void);
 typedef void (*functypBat_PwrOnReq)(void);
 typedef void (*functypBat_CanHandleLoad)(void *);
@@ -264,6 +266,7 @@ typedef struct
 	functypBat_MainSMGet MainSMGet;
 	functypBat_PwrOnSMGet PwrOnSMGet;
 	functypBat_PwrOffSMGet PwrOffSMGet;
+	functypBat_SocGet SocGet;
 	functypBat_PwrOffReq PwrOffReq;
 	functypBat_PwrOnReq PwrOnReq;
 	functypBat_CanHandleLoad CanHandleLoad;
@@ -277,6 +280,7 @@ typedef struct
 		(functypBat_MainSMGet)Bat_MainSMGet,		/*MainSMGet*/ \
 		(functypBat_PwrOnSMGet)Bat_PwrOnSMGet,		/*PwrOnSMGet*/ \
 		(functypBat_PwrOffSMGet)Bat_PwrOffSMGet,	/*PwrOffSMGet*/ \
+		(functypBat_SocGet)Bat_SocGet,              /*SocGet*/\
 		(functypBat_PwrOffReq)Bat_PwrOffReq,		/*PwrOffReq*/ \
 		(functypBat_PwrOnReq)Bat_PwrOnReq,			/*PwrOnReq*/ \
 		(functypBat_CanHandleLoad)Bat_CanHandleLoad,/*CanHandleLoad*/ \
