@@ -274,10 +274,10 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     	  p->InvLogInfo7.BatPwrOnState = BatStation.PwrOnSMGet();
     	  p->InvLogInfo7.E5V = (uint8_t)( 40.0f * v->Debugf[IDX_E5V] );
     	  p->InvLogInfo7.ES5V = (uint8_t)( 40.0f * v->Debugf[IDX_ES5V] );
-    	  p->InvLogInfo7.HWID_H =  (uint8_t)( v->HWID[0] >> 4);
-    	  p->InvLogInfo7.HWID_ID1First4bits = (uint8_t)(( v->HWID[0] & 0xF00 ) >> 8 );
-    	  p->InvLogInfo7.HWID_ID2Last4bits = (uint8_t)( v->HWID[1] >> 8 );
-    	  p->InvLogInfo7.HWID_L = (uint8_t)( v->HWID[1] & 0xFF );
+    	  p->InvLogInfo7.HWID_ID1First8bits = (uint8_t)( v->HWID[0] >> 4 );
+    	  p->InvLogInfo7.HWID_ID1Last4bits = (uint8_t)( v->HWID[0] & 0x00F );
+    	  p->InvLogInfo7.HWID_ID2First4bits = (uint8_t)( v->HWID[1] >> 8 );
+    	  p->InvLogInfo7.HWID_ID2Last8bits = (uint8_t)( v->HWID[1] & 0xFF );
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
       else

@@ -261,10 +261,10 @@ typedef struct
   uint8_t BatPwrOffState:4;       /* BMS precharge state machine value report by BMS, refer to "BatPwrOffSM_t" */
   uint8_t E5V;					          /* unit: 0.025V */
   uint8_t ES5V;					          /* unit: 0.025V */
-  uint8_t HWID_H;					          /* HWID 1 first 8 bits */
-  uint8_t HWID_ID2Last4bits:4;				  /* HWID 1 last 4 bits   */
-  uint8_t HWID_ID1First4bits:4;              /* HWID 2 first 4 bits*/
-  uint8_t HWID_L;					          /* HWID 2 last 8 bits */
+  uint8_t HWID_ID1First8bits;			  /* HWID 1 first 8 bits */
+  uint8_t HWID_ID2First4bits:4;			  /* HWID 2 first 4 bits*/
+  uint8_t HWID_ID1Last4bits:4;            /* HWID 1 last 4 bits   */
+  uint8_t HWID_ID2Last8bits;			  /* HWID 2 last 8 bits */
 } CanTxMsg_InvLogInfo7_t;
 
 typedef struct
