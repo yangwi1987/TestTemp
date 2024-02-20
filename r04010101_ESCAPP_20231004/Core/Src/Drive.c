@@ -1662,7 +1662,8 @@ __STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
 
 __STATIC_FORCEINLINE void EnterVehicleWarningState( void )
 {
-
+	/* Disable boost mode function */
+	GearMode_DisableBoostMode();
   VehicleMainState = VEHICLE_STATE_WARNING;
 }
 
@@ -1676,6 +1677,9 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 		ButtonReleasedFlags = 0;
 	}
 
+	/* Enable boost mode function */
+	GearMode_EnableBoostMode();
+
 	DualBtnTimeCnt = 0;
 
 	VehicleMainState = VEHICLE_STATE_DRIVE;
@@ -1683,13 +1687,14 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 
 __STATIC_FORCEINLINE void EnterVehicleIdleState( void )
 {
-  /* Enable global alarm detection */
-  AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
+
   VehicleMainState = VEHICLE_STATE_IDLE;
 }
 
 __STATIC_FORCEINLINE void EnterVehicleStartupState( void )
 {
+  /* Enable global alarm detection */
+  AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
   BatStation.PwrOnReq();
   VehicleMainState = VEHICLE_STATE_STARTUP;
 }
@@ -1775,7 +1780,7 @@ void Drive_VehicleStateMachine( void )
       {
         EnterVehicleAlarmState();
       }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
+      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
       {
         EnterVehicleStartupState();
       }
@@ -1788,7 +1793,7 @@ void Drive_VehicleStateMachine( void )
       {
         EnterVehicleAlarmState();
       }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS) /* Kill SW pressed*/
       {
           EnterVehicleShutdownState();
       }
@@ -1814,18 +1819,18 @@ void Drive_VehicleStateMachine( void )
       {
         EnterVehicleAlarmState();
       }
-      else if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH) /* Kill SW pressed*/
+      else if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS) /* Kill SW pressed*/
       { 
         EnterVehicleShutdownState();
       }
       else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
       {
-        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_RELEASE)
         {
           ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
         }
 
-        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_RELEASE)
         {
           ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
         }
@@ -1833,8 +1838,8 @@ void Drive_VehicleStateMachine( void )
       }
       else
       {
-        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
-            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_PRESS) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_PRESS) &&
             (Axis[0].ThrotMapping.PercentageTarget < 0.01 ))
         {
           DualBtnTimeCnt ++;
@@ -1860,7 +1865,7 @@ void Drive_VehicleStateMachine( void )
       {
         EnterVehicleAlarmState();
       }
-	  else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+	  else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS)
       {
         EnterVehicleStandbyState();
       }
@@ -1874,12 +1879,12 @@ void Drive_VehicleStateMachine( void )
       }
       else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
       {
-        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_RELEASE)
         {
           ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
         }
 
-        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_RELEASE)
         {
           ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
         }
@@ -1892,8 +1897,8 @@ void Drive_VehicleStateMachine( void )
       }
       else
       { 
-        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
-            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_PRESS) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_PRESS) &&
             (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
             (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
         {
@@ -1916,7 +1921,7 @@ void Drive_VehicleStateMachine( void )
       {
         EnterVehicleAlarmState();
       }
-	    else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+	    else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS)
       {
         EnterVehicleStandbyState();
       }
@@ -1926,12 +1931,12 @@ void Drive_VehicleStateMachine( void )
       }
       else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
       {
-        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_LOW)
+        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_RELEASE)
         {
           ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
         }
 
-        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_LOW)
+        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_RELEASE)
         {
           ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
         }
@@ -1944,8 +1949,8 @@ void Drive_VehicleStateMachine( void )
       }
       else
       { 
-        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_STATE_HIGH) &&
-            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_STATE_HIGH) &&
+        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_PRESS) &&
+            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_PRESS) &&
             (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
             (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
         {
@@ -1971,7 +1976,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_ALARM:
 
       // error situation
-      if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_HIGH)
+      if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS)
       {
           EnterVehicleShutdownState();
       }
@@ -1980,7 +1985,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_SHUTDOWN:
       
       /* check if shutdown process is completed*/
-      if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_STATE_LOW)
+      if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
       {
     	  EnterVehicleStartupState();
       }
@@ -2499,6 +2504,9 @@ void drive_Do100HzLoop(void)
 	    IsNotFirstLoop = 1;
 	}
 
+	Btn_SignalWrite(BTN_IDX_KILL_SW, HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port, Kill_Switch_DI_Pin));
+	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
+	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
 	Btn_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_INVStateMachine();

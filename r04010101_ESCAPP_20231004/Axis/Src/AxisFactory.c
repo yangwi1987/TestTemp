@@ -135,7 +135,7 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_MOTOR1_TEMP] = v->pAdcStation->AdcTraOut.MOTOR_NTC_1;	//Motor1
         v->pCANTxInterface->Debugf[IDX_MOTOR2_TEMP] = v->pAdcStation->AdcTraOut.MOTOR_NTC_2;	//Motor2
 
-        for(i=0;i<10;i++){
+        for(i = 0; i < 10; i++){
             v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
         }
 
@@ -613,7 +613,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
     //GearMode
-    //v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(???)
+    v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(BTN_IDX_BST_BTN);
+    v->GearModeVar.IsReverseBtnPressed = Btn_StateRead(BTN_IDX_REV_BTN);
     GearMode_DoPLCLoop( &v->GearModeVar );
     v->FourQuadCtrl.DriveGearModeSelect = v->GearModeVar.GearModeSelect;
     v->pCANRxInterface->OutputModeCmd = ( v->GearModeVar.GearModeSelect == NORMAL_MODE ) ? 1 : ( v->GearModeVar.GearModeSelect == BOOST_MODE ) ? 2 : 0;

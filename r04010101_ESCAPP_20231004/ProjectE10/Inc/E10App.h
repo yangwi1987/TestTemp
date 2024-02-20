@@ -83,6 +83,15 @@ typedef enum
 	BTN_EVENT_INITIALIZING,
 } BtnEvent_e;
 
+#define BTN_BOOST_PRESS		BTN_STATE_LOW
+#define BTN_BOOST_RELEASE	BTN_STATE_HIGH
+
+#define BTN_REVERSE_PRESS	BTN_STATE_LOW
+#define BTN_REVERSE_RELEASE	BTN_STATE_HIGH
+
+#define BTN_KILL_SW_PRESS	BTN_STATE_LOW
+#define BTN_KILL_SW_RELEASE BTN_STATE_HIGH
+
 typedef struct
 {
     BtnEvent_e EvtRecord;   /* the last signal event detected */
