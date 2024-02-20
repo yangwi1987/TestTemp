@@ -122,7 +122,7 @@ enum AdcThermoTableIdxEnum {
 
 /* Gain AD to V */
 #define ADC_THERMAL_GAIN						( float )0.000805664f 	// thermal ADC to 3.3V; 3.3/4096
-#define AC_CURR_GAIN							( float )0.372265625f 	// motor phase current sensor
+#define AC_CURR_GAIN							( float )0.372578125f 	// motor phase current sensor
 #define DC_VOLT_GAIN							( float )0.019306152f 	// battery DC BUS, pre-charge input
 #define E5V_GAIN								( float )0.002416992f 	// sense 5V pins (E5V, EA5V, ES5V) but the max analog input value is 9.9V
 #define S13V8_GAIN								( float )0.004672852f 	// sense 13V analog input, but the max analog input value is 19.14V
