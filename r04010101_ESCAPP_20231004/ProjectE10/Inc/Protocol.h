@@ -255,10 +255,10 @@ typedef struct
 typedef struct
 {
   uint8_t MainBatSoc;                   /* unit: % */
-  uint8_t BatMainSm:4;       /* BMS main state mechine value report by BMS, refer to "BatMainSM_t" */
+  uint8_t BatMainSm:4;       /* BMS main state machine value report by BMS, refer to "BatMainSM_t" */
   uint8_t ServoOnOffState:4;
-  uint8_t BatPwrOnState:4;       /* BMS precharge state mechine value report by BMS, refer to "BatPwrOnSM_t" */
-  uint8_t BatPwrOffState:4;       /* BMS precharge state mechine value report by BMS, refer to "BatPwrOffSM_t" */
+  uint8_t BatPwrOnState:4;       /* BMS precharge state machine value report by BMS, refer to "BatPwrOnSM_t" */
+  uint8_t BatPwrOffState:4;       /* BMS precharge state machine value report by BMS, refer to "BatPwrOffSM_t" */
   uint8_t E5V;					          /* unit: 0.025V */
   uint8_t ES5V;					          /* unit: 0.025V */
   uint8_t HWID_H;					          /* HWID 1 first 8 bits */
