@@ -12,24 +12,13 @@
 
 #include "stdint.h"
 #include "Constant.h"
+#include "E10App.h"
 
 #define GEAR_MODE_TIMEBASE 0.001f //PLC loop
 #define BOOST_COOLDOWN_TIME_s 45.0f //s
 #define BOOST_CONTINUE_TIME_s 10.0f //s
 #define BOOST_COOLDOWN_TIME ( BOOST_COOLDOWN_TIME_s / GEAR_MODE_TIMEBASE )
 #define BOOST_CONTINUE_TIME ( BOOST_CONTINUE_TIME_s / GEAR_MODE_TIMEBASE )
-
-typedef enum
-{
-	BOOST_BTN_RELEASED = 0,
-	BOOST_BTN_PRESSED
-}BoostBtnState;
-
-typedef enum
-{
-	REVERSE_BTN_RELEASED = 0,
-	REVERSE_BTN_PRESSED
-}ReverseBtnState;
 
 typedef enum
 {
@@ -46,8 +35,8 @@ typedef enum       // Add BOOST_RUNNING in the next stage
 
 typedef struct
 {
-	BoostBtnState   IsBoostBtnPressed;
-	ReverseBtnState IsReverseBtnPressed ;
+	BtnState_e   IsBoostBtnPressed;
+	BtnState_e IsReverseBtnPressed ;
     uint16_t        BoostCnt;
     uint16_t        BoostCoolCnt;
     GearModeSel_e   GearModeSelect;
@@ -56,8 +45,8 @@ typedef struct
 }GearMode_Var_t;
 
 #define GEAR_MODE_VAR_DEFALUT { \
-		BOOST_BTN_RELEASED,  /*IsBoostBtnPressed;  */\
-		REVERSE_BTN_RELEASED,/*IsReverseBtnPressed */\
+		BTN_BOOST_RELEASE,  /*IsBoostBtnPressed;  */\
+		BTN_REVERSE_RELEASE,/*IsReverseBtnPressed */\
 		0,                   /*BoostCnt;      */\
 		0,                   /*BoostCoolCnt;      */\
 		NORMAL_MODE,         /*GearModeSelect;     */\

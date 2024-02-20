@@ -66,7 +66,7 @@ uint16_t AlarmStack_FlagRead( AlarmStack_t *p, uint16_t AlarmID );
 	}
 
 #define ALARM_MGR_DEFAULT { \
-	ALARM_MGR_STATE_ENABLE, /* State */\
+	ALARM_MGR_STATE_DISABLE, /* State */\
 	{0, 0}, /* pHasWarning */ \
 	{0, 0}, /* pHasNonCriAlarm */ \
 	{0, 0}, /* pHasCriAlarm */ \
