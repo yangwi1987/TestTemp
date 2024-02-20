@@ -519,6 +519,11 @@ BatPwrOffSM_t Bat_PwrOffSMGet (void)
 	return BatCtrl.PwrOffSM;
 }
 
+uint8_t Bat_SocGet (uint32_t Instance)
+{
+	return BatInfo[Instance - 1].Soc;
+}
+
 void Bat_CanHandleLoad(ExtranetCANStation_t *pIn)
 {
 	BatCtrl.pExCANStation = pIn;

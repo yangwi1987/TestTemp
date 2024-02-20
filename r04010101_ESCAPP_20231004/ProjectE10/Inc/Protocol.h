@@ -192,7 +192,8 @@ typedef struct
   uint8_t VehicleState :4;    /* refer to "VehicleMainState" defined in "Drive.c" */
   uint8_t WarnFlag :2;    /* 1: warning detected, 0: nothing */
   uint8_t AlarmFlag :2;   /* 1: Alarm detected, 0: nothing */
-  uint8_t OutputMode;     /* 0: limpHome mode , 1: Paddle mode, 2: Surf Mode, 3 = Foil mode*/
+  uint8_t OutputMode:4;     /* 0: limpHome mode , 1: Normal mode, 2: Boost Mode*/
+  uint8_t InvState:4;     /* refer to "INVMainState" defined in "Drive.c" */
   uint8_t LimpHomeFlag;    /* 1: limpHomde detected, 0: nothing */
   uint8_t DeratingSrc;    /* 0: derating is not activated, bit0: mos derating, bit1: cap derating, bit2: motor derating*/
 } CanTxMsg_InvLogInfo1_t;
@@ -253,16 +254,17 @@ typedef struct
 
 typedef struct
 {
-  uint8_t BatSoc;                   /* unit: % */
-  uint8_t BatMainSm:4;       /* BMS main state mechine value report by BMS, refer to "BatMainSM_t" */
-  uint8_t InvState:4;
-  uint8_t BatPwrOffState:4;       /* BMS precharge state mechine value report by BMS, refer to "BatPwrOffSM_t" */
-  uint8_t BatPwrOnState:4;       /* BMS precharge state mechine value report by BMS, refer to "BatPwrOnSM_t" */
+  uint8_t MainBatSoc;                   /* unit: % */
+  uint8_t BatMainSm:4;       /* BMS main state machine value report by BMS, refer to "BatMainSM_t" */
+  uint8_t ServoOnOffState:4;
+  uint8_t BatPwrOnState:4;       /* BMS precharge state machine value report by BMS, refer to "BatPwrOnSM_t" */
+  uint8_t BatPwrOffState:4;       /* BMS precharge state machine value report by BMS, refer to "BatPwrOffSM_t" */
   uint8_t E5V;					          /* unit: 0.025V */
   uint8_t ES5V;					          /* unit: 0.025V */
-  uint8_t HWID_H;					          /* HWID 1 first 8 bits */
-  uint8_t HWID_M;					          /* HWID 1 last 4 bits and HWID 2 first 4 bits  */
-  uint8_t HWID_L;					          /* HWID 2 last 8 bits */
+  uint8_t HWID_ID1First8bits;			  /* HWID 1 first 8 bits */
+  uint8_t HWID_ID2First4bits:4;			  /* HWID 2 first 4 bits*/
+  uint8_t HWID_ID1Last4bits:4;            /* HWID 1 last 4 bits   */
+  uint8_t HWID_ID2Last8bits;			  /* HWID 2 last 8 bits */
 } CanTxMsg_InvLogInfo7_t;
 
 typedef struct
@@ -282,7 +284,7 @@ typedef struct
   uint8_t MaxPLCLoopLoad;  /* unit : %*/
   uint8_t AvePLCLoopLoad;  /* unit : %*/
   uint8_t Max100HzLoopLoad;  /* unit : %*/
-  uint8_t Byte7;					          /* unused byte 07 */
+  uint8_t SecBatSoc;                   /* unit: % */;					          /* unused byte 07 */
 } CanTxMsg_InvLogInfo9_t;
 
 /*=========================================
