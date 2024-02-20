@@ -122,35 +122,27 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
 		v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] &= ~CAN_TX_WARNING_MASK;
 	}
 
-// set BMS LED control in Drive_ESCOPVehicleStateMachine
-/*	v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LED_CTRL_CMD] =
-		(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_ERROR_FLAG] == 0) ? BAT_LED_SHOW_NO_ERROR : BAT_LED_SHOW_ESC_ERROR;
-*/
-    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
-        v->pCANTxInterface->NTCTemp[0] = (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0;		//Motor0
-        v->pCANTxInterface->NTCTemp[1] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]; //MOS1
-        v->pCANTxInterface->NTCTemp[2] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]; //MOS2
-        v->pCANTxInterface->NTCTemp[3] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//CAP
-        v->pCANTxInterface->NTCTemp[4] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor1
-        v->pCANTxInterface->NTCTemp[5] = (int16_t)v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//Motor2
-    }
-
-    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
-        for(i=0;i<10;i++){
-            v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
-        }
-    }
-
     v->pCANTxInterface->DeratingSrc = v->ThermoStrategy.ThermoDeratingSrc;
 
     // debug
-    v->pCANTxInterface->MotorRpm = (int16_t)v->SpeedInfo.MotorMechSpeedRPM;
-    v->pCANTxInterface->VoltDcBu0P1V = (int16_t)( v->pAdcStation->AdcTraOut.BatVdc * 10 );
-    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1){
-        v->pCANTxInterface->Id_cmd = v->MotorControl.CurrentControl.IdCmd;
-        v->pCANTxInterface->Iq_cmd = v->MotorControl.CurrentControl.IqCmd;
-        v->pCANTxInterface->Id_fbk = v->MotorControl.CurrentControl.RotorCurrFb.D;
-        v->pCANTxInterface->Iq_fbk = v->MotorControl.CurrentControl.RotorCurrFb.Q;
+
+    if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] == 1)
+    {
+        v->pCANTxInterface->Debugf[IDX_MOTOR0_TEMP] = v->pAdcStation->AdcTraOut.MOTOR_NTC_0;		//Motor0
+        v->pCANTxInterface->Debugf[IDX_MOS1_TEMP] = v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_1]; //MOS1
+        v->pCANTxInterface->Debugf[IDX_MOS2_TEMP] = v->pAdcStation->AdcTraOut.PCU_NTC[MOS_NTC_2]; //MOS2
+        v->pCANTxInterface->Debugf[IDX_CAP_TEMP] = v->pAdcStation->AdcTraOut.PCU_NTC[CAP_NTC];	//CAP
+        v->pCANTxInterface->Debugf[IDX_MOTOR1_TEMP] = v->pAdcStation->AdcTraOut.MOTOR_NTC_1;	//Motor1
+        v->pCANTxInterface->Debugf[IDX_MOTOR2_TEMP] = v->pAdcStation->AdcTraOut.MOTOR_NTC_2;	//Motor2
+
+        for(i = 0; i < 10; i++){
+            v->pCANTxInterface->DebugError[i] = v->pAlarmStack->NowAlarmID[i];
+        }
+
+        v->pCANTxInterface->Debugf[IDX_ID_CMD] = v->MotorControl.CurrentControl.IdCmd;
+        v->pCANTxInterface->Debugf[IDX_IQ_CMD] = v->MotorControl.CurrentControl.IqCmd;
+        v->pCANTxInterface->Debugf[IDX_ID_FBK] = v->MotorControl.CurrentControl.RotorCurrFb.D;
+        v->pCANTxInterface->Debugf[IDX_IQ_FBK] = v->MotorControl.CurrentControl.RotorCurrFb.Q;
         v->pCANTxInterface->Debugf[IDX_AC_LIMIT_CMD] = v->TorqCommandGenerator.AcCurrLimit;
         v->pCANTxInterface->Debugf[IDX_AC_LIMIT_TQ] = v->TorqCommandGenerator.ACLimitedTorqueCommand;
         v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CMD] = v->TorqCommandGenerator.DcCurrLimit;
@@ -160,16 +152,23 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_VQ_CMD] = v->MotorControl.VoltCmd.VqCmd;
         v->pCANTxInterface->Debugf[IDX_MOTOR_RPM] = v->SpeedInfo.MotorMechSpeedRPM;
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] = v->pAdcStation->AdcTraOut.Throttle;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] = v->pAdcStation->ThrotADCRawRatio;
         v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL] = v->ThrotMapping.PercentageTarget;
         v->pCANTxInterface->Debugf[IDX_ACC_PEDAL1_VOLT] = v->pAdcStation->AdcTraOut.Pedal_V1;
         v->pCANTxInterface->Debugf[IDX_EA5V] = v->pAdcStation->AdcTraOut.EA5V;
         v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
         v->pCANTxInterface->Debugf[IDX_AVERAGE_AC_POWER]= AcPwrInfo.AvgPower;
-
-        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
-        v->pCANTxInterface->Debugf[IDX_RESERVERD] =  0.0f;
-        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_DCBUS_REAL] = v->MotorControl.TorqueToIdq.VbusReal;
+        v->pCANTxInterface->Debugf[IDX_E5V] = v->pAdcStation->AdcTraOut.E5V;
+        v->pCANTxInterface->Debugf[IDX_ES5V] = v->pAdcStation->AdcTraOut.ES5V;
+        v->pCANTxInterface->Debugf[IDX_IU_FBK] = v->pAdcStation->AdcTraOut.Iu[0];
+        v->pCANTxInterface->Debugf[IDX_IV_FBK] = v->pAdcStation->AdcTraOut.Iv[0];
+        v->pCANTxInterface->Debugf[IDX_IW_FBK] = v->pAdcStation->AdcTraOut.Iw[0];
+        v->pCANTxInterface->Debugf[IDX_PREC] = v->pAdcStation->AdcTraOut.PreC;
+        v->pCANTxInterface->Debugf[IDX_ACC_PEDAL2_VOLT] = v->pAdcStation->AdcTraOut.Pedal_V2;
+        v->pCANTxInterface->Debugf[IDX_S13V8] = v->pAdcStation->AdcTraOut.S13V8;
+        v->pCANTxInterface->HWID[0] = v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[HW_ID1].AdcGroupIndex][v->pAdcStation->RegCh[HW_ID1].AdcRankIndex];
+        v->pCANTxInterface->HWID[1] = v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[HW_ID2].AdcGroupIndex][v->pAdcStation->RegCh[HW_ID2].AdcRankIndex];
+//        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
     }
 
 }
