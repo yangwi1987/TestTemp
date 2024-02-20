@@ -330,13 +330,13 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 		} 										\
 		else if( hadc->Instance == ADC3 ) 		\
 		{										\
-			v->AdcRawData.Inj[0].RawAdcValue = hadc->Instance->JDR1;	\
+			v->AdcRawData.Inj[1].RawAdcValue = hadc->Instance->JDR1;	\
 			v->AdcRawData.Inj[6].RawAdcValue = hadc->Instance->JDR2;	\
 			v->AdcInjGroup |= 0x04;				\
 		} 										\
 		else if( hadc->Instance == ADC4 ) 		\
 		{										\
-			v->AdcRawData.Inj[1].RawAdcValue = hadc->Instance->JDR1;	\
+			v->AdcRawData.Inj[0].RawAdcValue = hadc->Instance->JDR1;	\
 			v->AdcInjGroup |= 0x08;				\
 		} 										\
 		else if( hadc->Instance == ADC5 ) 		\
