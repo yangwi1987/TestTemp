@@ -241,9 +241,9 @@ uint16_t PwmStation_AxisDutyToPwmCount( PwmStation *v, uint16_t AxisID, uint16_t
 		AnsV = v->DutyCmd.Duty[CH_PWM_VP] * v->Duty2PwmCountGain;
 		AnsW = v->DutyCmd.Duty[CH_PWM_WP] * v->Duty2PwmCountGain;
 	}
-	Group->Instance->CCR2 = AnsU;
+	Group->Instance->CCR4 = AnsU;
 	Group->Instance->CCR1 = AnsV;
-	Group->Instance->CCR4 = AnsW;
+	Group->Instance->CCR3 = AnsW;
 //	__HAL_TIM_SET_COMPARE( Group, v->PwmCh[AxisID].UpChannel, AnsU );
 //	__HAL_TIM_SET_COMPARE( Group, v->PwmCh[AxisID].VpChannel, AnsV );
 //	__HAL_TIM_SET_COMPARE( Group, v->PwmCh[AxisID].WpChannel, AnsW );

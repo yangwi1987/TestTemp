@@ -111,14 +111,21 @@ typedef struct{
 	float  Iv[2];
 	float  Iw[2];
 	float  BatVdc;
-	float  Idc;
+	float  Idc; // no use
 	float  HwID1;
 	float  HwID2;
-	float  Throttle;
-	float  Foil;
-	float  V13;
+	float  ES5V; // sense 5V for monitor voltage source of I2C
+	float  E5V; // sense 5V for monitor voltage source of position sensor
+	float  EA5V; // sense 5V for monitor voltage source of pedal sensor
+	float  PreC; // analog input pin to indicate the precharge finish
+	float  S13V8;
+	float  Pedal_V1;
+	float  Pedal_V2;
 	float  PCU_NTC[3];
-	float  MOTOR_NTC;
+	float  MOTOR_NTC_0;
+	float  MOTOR_NTC_1;
+	float  MOTOR_NTC_2;
+	float  Throttle;
 } ADC_TRA_DATA;
 
 typedef union{
@@ -134,18 +141,26 @@ typedef union{
 }	\
 
 #define ADC_TRA_DATA_DEFAULT { \
-	{0.0, 0.0}, \
-	{0.0, 0.0}, \
-	{0.0, 0.0}, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	0.0, \
-	{0.0f, 0.0f, 0.0f}, \
-	0.0 }
+	{0.0, 0.0},         /*Iu[2];      */\
+	{0.0, 0.0},         /*Iv[2];      */\
+	{0.0, 0.0},         /*Iw[2];      */\
+	0.0,                /*BatVdc;     */\
+	0.0,                /*Idc;        */\
+	0.0,                /*HwID1;      */\
+	0.0,                /*HwID2;      */\
+	0.0,                /*ES5V;       */\
+	0.0,                /*E5V;        */\
+	0.0,                /*EA5V;       */\
+	0.0,                /*PreC;       */\
+	0.0,                /*S13V8;      */\
+	0.0,                /*Pedal_V1;   */\
+	0.0,                /*Pedal_V2;   */\
+	{0.0f, 0.0f, 0.0f}, /*PCU_NTC[3]; */\
+	0.0f,               /*MOTOR_NTC;  */\
+    0.0f,               /*MOTOR_NTC_1;*/\
+    0.0f,               /*MOTOR_NTC_2;*/\
+	0.0f                /*Throttle;   */\
+	}
 
 typedef struct {
 	uint16_t NTCID;
@@ -181,8 +196,8 @@ typedef struct {
 	ADC_EXE_TYPE_DEFINE   AdcExeGain[CURRENT_LOOP_CHANNEL_SIZE];	// Execution Gain Point U, V, W
 	uint16_t		      AdcExeZeroP[CURRENT_LOOP_CHANNEL_SIZE]; 	// Execution Zero Point U, V, W
 	ADC_EXE_TYPE_DEFINE	  AdcExeThrotGain;							// Execution Throt Gain
-	uint16_t			  AdcExeThrotZero;							// Execution Throt Zero
-	uint16_t			  AdcExeThrotMax;							// Execution Throt Max
+	float			      AdcExeThrotZero;							// Execution Throt Zero
+	float		    	  AdcExeThrotMax;							// Execution Throt Max
 	ADC_INJ_GROUP_CHANNEL InjCh[CURRENT_LOOP_CHANNEL_SIZE];			// Record injection channel informations from table at initial
 	ADC_REG_GROUP_CHANNEL RegCh[PLC_LOOP_CHANNEL_SIZE];				// Record regular channel informations from table at initial
 	ADC_THERMO_CHANNEL	  ThermoCh[THERMAL_CHANNEL_SIZE];			// Record thermo channel informations from table at initial
@@ -193,7 +208,7 @@ typedef struct {
 	uint16_t			  AdcDmaData[ADC_DMA_GROUP_SIZE][ADC_DMA_CHANNEL_SIZE];
 	uint16_t			  *pTempADCValue[THERMAL_CHANNEL_SIZE];				// Temperature ADC pointer
 	FILTER_BILINEAR_1ORDER_TYPE ThrotAdcFilter;
-	uint16_t			  ThrotADCFilterValue;
+	float			  ThrotADCRawRatio;
 	uint16_t			  NTCIsAbnormal;
 	functypeAdcStation_Init	Init;
 	functypeAdcStation_DoCurrentLoop DoCurrentLoop;
@@ -233,8 +248,8 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT },	\
 	{0,    0,    0,    0,    0,    0,    0,    0,    0    },	\
 	ADC_EXE_TYPE_DEFINE_DEFAULT,	\
-	0,	\
-	0,	\
+	0.0f,	\
+	0.0f,	\
 	{ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, \
 	 ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT}, \
 	{ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, \
@@ -253,7 +268,7 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	 {0,0,0,0,0,0,0,0}}, \
 	 {0,0,0,0,0,0,0,0,0,0,0}, \
 	 FILTER_BILINEAR_1ORDER_DEFAULT, \
-	 0, \
+	 0.0f, \
 	 0, \
 	(functypeAdcStation_Init)AdcStation_Init, \
 	(functypeAdcStation_DoCurrentLoop)AdcStation_DoCurrentLoop, \
@@ -286,6 +301,42 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 		} 										\
 		else if( hadc->Instance == ADC4 ) 		\
 		{										\
+			v->AdcInjGroup |= 0x08;				\
+		} 										\
+		else if( hadc->Instance == ADC5 ) 		\
+		{										\
+			v->AdcInjGroup |= 0x10;				\
+		}										\
+	}
+
+
+/* Brief this function ADC_HANDLE_INJECTION_GROUP_MACRO_E10.
+ * Add enabled ADC group in the flow control of "hadc->Instance"
+ * The index of v->AdcRawData.Inj[index] is the row number of AdcInjectionGroupTable started from 0.
+ * The x of hadc->Instance->JDRx is the ADC injection rank of the ADC group.
+ * */
+#define ADC_HANDLE_INJECTION_GROUP_MACRO_E10( v, hadc ) \
+	if( __HAL_ADC_GET_FLAG( hadc, ADC_FLAG_JEOS ) )	\
+	{												\
+/*		if( hadc->Instance == ADC1 ) 			\
+		{										\
+			v->AdcInjGroup |= 0x01;				\
+		} 										\
+		else if( hadc->Instance == ADC2 ) 	  */\
+		if( hadc->Instance == ADC2 ) 			\
+		{										\
+			v->AdcRawData.Inj[2].RawAdcValue = hadc->Instance->JDR1;	\
+			v->AdcInjGroup |= 0x02;				\
+		} 										\
+		else if( hadc->Instance == ADC3 ) 		\
+		{										\
+			v->AdcRawData.Inj[0].RawAdcValue = hadc->Instance->JDR1;	\
+			v->AdcRawData.Inj[6].RawAdcValue = hadc->Instance->JDR2;	\
+			v->AdcInjGroup |= 0x04;				\
+		} 										\
+		else if( hadc->Instance == ADC4 ) 		\
+		{										\
+			v->AdcRawData.Inj[1].RawAdcValue = hadc->Instance->JDR1;	\
 			v->AdcInjGroup |= 0x08;				\
 		} 										\
 		else if( hadc->Instance == ADC5 ) 		\

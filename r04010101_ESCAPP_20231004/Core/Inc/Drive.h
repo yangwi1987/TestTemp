@@ -8,6 +8,7 @@
 #ifndef INC_DRIVE_H_
 #define INC_DRIVE_H_
 
+#include <BatCtrl.h>
 #include "UtilityBase.h"
 //#include <AsIc.h>
 //#include <PsbCtrl_PCU.h>
@@ -35,6 +36,9 @@
 #include "RemainingTime.h"
 #include "PositionSensor.h"
 #include "PositionCalibration.h"
+#include "BatCtrl.h"
+#include "E10App.h"
+
 
 #if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
 typedef struct
@@ -66,24 +70,30 @@ typedef enum
 }TargetDefine_e;
 
 typedef enum{
+	VEHICLE_STATE_POWER_OFF = 0,
 	VEHICLE_STATE_INITIALIZING,
+	VEHICLE_STATE_IDLE,
+	VEHICLE_STATE_STARTUP,
 	VEHICLE_STATE_STANDBY,
-	VEHICLE_STATE_NORMAL,
+	VEHICLE_STATE_DRIVE,
 	VEHICLE_STATE_WARNING,
-	VEHICLE_STATE_LIMPHOME,
 	VEHICLE_STATE_ALARM,
-	VEHICLE_STATE_POWER_OFF,
+	VEHICLE_STATE_SHUTDOWN,
+	VEHICLE_STATE_SLEEP,		/* Not used in E10-P0 */
+	VEHICLE_STATE_FWUPDATE,
+	VEHICLE_STATE_CHARGE,
+	VEHICLE_STATE_LIMPHOME,		/* Not used in E10-P0, will switch to warning state */
 }VEHICLE_STATE_e;
 
 typedef enum{
-	ESC_OP_INITIALIZING,
-	ESC_OP_STANDBY,
-	ESC_OP_NORMAL,
-	ESC_OP_WARNING,
-	ESC_OP_LIMPHOME,
-	ESC_OP_ALARM,
-	ESC_OP_POWER_OFF,
-}ESC_OP_STATE_e; // ESC operation
+	INV_OP_INITIALIZING,
+	INV_OP_STANDBY,
+	INV_OP_NORMAL,
+	INV_OP_WARNING,
+	INV_OP_LIMPHOME,
+	INV_OP_ALARM,
+	INV_OP_POWER_OFF,
+}INV_OP_STATE_e; // INV operation
 
 // Define the number of different data index
 #define HW_VER_NUM_IDX		7 // PCU hardware version
@@ -112,21 +122,15 @@ extern AlarmMgr_t AlarmMgr1;
 extern ExtranetCANStation_t ExtranetCANStation;
 extern PS_t PSStation1;
 
-extern FDCAN_HandleTypeDef hfdcan1;
 extern FDCAN_HandleTypeDef hfdcan2;
-extern TIM_HandleTypeDef htim6;
-extern TIM_HandleTypeDef htim7;
-extern TIM_HandleTypeDef htim16;
+extern TIM_HandleTypeDef htim6; // PLC loop
+extern TIM_HandleTypeDef htim7; // 100Hz loop
 extern DAC_HandleTypeDef hdac1;
 extern CORDIC_HandleTypeDef hcordic;
-extern UART_HandleTypeDef huart5;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim5;
-extern USART_HandleTypeDef husart2;
+extern TIM_HandleTypeDef htim3; // total time
+extern TIM_HandleTypeDef htim2; // QEP
 extern CRC_HandleTypeDef hcrc;
-//extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart3;
 
 extern uint8_t PCUStatus;
 
@@ -150,6 +154,7 @@ extern void drive_DoLoad_DataToAdcGain(void);
 extern void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT );
+extern void drive_DoExtFlashLoadCurrentCalib(void);
 extern void drive_DoHWOCPIRQ(void);
 /*
  * Version Read #define
@@ -222,6 +227,12 @@ enum Boot_Trig_Enum{
 	BOOT_DIS = 0,
 	BOOT_ENA
 };
+
+#define VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG   0x01
+#define VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG 0x02
+#define VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG     (VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG | VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG)
+
+
 
 /*
  * Boot-loader Function Variable

@@ -41,16 +41,16 @@ void ReadAdcValueOfThrottle( THROT_CALIB_STRUCT_DEFINE *v, AdcStation *a, uint32
 
 void CalcThrottleGain( THROT_CALIB_STRUCT_DEFINE *v, uint32_t *Enable )
 {
-	if( ( v->Authority < Mfsa_LscMf ) && ( v->CtrlMode != MF_CALIB_THROT_MODE ) )
-		return;
-	if( *Enable == MF_ENABLE )
-	{
-		v->CalibrationGain.FDta = ( float )( 1.0f /( float )( v->ThrottleAdValue[ MF_HIGH ] - v->ThrottleAdValue[MF_LOW] ) );
-
-		DriveParams.SystemParams.ThrottleMinAdc = v->ThrottleAdValue[ MF_LOW ];
-		DriveParams.SystemParams.ThrottleMaxAdc = v->ThrottleAdValue[ MF_HIGH ];
-		DriveParams.SystemParams.ThrottleScale[ MF_LOW ] = v->CalibrationGain.Uint16Type[ MF_LOW ];
-		DriveParams.SystemParams.ThrottleScale[ MF_HIGH ] = v->CalibrationGain.Uint16Type[ MF_HIGH ];
-		*Enable = MF_DISABLE;
-	}else;
+//	if( ( v->Authority < Mfsa_LscMf ) && ( v->CtrlMode != MF_CALIB_THROT_MODE ) )
+//		return;
+//	if( *Enable == MF_ENABLE )
+//	{
+//		v->CalibrationGain.FDta = ( float )( 1.0f /( float )( v->ThrottleAdValue[ MF_HIGH ] - v->ThrottleAdValue[MF_LOW] ) );
+//
+//		DriveParams.SystemParams.ThrottleMinAdc = v->ThrottleAdValue[ MF_LOW ];
+//		DriveParams.SystemParams.ThrottleMaxAdc = v->ThrottleAdValue[ MF_HIGH ];
+//		DriveParams.SystemParams.ThrottleScale[ MF_LOW ] = v->CalibrationGain.Uint16Type[ MF_LOW ];
+//		DriveParams.SystemParams.ThrottleScale[ MF_HIGH ] = v->CalibrationGain.Uint16Type[ MF_HIGH ];
+//		*Enable = MF_DISABLE;
+//	}else;
 }

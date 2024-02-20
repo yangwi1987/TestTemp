@@ -7,7 +7,6 @@
 #include "MotorControl.h"
 #include "UtilityBase.h"
 
-
 inline void MotorControl_CurrentControlSetRegulatorParameter( CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float IdHz, float IqHz, float PwmPeriod );
 void MotorControl_FluxWeakeningSetRegulatorParameter( CURRENT_CONTROL_FLUX_WEAKENING_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float Bandwith, float PwmPeriod, float Ilimit, float IdKp, float IqKp );
 inline void MotorControl_SixWaveRegulatorParameter( SIX_WAVE_120_CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float PwmPeriod , float Hz);
@@ -15,7 +14,11 @@ ROTOR_TO_STATOR_TYPE IstatorCmd = ROTOR_TO_STATOR_DEFAULT;
 STATOR_TO_PHASE_TYPE IphaseCmd = STATOR_TO_PHASE_DEFAULT;
 
 PHASE_TO_STATOR_TYPE StatorCurrFbTmp = PHASE_TO_STATOR_DEFAULT;
-void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
+
+//__attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
+
+__attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
+
 {
 
 	float VbusLimit = 0.0f;
@@ -24,164 +27,11 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 	float CosValue = 0.0f;
 
 	//Assign the related feedback and limitation from Sensor to Control	: 1.6us
-	COORDINATE_TRANSFER_PHASE_TO_STATOR_MACRO( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) )
+	COORDINATE_TRANSFER_Phase_to_Stator_Calc( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) );
 
 	DevideVbus = 1.0f / p->SensorFb.Vbus;
 	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
-	if( FunctionMode == FUNCTION_MODE_BOOTSTRAP )
-	{
-		//CmdFrom = CMD_FROM_NONE;
-		//PosFb = POS_FB_NONE;
-		//CtrlMode = CTRL_MODE_NONE;
-		//PwmMode = PWM_MODE_BOOTSTRAP;
-		DUTY_TYPE BootrapDuty=DUTY_DEFAULT;
-		p->PwmDutyCmd.MaxDuty = 1.0f;
-		p->PwmDutyCmd.MinDuty = 0.0f;
-		BootrapDuty.Duty[0]=p->Cmd.BoostrapDuty;
-		BootrapDuty.Duty[1]=p->Cmd.BoostrapDuty;
-		BootrapDuty.Duty[2]=p->Cmd.BoostrapDuty;
-		p->PwmDutyCmd.Set180( &(BootrapDuty), &(p->PwmDutyCmd) );
-	}
-	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
-	{
-		p->IfControl.Calc( &(p->IfControl), p->Cmd.IfRpmTarget );
-		p->CurrentControl.IdCmd = p->IfControl.CurrAmp;
-		p->CurrentControl.IqCmd = 0.0f;
-
-		p->CurrentControl.EleAngle = p->IfControl.Position.VirtualEleAngle;
-		p->CurrentControl.EleSpeed = p->IfControl.Position.VirtualEleSpeed;
-
-		p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
-		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
-		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_STATOR_TO_ROTOR_MACRO(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) )
-
-		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
-		p->CurrentControl.IqRegulator.CalcNoLimit( p->CurrentControl.IqCmd, p->CurrentControl.RotorCurrFb.Q, &(p->CurrentControl.IqRegulator) );
-
-		float EleSpeedTmp = 0.0f;
-		EleSpeedTmp = p->CurrentControl.EleSpeed;
-		p->CurrentControl.Decoupling.PIDWayId.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IqCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.Q), &(p->CurrentControl.Decoupling.PIDWayId) );
-		p->CurrentControl.Decoupling.PIDWayIq.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IdCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.D), &(p->CurrentControl.Decoupling.PIDWayIq) );
-		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
-		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
-		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
-
-		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
-		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
-
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
-		}
-
-		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
-
-		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
-		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
-		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
-			COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) )
-			COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) )
-			p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
-			p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
-			p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
-			p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
-
-
-		//Set command
-		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
-	}
-	else if ( FunctionMode == FUNCTION_MODE_VF_CONTROL )
-	{
-		p->VfControl.Calc( &(p->VfControl), p->Cmd.VfRpmTarget );
-
-		p->CurrentControl.EleAngle = p->VfControl.Position.VirtualEleAngle;
-		p->CurrentControl.EleSpeed = p->VfControl.Position.VirtualEleSpeed;
-
-		p->VoltCmd.VdCmd = 0.0f;
-		p->VoltCmd.VqCmd = p->VfControl.VoltAmp;
-		p->VoltCmd.EleCompAngle = p->VfControl.Position.VirtualEleAngle + p->VfControl.Position.VirtualEleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
-
-		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
-		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
-
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
-		}
-
-		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
-
-		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
-
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
-			COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) )
-			COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) )
-			p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
-			p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
-			p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
-			p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
-
-		//Set command
-		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
-	}
-	else if ( FunctionMode == FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP )
-	{
-		// CmdFrom = CMD_FROM_SIX_WAVE_120_CLOSE_LOOP;
-		p->SixWave120CurrentControl.CurrCmd = p->Cmd.SixWaveCurrCmd;
-
-		// PosFb = POS_FB_HALL;
-		if ( p->HallSelect == SIX_WAVE_HALL_TYPE_TEST)
-		{
-			p->TestHall.CalHallAngle(&(p->TestHall),p->SensorFb.TestHallSignal);
-		}
-
-		// CtrlMode = CTRL_MODE_SIX_WAVE_120_CLOSE_LOOP;
-		p->SixWave120CurrentControl.GetCurrFb(&(p->SixWave120CurrentControl),(p->SixWave120Duty.PwmStatus),p->SensorFb.Iu,p->SensorFb.Iv,p->SensorFb.Iw);
-		p->SixWave120CurrentControl.Regulator.UpperLimit = 1.732050807f * VbusLimit; // = VbusAvailable;
-		p->SixWave120CurrentControl.Regulator.Calc( p->SixWave120CurrentControl.CurrCmd, p->SixWave120CurrentControl.CurrFb, &(p->SixWave120CurrentControl.Regulator));
-		p->SixWave120Duty.VoltCmd = p->SixWave120CurrentControl.Regulator.Output;
-
-		// PwmMode = PWM_MODE_SIX_WAVE_120;
-		if ( p->HallSelect == SIX_WAVE_HALL_TYPE_TEST )
-		{
-			p->SixWave120Duty.HallSection = p->TestHall.HallSection;
-		}
-		p->SixWave120Duty.TorquePolarityFlag = ( p->SixWave120CurrentControl.CurrCmd >= 0.0f ) ? SIX_WAVE_TORQUE_POLARITY_POSITIVE : SIX_WAVE_TORQUE_POLARITY_NEGATIVE;
-		p->SixWave120Duty.Calc(&(p->SixWave120Duty),DevideVbus);
-		p->PwmDutyCmd.MinDuty = p->DriverPara.Mosfet.DeadTime / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->SixWave120Duty.DutyCmd = p->PwmDutyCmd.MinDuty + p->SixWave120Duty.DutyCmd;
-		p->PwmDutyCmd.Set120( p->SixWave120Duty.DutyCmd, &(p->PwmDutyCmd), p->SixWave120Duty.PwmStatus);
-	}
-	else
+	if (( FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL ))
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
 		if ( p->CurrentControl.EnableDirectIdqCmd == FUNCTION_ENABLE)
@@ -193,112 +43,18 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 		{
 			p->Cmd.IdCmd = p->TorqueToIdq.IdCmd;
 			p->Cmd.IqCmd = p->TorqueToIdq.IqCmd;
-			MOTOR_CONTROL_FLUX_WEAKENING_FOR_CURRENT_CONTROL( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
+			FLUX_WEAKENING_Calc( (&(p->CurrentControl.FluxWeakening)), (p->VoltCmd.VcmdAmp), (VbusLimit), (p->Cmd.IdCmd), (p->Cmd.IqCmd) );
 			p->CurrentControl.IdCmd = p->CurrentControl.FluxWeakening.IdCmd;
 			p->CurrentControl.IqCmd = p->CurrentControl.FluxWeakening.IqCmd;
 		}
 
-		//PosFb = POS_FB_EEMF;
-		if( FunctionMode == FUNCTION_MODE_EEMF )
-		{
-#if MOTOR_STAGE==MOTOR_P1_3
-			p->CurrentControl.EleAngle = p->Sensorless.EEMF.EleAngle;	
-#else
-			p->CurrentControl.EleAngle = p->Sensorless.EEMF.EleAngle + p->Sensorless.EEMF.EleSpeed * 0.000021f;
-#endif
-			p->CurrentControl.EleSpeed = p->Sensorless.EEMF.EleSpeed;
-		}
-		//PosFb = POS_FB_HFI_SIN;
-		else if ( FunctionMode == FUNCTION_MODE_HFI_SIN )
-		{
-			p->CurrentControl.EleAngle = p->Sensorless.HFISin.EleAngle;
-			p->CurrentControl.EleSpeed = p->Sensorless.HFISin.EleSpeed;
-		}
-#if	USE_HFI_SIN==USE_FUNCTION
-		//HFI
-		if( p->Sensorless.AngleInit.Start == FUNCTION_YES )
-		{
-			if( FunctionMode == FUNCTION_MODE_BOOTSTRAP )
-			{
-				// do nothing
-			}
-			else if( FunctionMode == FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP )
-			{
-				// do nothing
-			}
-			else
-			{
-				//Angle Init
-				p->Sensorless.SensorlessState = SensorlessState_Initial_Angle_Align;
-					SENSORLESS_ANGLE_INIT_BY_FIXED_CMD((&(p->Sensorless.AngleInit.FixedCmd)),(&(p->Sensorless.AngleInit)))
-
-				p->CurrentControl.EleAngle = p->Sensorless.AngleInit.EleAngle;
-				p->CurrentControl.EleSpeed = 0.0f;
-				p->Sensorless.HFISin.Clean(&(p->Sensorless.HFISin),p->Sensorless.AngleInit.EleAngleInit,0.0f,StatorCurrFbTmp.Alpha,StatorCurrFbTmp.Beta);
-
-				p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
-				p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
-
-				p->CurrentControl.IdCmd = p->Sensorless.AngleInit.IdCmd;
-				p->CurrentControl.IqCmd = p->Sensorless.AngleInit.IqCmd;
-			}
-		}
-		else
-		{
-			if( p->Sensorless.HFISin.HFISinCalcProcess == SENSORLESS_CALC_PROCESS_CLEAN )
-			{
-				p->Sensorless.HFISin.Clean(&(p->Sensorless.HFISin),p->CurrentControl.EleAngle,p->SensorFb.EleSpeed,StatorCurrFbTmp.Alpha,StatorCurrFbTmp.Beta);
-				p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
-				p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
-			}
-			else if( p->Sensorless.HFISin.HFISinCalcProcess == SENSORLESS_CALC_PROCESS_EXE )
-			{
-				p->Sensorless.HFISin.Calc(&(p->Sensorless.HFISin),StatorCurrFbTmp.Alpha,StatorCurrFbTmp.Beta);
-				p->CurrentControl.StatorCurrFb.Alpha = p->Sensorless.HFISin.IalphaCtrl;
-				p->CurrentControl.StatorCurrFb.Beta = p->Sensorless.HFISin.IbetaCtrl;
-			}
-			else if( p->Sensorless.HFISin.HFISinCalcProcess == SENSORLESS_CALC_PROCESS_ENTERING )
-			{
-				p->Sensorless.HFISin.Calc(&(p->Sensorless.HFISin),StatorCurrFbTmp.Alpha,StatorCurrFbTmp.Beta);
-				p->CurrentControl.StatorCurrFb.Alpha = p->Sensorless.HFISin.IalphaCtrl;
-				p->CurrentControl.StatorCurrFb.Beta = p->Sensorless.HFISin.IbetaCtrl;
-			}
-			else
-			{
-				p->Sensorless.HFISin.Clean(&(p->Sensorless.HFISin),p->CurrentControl.EleAngle,p->SensorFb.EleSpeed,StatorCurrFbTmp.Alpha,StatorCurrFbTmp.Beta);
-				p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
-				p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
-			}
-		}
-#else
 		p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
 		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
-#endif
 
-#if	USE_EEMF==USE_FUNCTION
-		p->Sensorless.EEMF.Res = p->Sensorless.EEMF.WindingResBase * (1.0f + (p->Sensorless.EEMF.WindingTemp - SENSORLESS_BASE_TEMP) * p->Sensorless.EEMF.WindingResTempCoeff);
-		// Sensorless
-		if( p->Sensorless.EEMF.EEMFCalcProcess == SENSORLESS_CALC_PROCESS_CLEAN )
-		{
-			p->Sensorless.EEMF.Clean( &(p->Sensorless.EEMF), p->CurrentControl.EleAngle, p->SensorFb.EleSpeed, p->VoltCmd.StatorVoltCmd.Alpha, p->VoltCmd.StatorVoltCmd.Beta, p->CurrentControl.StatorCurrFb.Alpha, p->CurrentControl.StatorCurrFb.Beta );
-		}
-		else if( p->Sensorless.EEMF.EEMFCalcProcess == SENSORLESS_CALC_PROCESS_EXE )
-		{
-			p->Sensorless.EEMF.Calc( &(p->Sensorless.EEMF), p->VoltCmd.StatorVoltCmd.Alpha, p->VoltCmd.StatorVoltCmd.Beta, p->CurrentControl.StatorCurrFb.Alpha, p->CurrentControl.StatorCurrFb.Beta, p->Sensorless.EEMF.AngleObserver.Speed );
-		}
-		else if( p->Sensorless.EEMF.EEMFCalcProcess == SENSORLESS_CALC_PROCESS_ENTERING )
-		{
-			p->Sensorless.EEMF.Clean( &(p->Sensorless.EEMF), p->CurrentControl.EleAngle, p->SensorFb.EleSpeed, p->VoltCmd.StatorVoltCmd.Alpha, p->VoltCmd.StatorVoltCmd.Beta, p->CurrentControl.StatorCurrFb.Alpha, p->CurrentControl.StatorCurrFb.Beta );
-			p->Sensorless.EEMF.EEMFCalcProcess = SENSORLESS_CALC_PROCESS_EXE;
-		}
-		else
-		{
-			p->Sensorless.EEMF.Clean( &(p->Sensorless.EEMF), p->CurrentControl.EleAngle, p->SensorFb.EleSpeed, p->VoltCmd.StatorVoltCmd.Alpha, p->VoltCmd.StatorVoltCmd.Beta, p->CurrentControl.StatorCurrFb.Alpha, p->CurrentControl.StatorCurrFb.Beta );
-		}
-#endif
 		// Iab to Idq : 9.4us = 11us - 1.6us
-		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_STATOR_TO_ROTOR_MACRO( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) )
+		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue );
+//		COORDINATE_TRANSFER_GetSinCos_LT((uint16_t)(p->CurrentControl.EleAngle * 651.8986f ), &SinValue, &CosValue);  //
+		COORDINATE_TRANSFER_Stator_to_Rotor_Calc( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
 
 		//CtrlMode = CTRL_MODE_CURRENT_CONTROL;
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
@@ -329,32 +85,90 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 			p->CurrentControl.IqRegulator.Ui *= Vgain;
 
 		}
-#if	USE_HFI_SIN==USE_FUNCTION
-		if( p->Sensorless.AngleInit.Start == FUNCTION_YES )
-		{
-				COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-				COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->Sensorless.AngleInit.VinjStator)) )
-				GENERATE_PWM_DUTY_SVPWM_MACRO( (p->Sensorless.AngleInit.VinjStator.Alpha), (p->Sensorless.AngleInit.VinjStator.Beta), (DevideVbus), (&(p->Svpwm)) )
-		}
-		else
-		{
-			COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-			COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
-			COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->Sensorless.HFISin.Vinj), (0.0f), SinValue, CosValue, (&(p->Sensorless.HFISin.VinjStator)) )
-			//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
-			float ValphaTmp = p->VoltCmd.StatorVoltCmd.Alpha+p->Sensorless.HFISin.VinjStator.Alpha;
-			float VbetaTmp = p->VoltCmd.StatorVoltCmd.Beta+p->Sensorless.HFISin.VinjStator.Beta;
-			GENERATE_PWM_DUTY_SVPWM_MACRO( (ValphaTmp), (VbetaTmp), (DevideVbus), (&(p->Svpwm)) )
-		}
-#else
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) )
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
-		GENERATE_PWM_DUTY_SVPWM_MACRO( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) )
-#endif
+		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
+		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
+		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) * p->CurrentControl.PwmHz;
+		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+		{
+			p->PwmDutyCmd.MaxDuty = 1.0f;
+			p->PwmDutyCmd.MinDuty = 0.0f;
+		}
 
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
+		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
+		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
+		p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
+		p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
+		p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
+
+		//Set command
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) );
+	}
+	else if( FunctionMode == FUNCTION_MODE_BOOTSTRAP )
+	{
+		//CmdFrom = CMD_FROM_NONE;
+		//PosFb = POS_FB_NONE;
+		//CtrlMode = CTRL_MODE_NONE;
+		//PwmMode = PWM_MODE_BOOTSTRAP;
+		DUTY_TYPE BootrapDuty=DUTY_DEFAULT;
+		p->PwmDutyCmd.MaxDuty = 1.0f;
+		p->PwmDutyCmd.MinDuty = 0.0f;
+		BootrapDuty.Duty[0]=p->Cmd.BoostrapDuty;
+		BootrapDuty.Duty[1]=p->Cmd.BoostrapDuty;
+		BootrapDuty.Duty[2]=p->Cmd.BoostrapDuty;
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( &(BootrapDuty), &(p->PwmDutyCmd) );
+
+	}
+	else if ( FunctionMode == FUNCTION_MODE_IF_CONTROL )
+	{
+		p->IfControl.Calc( &(p->IfControl), p->Cmd.IfRpmTarget );
+		p->CurrentControl.IdCmd = p->IfControl.CurrAmp;
+		p->CurrentControl.IqCmd = 0.0f;
+
+		p->CurrentControl.EleAngle = p->IfControl.Position.VirtualEleAngle;
+		p->CurrentControl.EleSpeed = p->IfControl.Position.VirtualEleSpeed;
+
+		p->CurrentControl.StatorCurrFb.Alpha = StatorCurrFbTmp.Alpha;
+		p->CurrentControl.StatorCurrFb.Beta = StatorCurrFbTmp.Beta;
+		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
+		COORDINATE_TRANSFER_Stator_to_Rotor_Calc(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
+
+		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
+		p->CurrentControl.IqRegulator.CalcNoLimit( p->CurrentControl.IqCmd, p->CurrentControl.RotorCurrFb.Q, &(p->CurrentControl.IqRegulator) );
+
+		float EleSpeedTmp = 0.0f;
+		EleSpeedTmp = p->CurrentControl.EleSpeed;
+		p->CurrentControl.Decoupling.PIDWayId.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IqCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.Q), &(p->CurrentControl.Decoupling.PIDWayId) );
+		p->CurrentControl.Decoupling.PIDWayIq.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IdCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.D), &(p->CurrentControl.Decoupling.PIDWayIq) );
+		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
+		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
+		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
+
+		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
+		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+		{
+			float Vgain = 0.0f;
+			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= Vgain;
+			p->VoltCmd.VqCmd *= Vgain;
+
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
+			p->CurrentControl.IdRegulator.Ui *= Vgain;
+			p->CurrentControl.IqRegulator.Ui *= Vgain;
+		}
+
+		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
+
+		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
+		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
 		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
 		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
@@ -363,17 +177,98 @@ void MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 			p->PwmDutyCmd.MaxDuty = 1.0f;
 			p->PwmDutyCmd.MinDuty = 0.0f;
 		}
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
+		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
+		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
+		p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
+		p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
+		p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
 
-		COORDINATE_TRANSFER_ROTOR_TO_STATOR_MACRO( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) )
-		COORDINATE_TRANSFER_STATOR_TO_PHASE_MACRO( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) )
+
+		//Set command
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) );
+	}
+	else if ( FunctionMode == FUNCTION_MODE_VF_CONTROL )
+	{
+		p->VfControl.Calc( &(p->VfControl), p->Cmd.VfRpmTarget );
+
+		p->CurrentControl.EleAngle = p->VfControl.Position.VirtualEleAngle;
+		p->CurrentControl.EleSpeed = p->VfControl.Position.VirtualEleSpeed;
+
+		p->VoltCmd.VdCmd = 0.0f;
+		p->VoltCmd.VqCmd = p->VfControl.VoltAmp;
+		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
+		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
+		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+		{
+			float Vgain = 0.0f;
+			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= Vgain;
+			p->VoltCmd.VqCmd *= Vgain;
+
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
+			p->CurrentControl.IdRegulator.Ui *= Vgain;
+			p->CurrentControl.IqRegulator.Ui *= Vgain;
+		}
+
+		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
+
+		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
+
+		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+		{
+			p->PwmDutyCmd.MaxDuty = 1.0f;
+			p->PwmDutyCmd.MinDuty = 0.0f;
+		}
+		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
+		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
 		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
 		p->Svpwm.Duty.Duty[PHASE_U]+=p->CompDuty.CompDuty.Duty[PHASE_U];
 		p->Svpwm.Duty.Duty[PHASE_V]+=p->CompDuty.CompDuty.Duty[PHASE_V];
 		p->Svpwm.Duty.Duty[PHASE_W]+=p->CompDuty.CompDuty.Duty[PHASE_W];
 
 		//Set command
-		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) )
+		GENERATE_PWM_DUTY_DUTY_COOMMAND_180DEGREE( (&(p->Svpwm.Duty)), (&(p->PwmDutyCmd)) );
 	}
+	else if ( FunctionMode == FUNCTION_MODE_SIX_WAVE_120_CLOSE_LOOP )
+	{
+		// CmdFrom = CMD_FROM_SIX_WAVE_120_CLOSE_LOOP;
+		p->SixWave120CurrentControl.CurrCmd = p->Cmd.SixWaveCurrCmd;
+
+		// PosFb = POS_FB_HALL;
+		if ( p->HallSelect == SIX_WAVE_HALL_TYPE_TEST)
+		{
+			p->TestHall.CalHallAngle(&(p->TestHall),p->SensorFb.TestHallSignal);
+		}
+
+		// CtrlMode = CTRL_MODE_SIX_WAVE_120_CLOSE_LOOP;
+		p->SixWave120CurrentControl.GetCurrFb(&(p->SixWave120CurrentControl),(p->SixWave120Duty.PwmStatus),p->SensorFb.Iu,p->SensorFb.Iv,p->SensorFb.Iw);
+		p->SixWave120CurrentControl.Regulator.UpperLimit = 1.732050807f * VbusLimit; // = VbusAvailable;
+		p->SixWave120CurrentControl.Regulator.Calc( p->SixWave120CurrentControl.CurrCmd, p->SixWave120CurrentControl.CurrFb, &(p->SixWave120CurrentControl.Regulator));
+		p->SixWave120Duty.VoltCmd = p->SixWave120CurrentControl.Regulator.Output;
+
+		// PwmMode = PWM_MODE_SIX_WAVE_120;
+		if ( p->HallSelect == SIX_WAVE_HALL_TYPE_TEST )
+		{
+			p->SixWave120Duty.HallSection = p->TestHall.HallSection;
+		}
+		p->SixWave120Duty.TorquePolarityFlag = ( p->SixWave120CurrentControl.CurrCmd >= 0.0f ) ? SIX_WAVE_TORQUE_POLARITY_POSITIVE : SIX_WAVE_TORQUE_POLARITY_NEGATIVE;
+		p->SixWave120Duty.Calc(&(p->SixWave120Duty),DevideVbus);
+		p->PwmDutyCmd.MinDuty = p->DriverPara.Mosfet.DeadTime / p->CurrentControl.PwmPeriod;
+		p->PwmDutyCmd.MaxDuty = 1.0f - ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+		p->SixWave120Duty.DutyCmd = p->PwmDutyCmd.MinDuty + p->SixWave120Duty.DutyCmd;
+		p->PwmDutyCmd.Set120( p->SixWave120Duty.DutyCmd, &(p->PwmDutyCmd), p->SixWave120Duty.PwmStatus);
+
+	}
+	else
+	{
+    //PWM test mode
+	}
+
 }
 
 void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
@@ -419,7 +314,7 @@ void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
 	p->CurrentControl.Decoupling.PIDWayIq.Clean( &(p->CurrentControl.Decoupling.PIDWayIq) );
 
 	//Sensorless
-	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
+//	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
 
 //	p->CurrentControl.EleAngle = 0.0f;
 }
@@ -511,43 +406,8 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	//Compensation Deadtime
 	p->CompDuty.Init(&(p->CompDuty),0.0125f,5.0f,0.0125f,5.0f);
 
-
-	//Sensorless
-	SensorlessSetting_t SensorlessSetting = SENSORLESS_SETTING_DEFAULT;
-
-	SensorlessSetting.Polepair = pSetting->PmMotorPolepair;
-	SensorlessSetting.Ld = pSetting->PmMotorLd;
-	SensorlessSetting.Lq = pSetting->PmMotorLq;
-	SensorlessSetting.Res = pSetting->PmMotorRes;
-	SensorlessSetting.J = pSetting->PmMotorJ;
-	SensorlessSetting.Period = pSetting->PwmPeriod;
-	SensorlessSetting.EEMFAngleObserverHz1 = 10.0f;
-	SensorlessSetting.EEMFAngleObserverHz2 = 50.0f;
-	SensorlessSetting.EEMFAngleObserverHz3 = 110.0f;
-	SensorlessSetting.HFISinVamp = DriveParams.SystemParams.HFIInjVol;
-	SensorlessSetting.HFISinAngleObserverHz1 = 10.0f;
-	SensorlessSetting.HFISinAngleObserverHz2 = 50.0f;
-	SensorlessSetting.HFISinAngleObserverHz3 = 110.0f;
-	SensorlessSetting.HFISinLPFHz = 500.0f;
-	SensorlessSetting.HFISinBPFHz = 1000.0f;
-	SensorlessSetting.HFISinBPFQ = 0.5f;
-	SensorlessSetting.AngleInitFixedCmdFirstTime = 0.3f;
-	SensorlessSetting.AngleInitFixedCmdSecondTime = 0.7f;
-	/*
-	 * assume d-axis align alpha-axis is 0 deg
-	 * Id = Is * COS(theta),  Id = Is * SIM(theta),
-	 * Set Is = 50 A, First theta = 120 deg, Second theta = 210 deb
-	 */
-	SensorlessSetting.AngleInitFixedCmdFirstId = -25.0f;        // 50 * COS(120 deg)
-	SensorlessSetting.AngleInitFixedCmdFirstIq = 43.30127f;     // 50 * SIN(120 deg)
-	SensorlessSetting.AngleInitFixedCmdSecondId = -43.30127f;   // 50 * COS(210 deg)
-	SensorlessSetting.AngleInitFixedCmdSecondIq = -25.0f;       // 50 * SIN(210 deg)
-	SensorlessSetting.AngleInitFixedCmdDelayTimeSec = (float)(DriveParams.SystemParams.IinitialAlignDelay) * 0.1f;
-	p->Sensorless.Init(&(p->Sensorless),&SensorlessSetting);
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
-#if USE_HFI_SIN==1
-	p->StartUpWay = FUNCTION_MODE_HFI_SIN;
-#endif
+
 	return CONTROL_INIT_OK;
 }
 
@@ -582,8 +442,6 @@ void MotorControl_SixWaveRegulatorParameter( SIX_WAVE_120_CURRENT_CONTROL_TYPE *
 	pSet->Regulator.Kp = pMotor->PM.Ld * Hz * _2PI;
 	pSet->Regulator.Ki = pMotor->PM.Res * Hz * _2PI;
 }
-
-
 
 
 

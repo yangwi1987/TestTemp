@@ -29,7 +29,8 @@ void GlobalAlarmDetect_init( void )
 	if( SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmEnable == ALARM_ENABLE )
 	{
 		if( (ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL) ||
-			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME) )
+			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME) ||
+			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_CURR_CAL_BACKUP) )
 		{
 			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_READ_FAILED, SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmType );
 		}
@@ -96,15 +97,4 @@ void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int Ta
 
 void GlobalAlarmDetect_ConfigAlarmSystem( void )
 {
-	// Enable alarm registering mechanism when "entering" PWR_SM_POWER_ON
-	if( Axis[0].PcuPowerState == PWR_SM_POWER_ON )
-	{
-		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
-	}
-
-	// Disable alarm registering mechanism when "entering" PWR_SM_POWER_OFF
-	if( Axis[0].PcuPowerState == PWR_SM_POWER_OFF )
-	{
-		AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
-	}
 }

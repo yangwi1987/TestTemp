@@ -283,23 +283,12 @@ typedef struct{
 typedef struct
 {
 	float	BatCurrentDrainLimit;
-	int32_t	MEPowerOutputLimit0P1W;
-	uint32_t RTCData;
 	uint8_t ThrottleCmd;
-	uint8_t PowerLevel;
-	uint8_t RcConnStatus; // 1: means RC is connected to RF now, 0: RC is disconnected now.
-	uint8_t ShiftCmd;
 	uint8_t OutputModeCmd;
 	uint8_t PcuStateCmd;
 	uint8_t ServoOnCmd;
-	uint8_t UrgentShutdown;
-	uint8_t ExtPumpStatus;
 	uint8_t ReceivedCANID;
 	uint16_t AccCANErrorCnt;
-	UNION_CtrlIO ExtSignalCmd;
-	UNION_PRCH_CTRL PrchCtrlFB;
-	STRUCT_Authendata RxAuthData[2];
-	uint8_t Buffer[4];
 	BmsReportInfo_t BmsReportInfo;
 } STRUCT_CANRxInterface;
 
@@ -307,89 +296,81 @@ typedef enum TxInterfaceDbgIdx_e
 {
   TX_INTERFACE_DBG_IDX_FOIL_POSITION = 0,
   TX_INTERFACE_DBG_IDX_ERROR_FLAG = 1, // include critical alarm, non-critical alarm, and warning
+  TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_H = 2,
+  TX_INTERFACE_DBG_IDX_DUAL_BTN_CNT_L = 3,
+  TX_INTERFACE_DBG_IDX_DUAL_BTN_FLAG = 4,
   TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE = 5,
   TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG = 6,
   TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG = 7,
-  TX_INTERFACE_DBG_IDX_MAX = 8,
+  TX_INTERFACE_DBG_IDX_MAX = 64,
 } TxInterfaceDbgIdx_t;
 
 typedef enum DebugFloatIdx_e
 {
-  IDX_AC_LIMIT_TQ =0,
+  IDX_MOTOR0_TEMP = 0,
+  IDX_MOS1_TEMP,
+  IDX_MOS2_TEMP,
+  IDX_CAP_TEMP,
+  IDX_MOTOR1_TEMP,
+  IDX_MOTOR2_TEMP,
+  IDX_THROTTLE_RAW,
+  IDX_THROTTLE_FINAL,
+
+  IDX_DC_VOLT,
+  IDX_MOTOR_RPM,
+
+  IDX_ID_CMD,
+  IDX_IQ_CMD,
+  IDX_ID_FBK,
+  IDX_IQ_FBK,
+
+  IDX_AC_LIMIT_TQ,
   IDX_AC_LIMIT_CMD,
   IDX_DC_LIMIT_TQ,
   IDX_DC_LIMIT_CMD,
+
   IDX_PERFROMANCE_TQ,
   IDX_VD_CMD,
   IDX_VQ_CMD,
-  IDX_MOTOR_RPM,
-  IDX_DC_VOLT,
-  IDX_THROTTLE_RAW,
-  IDX_THROTTLE_FINAL,
-  IDX_FOIL_SENSOR_VOLT,
-  IDX_DC_LIMIT_CANRX_DC_CURR,
-  IDX_RESERVERD,
-  IDX_DC_LIMIT_DCBUS_REAL,
-  IDX_DC_LIMIT_DCBUS_USE,
+  IDX_ACC_PEDAL1_VOLT,
+  IDX_EA5V,
+
   IDX_INSTANT_AC_POWER,
   IDX_AVERAGE_AC_POWER,
   IDX_REMAIN_TIME,
 
-  IDC_DEBUG_FLOAT_MAX = 24, /* no more than this value*/
+  IDX_E5V,
+  IDX_ES5V,
+
+  IDX_IU_FBK,
+  IDX_IV_FBK,
+  IDX_IW_FBK,
+  IDX_PREC,
+
+  IDX_ACC_PEDAL2_VOLT,
+  IDX_S13V8,
+
+  IDC_DEBUG_FLOAT_MAX = 64, /* no more than this value*/
 } DebugFloatIdx_t;
 
 typedef struct
 {
 	// debug
-	uint8_t Th_Raw_Percent;
-	uint8_t Th_DI;
-	uint8_t Th_Out_Percent;
-	uint8_t FourQuadState;
-	int16_t Torquecmd;
-	float Id_cmd;
-	float Iq_cmd;
-	float Id_fbk;
-	float Iq_fbk;
 	float Debugf[IDC_DEBUG_FLOAT_MAX];
 	uint8_t DebugU8[TX_INTERFACE_DBG_IDX_MAX];
 	uint8_t DebugError[10];
 	// debug done
-	uint16_t NowAlarmID;
-	int16_t MotorRpm;
-	int16_t	MotorPower0P1KW;
-	int16_t	IU0P1A;
-	int16_t	IV0P1A;
-	int16_t	IW0P1A;
-	int16_t IDcBus0P1A;
-	int16_t VoltDcBu0P1V;
-	FoilPos_t FoilPos;
-	uint8_t DeratingSrc;
-	uint8_t ShiftReport;
-	uint8_t _4Quad;
-	uint8_t PcuStateReport;
-	uint16_t ThrottleADC;
-	uint16_t ThrottlePercent;
-	uint8_t RegenModeStatus;
-	int16_t PhaseCurrent;
-	int16_t LeadingAngle;
-	UINON_ShortStatus ShortFlag;
-	UINON_BreakStatus BreakFlag;
-	UINON_FaultStatus FaultFlag;
-	UNION_CtrlIO ExtSignalReport;
-	UNION_PRCH_CTRL PrchCtrlReqst;
-	int16_t	NTCTemp[8];
-	STRUCT_Authendata TxAuthData[2];
-	uint16_t AlarmSendIdx;
-	AlarmStack_t *pAlarmStack;
-	float TqOutNow;
-	float WheelSpdKmh;
-
-	uint8_t Buffer[4];
+    uint8_t VehicleState;    //TODO: use defined enum?
+    uint8_t WarningFlag;
+    uint8_t AlarmFlag;
+    uint8_t OutputMode;
+    uint8_t LimpHomeSrc;
+    uint8_t DeratingSrc;
 	uint8_t ShutDownReq;
-	uint16_t AlarmDivider;
-	UNION_DRIVE_STATE DriveState;
+	uint8_t InvState;
+	uint16_t HWID[2];
 	BmsCtrlCmd_t BmsCtrlCmd;
-
+	AlarmStack_t *pAlarmStack;
 } STRUCT_CANTxInterface;
 
 typedef uint8_t (*pRxTranslate)( uint32_t, uint8_t*, void *, void *);
@@ -405,70 +386,30 @@ typedef struct {
 
 #define CANRXINFO_DEFAULT { \
 	DEFAULT_DC_LIMIT,  /* BatCurrentDrainLimit */\
-	10000,  /* MEPowerOutputLimit0P1W */\
-	0,      /* RTCData */\
 	0,      /* ThrottleCmd */\
-	1,      /* PowerLevel */\
-	0,      /* RcConnStatus */\
-	0,      /* ShiftCmd */\
 	0,      /* OutputModeCmd */\
 	0,      /* PcuStateCmd */\
 	0,      /* ServoOnCmd */\
-	0,      /* UrgentShutdown */\
-	0,      /* ExtPumpStatus */\
 	0,      /* ReceivedCANID */\
 	0,      /* AccCANErrorCnt */\
-	{0},    /* ExtSignalCmd */\
-	{0},    /* PrchCtrlFB */\
-	{{NULL,0},{NULL,0}},      /* RxAuthData[2] */\
-	{0,0,0,0},                /* Buffer[4] */\
 	BMS_REPORT_INFO_DEFAULT,  /* BmsReportInfo */\
 }\
 
 #define CANTXINFO_DEFAULT { \
-		0, /* Th_Raw_Percent */ \
-		0, /* Th_DI */ \
-		0, /* Th_Out_Percent */ \
-		0, /* FourQuadState */ \
-		0, /* Torquecmd */ \
-		0.0f, /* Id_cmd */ \
-		0.0f, /* Iq_cmd */ \
-		0.0f, /* Id_fbk */ \
-		0.0f, /* Iq_fbk */ \
-		{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f}, /* Debugf[16] */ \
-		{0,0,0,0,0,0,0,0,}, /* debug done */ \
-		{0,0,0,0,0,0,0,0,0,0},	/*uint8_t DebugError[10]*/ \
-		0, /* NowAlarmID */ \
-		0, /* MotorRpm */ \
-		0, /* MotorPower0P1KW */ \
-		0, /* IU0P1A */ \
-		0, /* IV0P1A */ \
-		0, /* IW0P1A */ \
-		0, /* IDcBus0P1A */ \
-		0, /* VoltDcBu0P1V */ \
-		FOIL_POS_PADDLE, /*FoilPos*/ \
-		0,	/* DeratingSrc*/\
-		0, /* ShiftReport */ \
-		0, /* _4Quad */ \
-		0, /* PcuStateReport */ \
-		0, /* ThrottleADC */ \
-		0, /* ThrottlePercent */ \
-		0, /* RegenModeStatus */ \
-		0, /* PhaseCurrent */ \
-		0, /* LeadingAngle */ \
-		{0}, /* ShortFlag */ \
-		{0}, /* BreakFlag */ \
-		{0}, /* FaultFlag */ \
-		{0}, /* ExtSignalReport */ \
-		{0}, /* rchCtrlReqst */ \
-		{0,0,0,0,0,0,0,0}, /* NTCTemp[8] */ \
-		{{NULL,0},{NULL,0}}, /* TxAuthData[2] */ \
-		0, /* AlarmSendIdx */ \
-		0, /* *pAlarmStack */ \
-		0.0f, /* TqOutNow */ \
-		0.0f, /* WheelSpdKmh */ \
-		{0,0,0,0}, /* Buffer[4] */ \
-		0, \
-}
+	{0.0f}, /*Debugf*/\
+	{0}, /*DebugU8*/\
+	{0},/*DebugError*/\
+	0, /*VehicleState*/\
+	0, /*WarningFlag*/\
+	0, /*AlarmFlag*/\
+	0, /*OutputMode*/\
+	0, /*LimpHomeSrc*/\
+	0, /*DeratingSrc*/\
+	0, /*ShutDownReq*/\
+	0, /*InvState*/\
+	{0},/*HWID[2]*/\
+	{0}, /*BmsCtrlCmd*/\
+	0, /**pAlarmStack*/\
+}\
 
 #endif /* INC_ICANINTERFACE_H_ */

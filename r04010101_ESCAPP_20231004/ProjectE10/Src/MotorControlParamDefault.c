@@ -21,8 +21,8 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 	.PmMotorRes = 0.001f,			//1mohm
 	.PmMotorPolepair = 5.0f,
 	.PmMotorJ = 0.00697189f,
-	.MosfetDriverDeadTime = 0.000002f,
-	.MosfetDriverLowerBridgeMinTime = 0.0000025f,
+	.MosfetDriverDeadTime = 0.000002f, /*todo check with EE*/
+	.MosfetDriverLowerBridgeMinTime = 0.0000025f, /*todo check with EE*/
 	.MosfetDriverPwmPeriodCnt = (float)(INITIAL_CURRENT_LOOP_FREQ),
 	.MosfetDriverShuntRisingTime = 0.0f,
 	.MosfetDriverMinTimeChangeEleSpeedAbs = 3141.59f, //Mech RPM = 6000->Ele Speed = 6000/60*5*2*pi

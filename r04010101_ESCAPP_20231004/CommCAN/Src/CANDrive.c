@@ -12,29 +12,60 @@
 void CANDrive_IdConfig(FDCAN_HandleTypeDef *p, const CanIdConfig_t *v)
 {
 	uint8_t i=0;
-	uint8_t FilterIndexStart=0;
+//	uint8_t FilterIndexStart=0;
 	FDCAN_FilterTypeDef  lTemp;
 	const CanIdConfig_t *pTemp;
 	StdCanIdFilter_t *Container;
+	uint8_t STDFilterIdxStart;	/* max 28 standard filters can be used */
+	uint8_t EXDFilterIdxStart;	/* max 08 extended filters can be used */
+
+
+	/* Get registered Standard filter number */
 	Container = (StdCanIdFilter_t*)p->msgRam.StandardFilterSA;
 
-	for( FilterIndexStart = 0; FilterIndexStart < 28; FilterIndexStart++)
+	for( STDFilterIdxStart = 0; STDFilterIdxStart < 28; STDFilterIdxStart++)
 	{
-		if( (Container+FilterIndexStart)->SFEC == 0 )
+		if( (Container+STDFilterIdxStart)->SFEC == 0 )
 		{
 			break;
 		}
 	}
 
+	/* Get registered Extended filter number */
+	Container = (StdCanIdFilter_t*)p->msgRam.ExtendedFilterSA;
+
+	for( EXDFilterIdxStart = 0; EXDFilterIdxStart < 8; EXDFilterIdxStart++)
+	{
+		if( (Container+EXDFilterIdxStart)->SFEC == 0 )
+		{
+			break;
+		}
+	}
+
+	/* load standard and extended ID filters accordingly*/
 	pTemp = v;
-	for(i=0;i<CAN_ID_CONFIG_ARRAY_SIZE;i++)
+
+	for(i = 0; i < CAN_ID_CONFIG_ARRAY_SIZE ; i++)
 	{
 		if(pTemp->Setup.Bits.ConfigUsage==CAN_ID_CONFIG_USED)
 		{
 			lTemp.FilterID1 = pTemp->Id1;
 			lTemp.FilterID2 = pTemp->Id2;
-			lTemp.FilterIndex = i+FilterIndexStart;
-			lTemp.IdType = (uint32_t)((pTemp->Setup.Bits.IdType == CAN_ID_CONIFG_TYPE_STANDARD)?FDCAN_STANDARD_ID:FDCAN_EXTENDED_ID);
+
+			if(pTemp->Setup.Bits.IdType == CAN_ID_CONIFG_TYPE_STANDARD)
+			{
+				lTemp.IdType = FDCAN_STANDARD_ID;
+				lTemp.FilterIndex = i+STDFilterIdxStart;
+				assert_param(lTemp.FilterIndex < 28);
+			}
+			else
+			{
+				lTemp.IdType = FDCAN_EXTENDED_ID;
+				lTemp.FilterIndex = i+EXDFilterIdxStart;
+				assert_param(lTemp.FilterIndex < 8);
+
+			}
+
 			lTemp.FilterConfig = (uint32_t)((pTemp->Setup.Bits.RxFifo == 0)?FDCAN_FILTER_TO_RXFIFO0:FDCAN_FILTER_TO_RXFIFO1);
 			lTemp.FilterType = (uint32_t)(pTemp->Setup.Bits.FilterType);
 			HAL_FDCAN_ConfigFilter(p,&lTemp);

@@ -32,6 +32,7 @@
 #if E10
 #include "E10App.h"
 #include "HiResoMotorTable.h"
+#include "GearMode.h"
 #endif
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);
@@ -236,7 +237,6 @@ typedef struct {
 	int16_t AxisID;
 	uint16_t PcuID;
 	uint16_t PIDCheckResult;
-	uint16_t ESCOperationState;
 	int16_t ServoOn;
 	int16_t ServoOnOffState;
 	uint16_t HasWarning; // 0: no warning, 1: warning exist
@@ -252,7 +252,6 @@ typedef struct {
 	uint16_t ThrottleGainState;
 	uint16_t DcBusGainState;
 	int16_t PcuPowerState;
-	FoilInfor_u FoilState;
 	uint16_t MfOrRDFunctionDisable;
 	uint16_t TriggerLimpHome;
 	MOTOR_CONTROL_TYPE MotorControl;
@@ -272,8 +271,7 @@ typedef struct {
 	STRUCT_CANRxInterface	*pCANRxInterface;
 	PHASE_LOSS_TYPE	PhaseLoss;
 	SpeedInfo_t SpeedInfo;
-	AnalogFoilInfo_t AnalogFoilInfo;
-	DriveLockInfo_t DriveLockInfo;
+	GearMode_Var_t GearModeVar;
 	functypeAxis_Init Init;
 	functypeAxis_DoCurrentLoop DoCurrentLoop;
 	functypeAxis_DoPLCLoop DoPLCLoop;
@@ -286,7 +284,6 @@ typedef struct {
 	0,      /*AxisID;             */ \
 	0,      /* PcuID;             */ \
 	0,      /* PIDCheckResult;    */ \
-	0,      /*ESCOperationState   */ \
 	0,      /*ServoOn;            */ \
 	0,      /*ServoOnOffState;    */ \
 	0,      /* HasWarning;        */ \
@@ -302,7 +299,6 @@ typedef struct {
 	0,      /*ThrottleGainState;*/ \
 	0,      /*DcBusGainState;   */ \
 	PWR_SM_INITIAL,    /*PcuPowerState;       */\
-	{0},                   /*    FoilState;       */\
 	1,	                   /* MfOrRDFunctionDisable;    */\
 	0,	                   /* TriggerLimpHome;    */\
 	MOTOR_CONTROL_DEFAULT, /*MotorControl         */\
@@ -322,8 +318,7 @@ typedef struct {
 	0,                             /*pCANRxInterface*/\
 	PHASE_LOSS_DEFAULT,	\
 	SPEED_INFO_DEFAULT,	\
-	ANALOG_FOIL_INFO_DEFAULT, \
-	DRIVE_LOCK_INFO_DERAULT, \
+	GEAR_MODE_VAR_DEFALUT, \
 	(functypeAxis_Init)AxisFactory_Init, \
 	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
 	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \
@@ -332,21 +327,6 @@ typedef struct {
 	(functypeAxis_OnParamValueChanged)AxisFactory_OnParamValueChanged \
 }
 #endif /* E10 */
-
-#define ANALOG_FOIL_INFO_DEFAULT { \
-	0.0f, \
-	0.0f, \
-	0.0f, \
-	0.0f, \
-}
-
-#define DRIVE_LOCK_INFO_DERAULT {\
-	0, /*	IsUseDriveLockFn*/ \
-	Drive_Stop_Flag,  /*DriveStateFlag*/ \
-	0, /*TimeToStopDriving_InPLCLoop*/ \
-	0, /*TimeToStopDriving_cnt*/       \
-	0, /*RpmToStartCntDriveLock*/ \
-}
 
 void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex );
 void AxisFactory_DoCurrentLoop( Axis_t *v );
