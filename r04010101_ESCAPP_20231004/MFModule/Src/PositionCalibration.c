@@ -8,9 +8,15 @@
 #include "PositionCalibration.h"
 
 static PS_CALI_t PS_CALI_Vars = PS_CALI_DEFAULT;
+#if DEFAULT_POLE_PAIRS == 4
+static uint32_t LinearElePosCmd[32] = { 7854,	15707,	23562,	31416,	39270,	47123,	54978,	0,	7854,	15707,	23562,	\
+		31416,	39270,	47123,	54978,	0,7854,	15707,	23562,	31416,	39270,	47123,	54978,	0,7854,	15707,	23562,	31416,	39270,	\
+		47123,	54978,	0,};  //According to pole pairs, calculate 11.25 mech degrees interval between each points
+#elif DEFAULT_POLE_PAIRS == 5
 static uint32_t LinearElePosCmd[32] = { 9817,	19635,	29452,	39270,	49087,	58905,	5890,	15708,	25525,	35343,	45160,	\
 		54978,	1963,	11781,	21598,	31416,	41233,	51051,	60868,	7854,	17671,	27489,	37306,	47124,	56941,	3927,	13744,	\
 		23562,	33379,	43197,	53014, 0 };  //According to pole pairs, calculate 11.25 mech degrees interval between each points
+#endif
 float LinearPointsMechPosRad[32] = { 0.0f };
 
 static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u );
@@ -125,6 +131,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         case PS_CALI_LINEAR_SM_NONE:
         {
         	Positioning_Cnt = 0;
+        	u->MechPosZeroOffset = 0.0f;
         	PositionCalibration_Start_IF_Control();
         	PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_MECH_ZERO;
         	break;
@@ -176,6 +183,8 @@ static void PositionCalibration_Linear_Process(PS_t *u )
                		LinearPointNow = 0;
             		Positioning_Cnt = 0;
             		PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FINISHED;  //TODO: use communication to configure position sensor in the future.
+                	DriveParams.SystemParams.MechPositionZeroOffset = 32768;
+                	DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 1;
         		}
         	}
         	break;
