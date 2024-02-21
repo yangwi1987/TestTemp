@@ -1613,12 +1613,19 @@ void Inv_ServoOnReq()
 {
   Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
   Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
+
+  /* Enable boost mode function */
+  GearMode_EnableBoostMode();
 }
 
 void Inv_ServoOffReq()
 {
   Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
   Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
+
+  /* Disable boost mode function */
+  GearMode_DisableBoostMode();
+
 }
 
 __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
@@ -1658,9 +1665,6 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 	{
 		ButtonReleasedFlags = 0;
 	}
-
-	/* Enable boost mode function */
-	GearMode_EnableBoostMode();
 
 	DualBtnTimeCnt = 0;
 
