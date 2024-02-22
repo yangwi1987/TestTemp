@@ -56,43 +56,43 @@ uint16_t OpenLoopControl_OpenLoopControlInitVirtualPosition( VIRTUAL_POSITION_TY
 
 void OpenLoopControl_OpenLoopControlCalcVirtualPosition( VIRTUAL_POSITION_TYPE *p, float RpmTarget )
 {
-	if ( RpmTarget >= 0 )
-	{
-		if ( p->Rpm >= 0 )
-		{
-			if ( RpmTarget > p->Rpm )
-			{
-				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmAccel * p->Period ) );
-			}
-			else
-			{
-				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmDecel * p->Period ) );
-			}
-		}
-		else
-		{
-			(p->Rpm) = Ramp( p->Rpm, 0.0f, ( p->RpmDecel * p->Period ) );
-		}
-	}
-	else
-	{
-		if (p->Rpm <= 0)
-		{
-			if ( RpmTarget < p->Rpm )
-			{
-				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmAccel * p->Period ) );
-			}
-			else
-			{
-				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmDecel * p->Period ) );
-			}
-		}
-		else
-		{
-			(p->Rpm) = Ramp( p->Rpm, 0.0f, ( p->RpmDecel * p->Period ) );
-		}
-	}
-
+//	if ( RpmTarget >= 0 )
+//	{
+//		if ( p->Rpm >= 0 )
+//		{
+//			if ( RpmTarget > p->Rpm )
+//			{
+//				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmAccel * p->Period ) );
+//			}
+//			else
+//			{
+//				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmDecel * p->Period ) );
+//			}
+//		}
+//		else
+//		{
+//			(p->Rpm) = Ramp( p->Rpm, 0.0f, ( p->RpmDecel * p->Period ) );
+//		}
+//	}
+//	else
+//	{
+//		if (p->Rpm <= 0)
+//		{
+//			if ( RpmTarget < p->Rpm )
+//			{
+//				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmAccel * p->Period ) );
+//			}
+//			else
+//			{
+//				(p->Rpm) = Ramp( p->Rpm, RpmTarget, ( p->RpmDecel * p->Period ) );
+//			}
+//		}
+//		else
+//		{
+//			(p->Rpm) = Ramp( p->Rpm, 0.0f, ( p->RpmDecel * p->Period ) );
+//		}
+//	}
+	p->Rpm = RpmTarget;
 	p->VirtualEleSpeed = p->Rpm * p->RpmToEleSpeedGain;
 	p->VirtualEleAngle += ( p->VirtualEleSpeed * p->Period);
 
@@ -146,7 +146,7 @@ void OpenLoopControl_IfControlCalcCmd( IF_CONTROL_TYPE *p, float RpmTarget )
 	if ( p->Position.EnablePositionCmd == 0 )
 	{
 	    OpenLoopControl_OpenLoopControlCalcVirtualPosition( &(p->Position), RpmTarget );
-	    p->CurrAmp = p->Gain * p->Position.Rpm;
+	    p->CurrAmp = p->CurrLimit;
 		p->CurrAmp = ( p->CurrAmp > p->CurrLimit ) ? p->CurrLimit : p->CurrAmp;
 		p->CurrAmp = ( p->CurrAmp < -(p->CurrLimit) ) ? -(p->CurrLimit) : p->CurrAmp;
 	}

@@ -73,8 +73,8 @@ extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float
 #if USE_INIT_HIGH_SESSION_AND_SRCURITY
 #define PARAM_MGR_DEFAULT { \
 	0, \
-	Session_0x60_SystemSupplierSpecific, /* Session */ \
-	Session_0x60_SystemSupplierSpecific, /* NextSession */ \
+	Session_0x01_Default, /* Session */ \
+	Session_0x01_Default, /* NextSession */ \
 	DEFAULT_SECURITY_LEVEL, /* Security */ \
 	0, /* pFlashParaReadEnableTable */ \
 	0, /* pParamTable */\

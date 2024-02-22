@@ -16,9 +16,9 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 {
 #if MOTOR_STAGE==MOTOR_P0
 	.PmMotorFlux = 0.0051f,     // When 120 degree C
-	.PmMotorLd = 0.0000096f,		// 9.6 uh
-	.PmMotorLq = 0.0000136f,    // 13.6 uh
-	.PmMotorRes = 0.001f,			//1mohm
+	.PmMotorLd = 0.000096f,		// 96 uh
+	.PmMotorLq = 0.000136f,    // 136 uh
+	.PmMotorRes = 0.05f,			//50mohm
 	.PmMotorPolepair = 5.0f,
 	.PmMotorJ = 0.00697189f,
 	.MosfetDriverDeadTime = 0.000002f, /*todo check with EE*/
@@ -27,8 +27,8 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 	.MosfetDriverShuntRisingTime = 0.0f,
 	.MosfetDriverMinTimeChangeEleSpeedAbs = 3141.59f, //Mech RPM = 6000->Ele Speed = 6000/60*5*2*pi
 	.PwmPeriod = 0.0001f,
-	.IdHz = 100.0f,
-	.IqHz = 100.0f,
+	.IdHz = 200.0f,
+	.IqHz = 200.0f,
 	.Ilimit = 531.0f,
 	.IfGain = 0.056f,
 	.IfAecel = 500.0f,

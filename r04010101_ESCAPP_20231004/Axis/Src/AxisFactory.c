@@ -472,6 +472,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
         case FN_MF_FUNC_SEL_IF:
         {
             v->MotorControl.Cmd.IfRpmTarget = DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ];
+            v->MotorControl.IfControl.CurrLimit = ((float)(DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ])) * 0.1f;
             v->MotorControl.IfControl.Position.PositionCmd = (float)DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] * 0.0001f;
             break;
         }
