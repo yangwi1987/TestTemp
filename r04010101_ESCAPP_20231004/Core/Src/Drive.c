@@ -1100,7 +1100,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         {
         	break;
         }
-        case DID_0xC03B_ACC_PEDAL1_Voltage                 :
+        case DID_0xC03B_Foil_Position_Voltage                 :
         {
         	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Pedal_V1 );
         	break;
