@@ -92,7 +92,7 @@ typedef enum
 	DID_0xC038_Error_Code_from_RF                                   = 0xC038,
 	DID_0xC039_BMS_State_Read_by_ESC                                = 0xC039,
 	DID_0xC03A_Estimated_Time_Remaining                             = 0xC03A,
-	DID_0xC03B_Foil_Position_Voltage                                = 0xC03B,
+	DID_0xC03B_ACC_PEDAL1_Voltage                                = 0xC03B,
 	DID_0xC03C_ESC_Error_Code                                       = 0xC03C,
 
 	DID_0xC040_Position_Linear_Points_In_Degree                     = 0xC040,

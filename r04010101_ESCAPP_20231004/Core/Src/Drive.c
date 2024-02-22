@@ -785,22 +785,22 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC009_Motor_Temperature_Minimum                :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Min );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcDmaData[AdcStation1.ThermoCh[MOTOR_NTC_0_A0].AdcGroupIndex][AdcStation1.ThermoCh[MOTOR_NTC_0_A0].AdcRankIndex] );
         	break;
         }
         case DID_0xC00A_Motor_Temperature_Maximum                :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.Motor_Temp_Rec.Temperature_Max );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC_1 );
         	break;
         }
         case DID_0xC00B_Motor_Speed                              :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].SpeedInfo.MotorMechSpeedRPM );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcDmaData[AdcStation1.ThermoCh[MOTOR_NTC_1_A0].AdcGroupIndex][AdcStation1.ThermoCh[MOTOR_NTC_1_A0].AdcRankIndex] );
         	break;
         }
         case DID_0xC00C_Torque_Reference                         :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, Axis[0].TorqCommandGenerator.Out );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.MOTOR_NTC_2 );
         	break;
         }
         case DID_0xC00E_ESC_Mosfets_Center_Temperature           :
@@ -810,12 +810,12 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC00F_ESC_Mosfets_Center_Temperature_Minimum   :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Min );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcDmaData[AdcStation1.ThermoCh[MOS_NTC_1].AdcGroupIndex][AdcStation1.ThermoCh[MOS_NTC_1].AdcRankIndex] );
         	break;
         }
         case DID_0xC010_ESC_Mosfets_Center_Temperature_Maximum   :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Center_Temp_Rec.Temperature_Max );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcDmaData[AdcStation1.ThermoCh[MOTOR_NTC_2_A0].AdcGroupIndex][AdcStation1.ThermoCh[MOTOR_NTC_2_A0].AdcRankIndex] );
         	break;
         }
         case DID_0xC011_ESC_Mosfets_Side_Temperature             :
@@ -825,7 +825,8 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC012_ESC_Mosfets_Side_Temperature_Minimum     :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Mosfets_Side_Temp_Rec.Temperature_Min );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcDmaData[AdcStation1.ThermoCh[MOS_NTC_2].AdcGroupIndex][AdcStation1.ThermoCh[MOS_NTC_2].AdcRankIndex] );
+
         	break;
         }
         case DID_0xC013_ESC_Mosfets_Side_Temperature_Maximum     :
@@ -840,7 +841,8 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         }
         case DID_0xC015_ESC_Capacitor_Temperature_Minimum        :
         {
-        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, IntranetCANStation.ServiceCtrlBRP.ESC_Capacitor_Temp_Rec.Temperature_Min );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcDmaData[AdcStation1.ThermoCh[CAP_NTC].AdcGroupIndex][AdcStation1.ThermoCh[CAP_NTC].AdcRankIndex] );
+
         	break;
         }
         case DID_0xC016_ESC_Capacitor_Temperature_Maximum        :
@@ -1098,9 +1100,9 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         {
         	break;
         }
-        case DID_0xC03B_Foil_Position_Voltage                 :
+        case DID_0xC03B_ACC_PEDAL1_Voltage                 :
         {
-//        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Foil );
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, AdcStation1.AdcTraOut.Pedal_V1 );
         	break;
         }
         case DID_0xC03C_ESC_Error_Code                 :
