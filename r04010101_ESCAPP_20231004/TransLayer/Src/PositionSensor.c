@@ -21,8 +21,11 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
 	FilterSettingTmp.Period =  0.0001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	v->CalcMechSpeedLPF.Init(&(v->CalcMechSpeedLPF),&FilterSettingTmp);
-
+#if USE_REVERVE_MR_DIRECTION
+	v->MechPosZeroOffset = _2PI - ((float)( MechPosZeroOffset - 32768 ) * 0.0001f);
+#else
 	v->MechPosZeroOffset = (float)( MechPosZeroOffset - 32768 ) * 0.0001f;
+#endif
 	v->MechPosCompCoefBySpeed = (float)(MechPosCompCoefBySpeed) * 0.0001f;
 }
 
