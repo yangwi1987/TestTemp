@@ -66,8 +66,8 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		{
 				// PCU Thermal
 				//Name			ZeroFlagEnable,		TableIdx,			Channel Enable,		Adc Group,			Adc Rank
-				{MOS_NTC_1,		ADC_DISABLE,		NTCG163JX103DT1S,	ADC_ENABLE,			ADC_3,				RANK_2			},	// MOS NTC Center
-				{MOS_NTC_2,		ADC_DISABLE,		NTCG163JX103DT1S,	ADC_ENABLE,			ADC_3,				RANK_3			},	// MOS NTC Side
+				{MOS_NTC_1,		ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,			ADC_3,				RANK_2			},	// MOS NTC Center, use the same table as Motor NTC at P0 phase
+				{MOS_NTC_2,		ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,			ADC_3,				RANK_3			},	// MOS NTC Side, use the same table as Motor NTC at P0 phase
 				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,		ADC_ENABLE,			ADC_3,				RANK_1			},	// CAP NTC
 				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
 				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
