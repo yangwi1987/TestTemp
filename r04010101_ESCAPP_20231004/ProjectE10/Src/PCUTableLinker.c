@@ -273,7 +273,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved316},	//P3-16 ALARMID_POWER_TRANSISTOR_OC
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved317},	//P3-17 ALARMID_BUFFER_IC_ERROR
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved318},	//P3-18 ALARMID_PHASE_LOSS
-				{		1,		THRE_MAX,		12500,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
+				{		1,		THRE_MAX,		10000,			0x45,		&DriveParams.PCUParams.Reserved319},	//P3-19 ALARMID_MOTOR_OVER_SPEED
 				{		1,		THRE_MAX,		62,				0x45,		&DriveParams.PCUParams.Reserved320},	//P3-20 ALARMID_OVER_VOLTAGE_BUS
 				{		1,		THRE_MAX,		36,				0x45,		&DriveParams.PCUParams.Reserved321},	//P3-21 ALARMID_UNDER_VOLTAGE_BUS
 				{		1,		THRE_MAX,		10,				0x45,		&DriveParams.PCUParams.Reserved322},	//P3-22 ALARMID_UNDER_VOLTAGE_13V
