@@ -102,4 +102,105 @@ extern void Btn_Do100HzLoop (void);
 /*=============== Button handle End ===============*/
 
 
+/*=============== LED Indication control start ===============*/
+typedef enum 
+{
+  LED_IDX_FRONT = 0,    /* FRONT READY LIGHT */
+  LED_IDX_REAR,        	/* REAR READY LIGHT */
+  LED_IDX_BOOST,       	/* BOOST LIGHT */
+  LED_IDX_REV,    		  /* REVERSE LIGHT */
+  /* SOC-01 */
+  LED_IDX_SOC1_R,
+  LED_IDX_SOC1_G,
+  LED_IDX_SOC1_B,
+  /* SOC-02 */
+  LED_IDX_SOC2_R,
+  LED_IDX_SOC2_G,
+  LED_IDX_SOC2_B,
+  /* SOC-03 */
+  LED_IDX_SOC3_R,
+  LED_IDX_SOC3_G,
+  LED_IDX_SOC3_B,
+  /* SOC-04 */
+  LED_IDX_SOC4_R,
+  LED_IDX_SOC4_G,
+  LED_IDX_SOC4_B,
+  LED_IDX_MAX,
+} LedIdx_e;
+
+typedef enum
+{
+  LED_RGB_IDX_R,
+  LED_RGB_IDX_G,
+  LED_RGB_IDX_B,
+} LedRGBIdx_e;
+
+typedef enum
+{
+  LED_CMD_OFF = 0,
+  LED_CMD_ON,
+} LedCmd_e;
+
+#define LED_NBR_TO_BLINK_FOREVER 0	/* if number to blink == 0, the LED will blinks until the mode is updated */
+
+typedef enum
+{
+  LED_MODE_OFF = 0,
+  LED_MODE_ON,
+  LED_MODE_BLINK,
+} LedMode_e;
+
+/* Add pre-defined configuration if required */
+#define LED_BLINK_CONFIG_STEADY 	(LedBlinkConfig_t){0, 0}
+#define LED_BLINK_CONFIG_1HZ 		(LedBlinkConfig_t){100, 50}
+#define LED_BLINK_CONFIG_2HZ 		(LedBlinkConfig_t){50, 25}
+#define LED_BLINK_CONFIG_4HZ 		(LedBlinkConfig_t){25, 12}
+#define LED_BLINK_CONFIG_5HZ 		(LedBlinkConfig_t){20, 10}
+
+typedef struct
+{
+  uint16_t Period;      /* unit = 10ms */
+  uint16_t OnTime;      /* unit = 10ms */
+} LedBlinkConfig_t;
+
+typedef struct
+{
+  uint16_t TimeCnt;
+  uint16_t NbrCnt;
+  uint16_t NbrToBlink;
+  LedBlinkConfig_t BlinkConfig;
+  LedMode_e Mode;
+  LedCmd_e Cmd;
+} LedCtrl_t;
+
+extern void Led_TurnOnReq(LedIdx_e Idx);
+extern void Led_TurnOffReq(LedIdx_e Idx);
+extern void Led_CtrlReq(LedIdx_e Idx, LedMode_e ModeIn, uint16_t NbrToBlink, LedBlinkConfig_t BlinkConfig);
+extern void Led_Do100HzLoop(void);
+extern LedCmd_e Led_CmdGet(LedIdx_e Idx);
+
+
+typedef enum
+{
+  SOC_DISPLAY_MODE_DIRECTLY_ACCESS = 0,
+  SOC_DISPLAY_MODE_SOC,
+} SocDisplayMode_e;
+
+typedef struct
+{
+  uint8_t 			Soc;
+  uint8_t 			ReqFlag;
+  SocDisplayMode_e  DisplayMode;
+  LedRGBIdx_e     	ColorReq;
+  LedMode_e       	LedMode;
+  LedBlinkConfig_t 	BlinkConfig;
+} SocLightCtrl_t;
+
+extern void SocLightModeSet( SocDisplayMode_e ModeIn);
+extern void SocCtrlSet(LedRGBIdx_e ColorIn, LedMode_e ModeIn, LedBlinkConfig_t LedConfig);
+extern void SocValueSet( uint8_t SocIn);
+extern void SocLightCtrl_Do100HzLoop(void);
+
+/*=============== LED Indication control End ===============*/
+
 #endif /* INC_BMEAPP_H_ */
