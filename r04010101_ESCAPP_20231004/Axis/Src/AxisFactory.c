@@ -59,29 +59,7 @@ void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
 
 void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 {
-	if(v->pCANTxInterface->DebugU8[TX_INTERFACE_DBG_IDX_BMS_COMM_ENABLE] == 1)
-	{
-		/* check if BMS send shutdown request */
-		if(v->pCANRxInterface->BmsReportInfo.BmsShutdownRequest == 1)
-		{
-			v->pCANRxInterface->PcuStateCmd = PcuCmd_Shutdown;
-		}
-		else
-		{
-			v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
-		}
-
-		// Load DC Current Limit from BMS communication, or use default value.
-		v->pCANRxInterface->BatCurrentDrainLimit = v->pCANRxInterface->BmsReportInfo.DCCurrentLimit;
-	}
-	else
-	{
-		// BMS communication is not available, put pseudo value to BMS main and prch state 
-		v->pCANRxInterface->PcuStateCmd = PcuCmd_Enable;
-        v->pCANRxInterface->BmsReportInfo.PrchSM = BMS_PRECHG_STATE_SUCCESSFUL;
-        v->pCANRxInterface->BmsReportInfo.MainSm = BMS_ACTIVE_STATE_DISCHARGE;
-        v->pCANRxInterface->BatCurrentDrainLimit = DEFAULT_DC_LIMIT;
-	}
+    v->pCANRxInterface->BatCurrentDrainLimit = DEFAULT_DC_LIMIT;
 
     v->ThrotMapping.TnSelect = v->pCANRxInterface->OutputModeCmd;
     if( ( v->pCANRxInterface->ReceivedCANID & RECEIVED_BAT_ID_1 ) == RECEIVED_BAT_ID_1)

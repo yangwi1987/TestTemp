@@ -351,8 +351,6 @@ typedef struct
 
 typedef struct
 {
-  BmsActiveState_t MainSm;
-  BmsPreChgState_t PrchSM;
   uint8_t BmsFrameCnt;
   uint8_t Soc;
   uint8_t LimpFlag;
@@ -370,8 +368,6 @@ typedef struct
 
 #define BMS_REPORT_INFO_DEFAULT \
 {                               \
-  BMS_ACTIVE_STATE_STARTUP,     \
-  BMS_PRECHG_STATE_OFF,         \
   0,                            \
   0,  /* SOC */                 \
   0,  /* LimpFlag */  			    \

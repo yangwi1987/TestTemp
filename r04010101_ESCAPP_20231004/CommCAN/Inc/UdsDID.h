@@ -95,6 +95,8 @@ typedef enum
 	DID_0xC03B_Foil_Position_Voltage                                = 0xC03B,
 	DID_0xC03C_ESC_Error_Code                                       = 0xC03C,
 
+	DID_0xC040_Position_Linear_Points_In_Degree                     = 0xC040,
+
 	DID_0xC100_This_Driving_Cycle_Information                       = 0xC100,
 
 	DID_0xC200_Last_Driving_Cycle_Information_1                     = 0xC200,

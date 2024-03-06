@@ -80,7 +80,7 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	10, 	1},			// 60-FN_EXTFLASH_DATA_RST_ENA
 	{0, 	2, 		5},			// 61-FN_MF_VOLT_CALIB_START
 	{0, 	1, 		5},	        // 62-FN_ORIGIN_PARAM_BACKUP
-	{0, 	0, 		Reserved7},	// 63
+    {0,    10, 		5},	        // 63   FN_MF_POS_CALIB_START
 	{0, 	0, 		Reserved7},	// 64
 	{0, 	0, 		Reserved7},	// 65
 	{0, 	0, 		Reserved7},	// 66

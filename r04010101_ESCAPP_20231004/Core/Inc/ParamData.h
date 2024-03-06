@@ -408,6 +408,8 @@
 
 #define FN_ORIGIN_PARAM_BACKUP      962
 
+#define FN_MF_POS_CALIB_START       963
+
 #define FN_OPEN_POSITION_CMD_ENABLE 970
 #define FN_OPEN_POSITION_CMD        971
 #define FN_CURRENT_ID_CMD           972
