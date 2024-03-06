@@ -290,9 +290,9 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		32768,		33768,		32926,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][2]},	//P0-67
 				{		32768,		33768,		32768,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][3]},	//P0-68
 				{		32768,		33768,		32768,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][4]},	//P0-69
-				{		32768,		47768,		44768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][0]},	//P0-70
-				{		32768,		47768,		44768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][1]},	//P0-71
-				{		32768,		47768,		46381,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][2]},	//P0-72
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][0]},	//P0-70
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][1]},	//P0-71
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][2]},	//P0-72
 				{		32768,		47768,		32768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][3]},	//P0-73
 				{		32768,		47768,		32768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][4]},	//P0-74
 				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][0]},	//P0-75

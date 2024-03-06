@@ -272,13 +272,13 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	}
 
 	int16_t TempACC0p001V; // in 0.001V
-	TempACC0p001V = v->pAdcStation->AdcTraOut.Pedal_V1 * 1000.0f;
+	TempACC0p001V = (int16_t)(v->pAdcStation->AdcTraOut.Pedal_V1 * 1000.0f);
 
 	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_BREAK, TempACC0p001V );
 	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_SHORT, TempACC0p001V );
-	AlarmDetect_Accumulation( v, &v->UVP_E5V, (int16_t)(v->pAdcStation->AdcTraOut.E5V * 10));
-	AlarmDetect_Accumulation( v, &v->UVP_ES5V, (int16_t)(v->pAdcStation->AdcTraOut.ES5V * 10));
-	AlarmDetect_Accumulation( v, &v->UVP_EA5V, (int16_t)(v->pAdcStation->AdcTraOut.EA5V * 10));
+	AlarmDetect_Accumulation( v, &v->UVP_E5V, (int16_t)(v->pAdcStation->AdcTraOut.E5V * 10.0f));
+	AlarmDetect_Accumulation( v, &v->UVP_ES5V, (int16_t)(v->pAdcStation->AdcTraOut.ES5V * 10.0f));
+	AlarmDetect_Accumulation( v, &v->UVP_EA5V, (int16_t)(v->pAdcStation->AdcTraOut.EA5V * 10.0f));
 
 }
 
