@@ -271,12 +271,14 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 		AlarmDetect_BufferIcFb( v, &v->BUF_IC_FB, HAL_GPIO_ReadPin( BUF_FB_DI_GPIO_Port, BUF_FB_DI_Pin ), HAL_GPIO_ReadPin( HWOCP_BKIN_GPIO_Port, HWOCP_BKIN_Pin ), v->AxisID );
 	}
 
+	int16_t TempACC0p001V; // in 0.001V
+	TempACC0p001V = (int16_t)(v->pAdcStation->AdcTraOut.Pedal_V1 * 1000.0f);
 
-	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_BREAK, v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[ACC_FB1].AdcGroupIndex][v->pAdcStation->RegCh[ACC_FB1].AdcRankIndex] );
-	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_SHORT, v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[ACC_FB1].AdcGroupIndex][v->pAdcStation->RegCh[ACC_FB1].AdcRankIndex] );
-	AlarmDetect_Accumulation( v, &v->UVP_E5V, v->pAdcStation->AdcTraOut.E5V );
-	AlarmDetect_Accumulation( v, &v->UVP_ES5V, v->pAdcStation->AdcTraOut.ES5V );
-	AlarmDetect_Accumulation( v, &v->UVP_EA5V, v->pAdcStation->AdcTraOut.EA5V );
+	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_BREAK, TempACC0p001V );
+	AlarmDetect_Accumulation( v, &v->ACC_PEDAL_SENSOR_SHORT, TempACC0p001V );
+	AlarmDetect_Accumulation( v, &v->UVP_E5V, (int16_t)(v->pAdcStation->AdcTraOut.E5V * 10.0f));
+	AlarmDetect_Accumulation( v, &v->UVP_ES5V, (int16_t)(v->pAdcStation->AdcTraOut.ES5V * 10.0f));
+	AlarmDetect_Accumulation( v, &v->UVP_EA5V, (int16_t)(v->pAdcStation->AdcTraOut.EA5V * 10.0f));
 
 }
 
