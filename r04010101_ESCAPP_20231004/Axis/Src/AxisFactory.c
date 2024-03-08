@@ -582,8 +582,8 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
 
         // Update Pwm
         v->pPwmStation->DutyCmd.Duty[CH_PWM_UP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[0];
-        v->pPwmStation->DutyCmd.Duty[CH_PWM_VP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[1];
-        v->pPwmStation->DutyCmd.Duty[CH_PWM_WP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2];
+        v->pPwmStation->DutyCmd.Duty[CH_PWM_WP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[1];
+        v->pPwmStation->DutyCmd.Duty[CH_PWM_VP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2];
 
         v->pPwmStation->AxisDutyToPwmCount( v->pPwmStation, AxisIndex, v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode);
 
