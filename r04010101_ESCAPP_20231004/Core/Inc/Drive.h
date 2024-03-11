@@ -40,7 +40,7 @@
 #include "E10App.h"
 
 #if USE_DATA_RECODER
-#include "DataRecoder.h"
+#include "DataRecorder.h"
 #endif
 
 #if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD

@@ -7,9 +7,9 @@
  *
  */
 
-#include "DataRecoder.h"
+#include <DataRecorder.h>
 
-float RecordedData[MAX_RECODE_CH][MAX_RECODE_NUM] = {0};
+float RecordedData[MAX_RECORD_CH][MAX_RECORD_NUM] = {0};
 
 uint8_t IsRecordActive = UNUSE_FUNCTION;
 
@@ -22,7 +22,7 @@ void DataRecorder_Routine ( float Data0, float Data1, float Data2, float Data3 )
     	RecordedData[1][i] = Data1;
     	RecordedData[2][i] = Data2;
     	RecordedData[3][i] = Data3;
-    	if ( i == ( MAX_RECODE_NUM - 1 ))
+    	if ( i == ( MAX_RECORD_NUM - 1 ))
     	{
     		IsRecordActive = UNUSE_FUNCTION;
     	}

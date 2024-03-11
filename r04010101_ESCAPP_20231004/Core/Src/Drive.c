@@ -1134,66 +1134,66 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
 
         	break;
         }
-#if USE_DATA_RECODER
-        case DID_0xC050_DATA_RECODER_CH0                 :
+#if USE_DATA_RECORDER
+        case DID_0xC050_DATA_RECORDER_CH0                 :
         {
-        	static uint16_t DataRecoderCnt = 0;
-        	if ( DataRecoderCnt < MAX_RECODE_NUM )
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
         	{
-            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[0][DataRecoderCnt] );
-            	DataRecoderCnt++;
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[0][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
         	}
         	else
         	{
-        		DataRecoderCnt = 0;
+        		DataRECORDERCnt = 0;
         		tempRsp = NRC_0x22_CNC;
         	}
 
         	break;
         }
-        case DID_0xC051_DATA_RECODER_CH1                 :
+        case DID_0xC051_DATA_RECORDER_CH1                 :
         {
-        	static uint16_t DataRecoderCnt = 0;
-        	if ( DataRecoderCnt < MAX_RECODE_NUM )
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
         	{
-            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[1][DataRecoderCnt] );
-            	DataRecoderCnt++;
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[1][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
         	}
         	else
         	{
-        		DataRecoderCnt = 0;
+        		DataRECORDERCnt = 0;
         		tempRsp = NRC_0x22_CNC;
         	}
 
         	break;
         }
-        case DID_0xC052_DATA_RECODER_CH2                 :
+        case DID_0xC052_DATA_RECORDER_CH2                 :
         {
-        	static uint16_t DataRecoderCnt = 0;
-        	if ( DataRecoderCnt < MAX_RECODE_NUM )
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
         	{
-            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[2][DataRecoderCnt] );
-            	DataRecoderCnt++;
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[2][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
         	}
         	else
         	{
-        		DataRecoderCnt = 0;
+        		DataRECORDERCnt = 0;
         		tempRsp = NRC_0x22_CNC;
         	}
 
         	break;
         }
-        case DID_0xC053_DATA_RECODER_CH3                 :
+        case DID_0xC053_DATA_RECORDER_CH3                 :
         {
-        	static uint16_t DataRecoderCnt = 0;
-        	if ( DataRecoderCnt < MAX_RECODE_NUM )
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
         	{
-            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[3][DataRecoderCnt] );
-            	DataRecoderCnt++;
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[3][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
         	}
         	else
         	{
-        		DataRecoderCnt = 0;
+        		DataRECORDERCnt = 0;
         		tempRsp = NRC_0x22_CNC;
         	}
 
@@ -2342,7 +2342,7 @@ void drive_DoCurrentLoop(void)
 		Axis[0].DoCurrentLoop(&Axis[0]);
 //	}
 
-#if USE_DATA_RECODER
+#if USE_DATA_RECORDER
 		DataRecorder_Routine(\
 				AdcStation1.AdcTraOut.Iu[0], \
 				AdcStation1.AdcTraOut.Iv[0], \
@@ -2419,11 +2419,11 @@ void Session_DoPLCLoop(void)
 #endif
 			PositionCalibration_Routine(&DriveFnRegs[ FN_MF_POS_CALIB_START - FN_BASE ], &PSStation1);
 
-#if USE_DATA_RECODER
-			if ( DriveFnRegs[ FN_MF_DATA_RECODER_ACTIVE - FN_BASE ] == 1)
+#if USE_DATA_RECORDER
+			if ( DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] == 1)
 			{
 			    IsRecordActive = USE_FUNCTION;
-			    DriveFnRegs[ FN_MF_DATA_RECODER_ACTIVE - FN_BASE ] = 0;
+			    DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] = 0;
 			}
 #endif
 		}
