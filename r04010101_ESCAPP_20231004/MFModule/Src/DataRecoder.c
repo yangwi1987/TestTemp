@@ -24,6 +24,7 @@ void DataRecorder_Routine ( float Data0, float Data1, float Data2, float Data3 )
     	RecordedData[3][i] = Data3;
     	if ( i == ( MAX_RECORD_NUM - 1 ))
     	{
+    		i = 0;
     		IsRecordActive = UNUSE_FUNCTION;
     	}
     	else
