@@ -94,6 +94,7 @@ typedef enum
 	DID_0xC03A_Estimated_Time_Remaining                             = 0xC03A,
 	DID_0xC03B_Foil_Position_Voltage                                = 0xC03B,
 	DID_0xC03C_ESC_Error_Code                                       = 0xC03C,
+	DID_0xC03D_Motor_Mechanical_Position_rad                        = 0xC03D,
 
 	DID_0xC040_Position_Linear_Points_In_Degree                     = 0xC040,
 

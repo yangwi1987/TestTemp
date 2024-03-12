@@ -1116,6 +1116,11 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     	    tempRsp = NRC_0x00_PR;
         	break;
         }
+        case DID_0xC03D_Motor_Mechanical_Position_rad                 :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, PSStation1.MechPosition );
+        	break;
+        }
         case DID_0xC040_Position_Linear_Points_In_Degree                 :
         {
         	static uint8_t PositionLinearPointsCnt = 0;
