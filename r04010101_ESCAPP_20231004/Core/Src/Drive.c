@@ -2410,6 +2410,7 @@ void Session_DoWhileSessionChange(void)
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
+		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x60_SystemSupplierSpecific:
