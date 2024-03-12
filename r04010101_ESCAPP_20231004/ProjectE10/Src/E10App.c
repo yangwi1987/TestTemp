@@ -7,6 +7,8 @@
 
 
 #include "E10App.h"
+#include "main.h"
+
 
 AcPwrInfo_t AcPwrInfo = AC_POWER_INFO_DEFAULT;
 
@@ -154,3 +156,38 @@ void Btn_Init()
 }
 
 /*=============== Button handle End ===============*/
+
+
+
+
+
+uint16_t A1333_DataRead(SPI_HandleTypeDef *hspi, uint8_t AddrIn )
+{
+	A1333SpCmdUnit_t CmdTemp;
+	HAL_StatusTypeDef Ret;
+	uint16_t DummyCmd = 0;
+	uint16_t ret = 0;
+	CmdTemp.Access = A1333_ACCESS_READ;
+	CmdTemp.Addr = (0x3F & AddrIn);
+	CmdTemp.Data = 0x00;
+
+//	CmdArray[0] = 0x11;
+//	CmdArray[1] = 0x22;
+//	CmdArray[2] = 0x33;
+//	CmdArray[3] = 0x44;
+
+	HAL_GPIO_WritePin(MSPI_CS_GPIO_Port, MSPI_CS_Pin, GPIO_PIN_RESET);
+	Ret = HAL_SPI_Transmit(hspi, (uint8_t*)&CmdTemp, 1, 100);
+
+	if(Ret != HAL_OK)
+	{
+		HAL_SPI_Abort(hspi);
+	}
+
+	HAL_SPI_TransmitReceive(hspi, (uint8_t*)&DummyCmd, (uint8_t*)&ret, 1, 100);
+	HAL_GPIO_WritePin(MSPI_CS_GPIO_Port, MSPI_CS_Pin, GPIO_PIN_SET);
+
+	return ret;
+}
+
+

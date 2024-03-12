@@ -2436,6 +2436,7 @@ void drive_DoPLCLoop(void)
 
 }
 
+uint8_t _500msTimeCnt = 0;
 void drive_Do100HzLoop(void)
 {
 	static uint8_t IsNotFirstLoop = 0;
@@ -2494,6 +2495,14 @@ void drive_Do100HzLoop(void)
 	Drive_INVStateMachine();
 	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
 	BatStation.Do100HzLoop();
+
+	_500msTimeCnt ++;
+	if(_500msTimeCnt >= 50)
+	{
+		A1333_DataRead(&hspi4,0x28);
+		_500msTimeCnt = 0;
+	}
+
 
 }
 

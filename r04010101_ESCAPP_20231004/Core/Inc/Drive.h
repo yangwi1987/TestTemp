@@ -129,6 +129,7 @@ extern TIM_HandleTypeDef htim3; // total time
 extern TIM_HandleTypeDef htim2; // QEP
 extern CRC_HandleTypeDef hcrc;
 extern UART_HandleTypeDef huart3;
+extern SPI_HandleTypeDef hspi4;
 
 extern uint8_t PCUStatus;
 

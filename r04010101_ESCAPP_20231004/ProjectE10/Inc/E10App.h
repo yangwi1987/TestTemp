@@ -10,6 +10,7 @@
 
 #include "stdio.h"
 #include "string.h"
+#include "stm32g4xx_hal.h"
 
 /*==== AC Power info Start ====*/
 #define INSTANT_POWER_LOG_SIZE 10
@@ -110,5 +111,24 @@ extern void Btn_Do100HzLoop (void);
 
 /*=============== Button handle End ===============*/
 
+
+
+#define A1333_ACCESS_READ 0x00
+#define A1333_ACCESS_WRITE 0x01
+
+typedef struct
+{
+	uint16_t Data	:8;
+	uint16_t Addr	:6;
+	uint16_t Access	:2;
+} A1333SpCmdUnit_t ;
+
+typedef struct
+{
+	uint16_t All;
+	A1333SpCmdUnit_t Bits;
+} A1333SpCmdUnit_u;
+
+extern uint16_t A1333_DataRead(SPI_HandleTypeDef *hspi, uint8_t AddrIn );
 
 #endif /* INC_BMEAPP_H_ */
