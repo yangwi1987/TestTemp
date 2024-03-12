@@ -2141,7 +2141,7 @@ void drive_Init(void)
 	
 	/*Init BAT control unit*/
 	BatStation.CanHandleLoad(&ExtranetCANStation);
-  
+			AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;  //temporary solution for alarm after power on
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
 }
@@ -2415,7 +2415,7 @@ void Session_DoWhileSessionChange(void)
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
-		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
+//		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x60_SystemSupplierSpecific:
