@@ -36,19 +36,19 @@ void GlobalAlarmDetect_init( void )
 		}
 	}
 
-	if( SystemTable.AlarmTableInfo[ALARMID_TOTAL_TIME_NULL].AlarmEnable == ALARM_ENABLE )
+	if( SystemTable.AlarmTableInfo[ALARMID_FLASH_TOTAL_TIME_NULL].AlarmEnable == ALARM_ENABLE )
 	{
 		if( ExtFlash1.WarningStatus & FLASHWARNING_NULL_TOTAL_TIME )
 		{
-			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_TOTAL_TIME_NULL, SystemTable.AlarmTableInfo[ALARMID_TOTAL_TIME_NULL].AlarmType );
+			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_TOTAL_TIME_NULL, SystemTable.AlarmTableInfo[ALARMID_FLASH_TOTAL_TIME_NULL].AlarmType );
 		}
 	}
 
-	if( SystemTable.AlarmTableInfo[ALARMID_CURR_CAL_BACKUP_NULL].AlarmEnable == ALARM_ENABLE )
+	if( SystemTable.AlarmTableInfo[ALARMID_FLASH_CURCAL_BCKUP_NULL].AlarmEnable == ALARM_ENABLE )
 	{
 		if( ExtFlash1.WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
 		{
-			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_CURR_CAL_BACKUP_NULL, SystemTable.AlarmTableInfo[ALARMID_CURR_CAL_BACKUP_NULL].AlarmType );
+			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_CURCAL_BCKUP_NULL, SystemTable.AlarmTableInfo[ALARMID_FLASH_CURCAL_BCKUP_NULL].AlarmType );
 		}
 	}
 }
