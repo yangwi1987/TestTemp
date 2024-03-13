@@ -2494,7 +2494,6 @@ void Session_DoWhileSessionChange(void)
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		EnableAlarmWhenSessionChange( &Axis[0] );
-		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		// reset all alarm
