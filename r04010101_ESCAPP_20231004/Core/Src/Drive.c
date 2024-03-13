@@ -2355,7 +2355,7 @@ void Session_DoPLCLoop(void)
 	}
 }
 
-void ResetMFWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void ResetMFWhenSessionChange(Axis_t *pAxis)
 {
 	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
 	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
@@ -2367,7 +2367,7 @@ void ResetMFWhenSessionChange(Axis_t *pAxis)
 	pAxis->CtrlUiEnable = 0;
 	CtrlUi.MfFunMode = FN_MF_FUNC_SEL_RESERVED;
 }
-void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
@@ -2378,7 +2378,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
-void DisableAlarmWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_DISABLE;
