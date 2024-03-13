@@ -39,7 +39,7 @@
 #include "BatCtrl.h"
 #include "E10App.h"
 
-#if USE_DATA_RECODER
+#if USE_DATA_RECORDER
 #include "DataRecorder.h"
 #endif
 

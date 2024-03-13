@@ -1138,7 +1138,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC050_DATA_RECORDER_CH0                 :
         {
         	static uint16_t DataRECORDERCnt = 0;
-        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
         	{
             	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[0][DataRECORDERCnt] );
             	DataRECORDERCnt++;
@@ -1154,7 +1154,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC051_DATA_RECORDER_CH1                 :
         {
         	static uint16_t DataRECORDERCnt = 0;
-        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
         	{
             	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[1][DataRECORDERCnt] );
             	DataRECORDERCnt++;
@@ -1170,7 +1170,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC052_DATA_RECORDER_CH2                 :
         {
         	static uint16_t DataRECORDERCnt = 0;
-        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
         	{
             	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[2][DataRECORDERCnt] );
             	DataRECORDERCnt++;
@@ -1186,7 +1186,7 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
         case DID_0xC053_DATA_RECORDER_CH3                 :
         {
         	static uint16_t DataRECORDERCnt = 0;
-        	if ( DataRECORDERCnt < MAX_RECODE_NUM )
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
         	{
             	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[3][DataRECORDERCnt] );
             	DataRECORDERCnt++;
@@ -2494,6 +2494,7 @@ void Session_DoWhileSessionChange(void)
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
 		EnableAlarmWhenSessionChange( &Axis[0] );
+		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 		break;
 	case Session_0x60_SystemSupplierSpecific:
 		// reset all alarm
