@@ -36,8 +36,13 @@
 }
 
 // Define external flash version
+#if BME_3_1_2_X
+#define EXT_FLASH_MAIN_RELEASE_NN		0x0002
+#define EXT_FLASH_MINOR_RELEASE_MM		0x0001
+#else
 #define EXT_FLASH_MAIN_RELEASE_NN		0x0001
-#define EXT_FLASH_MINOR_RELEASE_MM		0x0004
+#define EXT_FLASH_MINOR_RELEASE_MM		0x000E
+#endif
 
 // Define Function Enable/ Disable
 #define ENABLE_FUNC_CPU_LOADING_MEASREMENT	0

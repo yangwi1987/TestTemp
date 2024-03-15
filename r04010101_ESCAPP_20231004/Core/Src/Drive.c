@@ -2845,7 +2845,7 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 
 void drive_DoExtFlashLoadCurrentCalib( void )
 {
-	if( ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest == 0)
+	if( ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest == 0 )
 	{
 		return;
 	}
@@ -2862,6 +2862,15 @@ void drive_DoExtFlashLoadCurrentCalib( void )
 		// Clear flag
 		ExtFlash1.Curr_Calib_Store.ReadDoneFlag = 0;
 		memcpy( &DriveParams.PCUParams.Axis1_Iu_Scale[0], &TempCurrentCalibration, CurrentCalibrationSize );
+	}
+
+	if( ExtFlash1.IsExtFlashVerChanged )
+	{
+		// Param Backup
+		ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );
+
+		// Reset FW to use new Param
+		ParamMgr1.ECUSoftResetEnable = 1;
 	}
 }
 
@@ -2930,7 +2939,9 @@ void JumpCtrlFunction( void )
 	}
 	else;
 
-	if (( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || ( IntranetCANStation.ECUSoftResetEnable == 1 ))
+	if ( ( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || \
+		 ( IntranetCANStation.ECUSoftResetEnable == 1 ) || \
+		 ( ParamMgr1.ECUSoftResetEnable == 1) )
 	{
 
 		HAL_Delay(100);

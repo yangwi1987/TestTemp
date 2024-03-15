@@ -255,6 +255,33 @@ void ParamMgr_Init( ParamMgr_t *v, ExtFlash_t *pExtFlash )
 			}
 		}
 	}
+
+	// If Ext. flash version is changed, assign data from default value, but Current Calibration from Ext. flash.
+	if( pExtFlash->IsExtFlashVerChanged )
+	{
+		// Check if Current Calibration is not in another section of external flash.
+		if( pExtFlash->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+		{
+			// Backup Current Calibration to another section of external flash
+			pExtFlash->Curr_Calib_Store.CurrentCalibrationBackup( pExtFlash, &DriveParams );
+
+			// Clear Flash Warning
+			pExtFlash->AlarmStatus &= ~FLASHERROR_NULL_CURR_CAL_BACKUP;
+		}
+
+		// Use default value from constant table.
+		for ( i = 0; i < PARAM_NUMBER_SIZE; i++ )
+		{
+			ParamMgr_TableIndicator ( v, i, &index );
+			if ( v->pParamTable[index].pAddr != 0 ) // if the parameter index is not reserved.
+			{
+				*v->pParamTable[index].pAddr = v->pParamTable[index].Default;
+			}
+		}
+
+		// Request Load Current Calibration to DriveParams from another section of external flash.
+		pExtFlash->Curr_Calib_Store.LoadCurrCalibRequest = 1;
+	}
 }
 
 int32_t ParamMgr_ReadParam( ParamMgr_t *v, uint16_t AxisID, uint16_t PN, uint8_t *pError)

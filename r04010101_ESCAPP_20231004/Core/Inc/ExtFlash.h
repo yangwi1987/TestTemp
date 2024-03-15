@@ -300,6 +300,7 @@ typedef struct
 	uint8_t WarningStatus;
 	uint8_t RetryCount;
 	uint8_t	StatusRegister;
+	uint8_t IsExtFlashVerChanged;
 	uint8_t RxBuff[SPI_BUF_LEN];
 	uint8_t TxBuff[SPI_BUF_LEN];
 	uint8_t *pParaReadEnableTable;
@@ -363,6 +364,7 @@ void ExtFlash_Clear_DTC_Data( ExtFlash_t *v );
 	FLASHWARNING_NONE, /* WarningStatus */ \
 	0, /* RetryCount */ \
 	0, /* StatusRegister */ \
+	0, /* IsExtFlashVerChanged */ \
 	{0}, /* RxBuff[SPI_BUF_LEN] */ \
 	{0}, /* TxBuff[SPI_BUF_LEN] */ \
 	0, /* pParaReadEnableTable*/ \
