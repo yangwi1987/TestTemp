@@ -260,13 +260,13 @@ void ParamMgr_Init( ParamMgr_t *v, ExtFlash_t *pExtFlash )
 	if( pExtFlash->IsExtFlashVerChanged )
 	{
 		// Check if Current Calibration is not in another section of external flash.
-		if( pExtFlash->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+		if( pExtFlash->WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
 		{
 			// Backup Current Calibration to another section of external flash
 			pExtFlash->Curr_Calib_Store.CurrentCalibrationBackup( pExtFlash, &DriveParams );
 
 			// Clear Flash Warning
-			pExtFlash->AlarmStatus &= ~FLASHERROR_NULL_CURR_CAL_BACKUP;
+			pExtFlash->WarningStatus &= ~FLASHWARNING_NULL_CURR_CAL_BACKUP;
 		}
 
 		// Use default value from constant table.

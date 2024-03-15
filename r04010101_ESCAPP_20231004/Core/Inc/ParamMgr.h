@@ -77,6 +77,7 @@ extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float
 	Session_0x60_SystemSupplierSpecific, /* Session */ \
 	Session_0x60_SystemSupplierSpecific, /* NextSession */ \
 	DEFAULT_SECURITY_LEVEL, /* Security */ \
+	0, /* ECUSoftResetEnable */ \
 	0, /* pFlashParaReadEnableTable */ \
 	0, /* pParamTable */\
 	(functypeParamMgr_Init)ParamMgr_Init, \
