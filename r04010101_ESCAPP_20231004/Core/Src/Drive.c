@@ -1692,6 +1692,8 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 	DualBtnTimeCnt = 0;
 
 	VehicleMainState = VEHICLE_STATE_DRIVE;
+	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, GPIO_PIN_SET);
 }
 
 __STATIC_FORCEINLINE void EnterVehicleIdleState( void )
@@ -1722,6 +1724,9 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
   Inv_ServoOffReq();
+
+  HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, GPIO_PIN_RESET);
 
   VehicleMainState = VEHICLE_STATE_STANDBY;
 }
