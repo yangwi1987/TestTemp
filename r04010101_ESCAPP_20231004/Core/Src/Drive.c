@@ -1790,11 +1790,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_IDLE:
     
       /* waiting for killing switch to transfer to startup state */
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
-      {
-        EnterVehicleAlarmState();
-      }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
+			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
       {
         EnterVehicleStartupState();
       }
