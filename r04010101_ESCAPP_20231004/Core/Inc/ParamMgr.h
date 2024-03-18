@@ -70,7 +70,7 @@ int32_t ParamMgr_ReadFnRegs( ParamMgr_t *v, uint16_t FN,uint8_t *pError );
 int32_t ParamMgr_WriteFnRegs( ParamMgr_t *v, uint16_t FN, uint32_t value,uint8_t *pError );
 extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float *Out );
 
-#if USE_INIT_HIGH_SESSION_AND_SRCURITY
+#if USE_INIT_HIGH_SECURITY
 #define PARAM_MGR_DEFAULT { \
 	0, \
 	Session_0x01_Default, /* Session */ \
