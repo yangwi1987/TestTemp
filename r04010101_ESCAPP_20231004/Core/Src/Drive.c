@@ -1116,6 +1116,11 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     	    tempRsp = NRC_0x00_PR;
         	break;
         }
+        case DID_0xC03D_Motor_Mechanical_Position_rad                 :
+        {
+        	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, PSStation1.MechPosition );
+        	break;
+        }
         case DID_0xC040_Position_Linear_Points_In_Degree                 :
         {
         	static uint8_t PositionLinearPointsCnt = 0;
@@ -1134,6 +1139,72 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
 
         	break;
         }
+#if USE_DATA_RECORDER
+        case DID_0xC050_DATA_RECORDER_CH0                 :
+        {
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[0][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+        case DID_0xC051_DATA_RECORDER_CH1                 :
+        {
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[1][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+        case DID_0xC052_DATA_RECORDER_CH2                 :
+        {
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[2][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+        case DID_0xC053_DATA_RECORDER_CH3                 :
+        {
+        	static uint16_t DataRECORDERCnt = 0;
+        	if ( DataRECORDERCnt < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[3][DataRECORDERCnt] );
+            	DataRECORDERCnt++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+#endif
         case DID_0xC100_This_Driving_Cycle_Information  :
         {
         	break;
@@ -1687,6 +1758,8 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 	DualBtnTimeCnt = 0;
 
 	VehicleMainState = VEHICLE_STATE_DRIVE;
+	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, GPIO_PIN_SET);
 }
 
 __STATIC_FORCEINLINE void EnterVehicleIdleState( void )
@@ -1717,6 +1790,9 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
   Inv_ServoOffReq();
+
+  HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, GPIO_PIN_RESET);
 
   VehicleMainState = VEHICLE_STATE_STANDBY;
 }
@@ -1780,11 +1856,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_IDLE:
     
       /* waiting for killing switch to transfer to startup state */
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
-      {
-        EnterVehicleAlarmState();
-      }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
+			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
       {
         EnterVehicleStartupState();
       }
@@ -2136,7 +2208,7 @@ void drive_Init(void)
 	
 	/*Init BAT control unit*/
 	BatStation.CanHandleLoad(&ExtranetCANStation);
-  
+			AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;  //temporary solution for alarm after power on
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
 }
@@ -2265,8 +2337,8 @@ void drive_DoCurrentLoop(void)
 //	{
 		// Update Control Feedback
 		Axis[0].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[0];
-		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iv[0];
-		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iw[0];
+		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iv[0];
+		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iw[0];
 		Axis[0].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
 
 		Axis[0].MotorControl.CurrentControl.EleAngle = PSStation1.ElecPosition;
@@ -2275,6 +2347,15 @@ void drive_DoCurrentLoop(void)
 		// Do Current Loop Tasks
 		Axis[0].DoCurrentLoop(&Axis[0]);
 //	}
+
+#if USE_DATA_RECORDER
+		DataRecorder_Routine(\
+				AdcStation1.AdcTraOut.Iu[0], \
+				AdcStation1.AdcTraOut.Iv[0], \
+				AdcStation1.AdcTraOut.Iw[0], \
+				AdcStation1.AdcTraOut.BatVdc \
+				);
+#endif
 }
 
 void Session_DoPLCLoop(void)
@@ -2343,6 +2424,14 @@ void Session_DoPLCLoop(void)
 			}
 #endif
 			PositionCalibration_Routine(&DriveFnRegs[ FN_MF_POS_CALIB_START - FN_BASE ], &PSStation1);
+
+#if USE_DATA_RECORDER
+			if ( DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] == 1)
+			{
+			    IsRecordActive = USE_FUNCTION;
+			    DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] = 0;
+			}
+#endif
 		}
 		break;
 	default:
@@ -2350,7 +2439,7 @@ void Session_DoPLCLoop(void)
 	}
 }
 
-void ResetMFWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void ResetMFWhenSessionChange(Axis_t *pAxis)
 {
 	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
 	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
@@ -2362,7 +2451,7 @@ void ResetMFWhenSessionChange(Axis_t *pAxis)
 	pAxis->CtrlUiEnable = 0;
 	CtrlUi.MfFunMode = FN_MF_FUNC_SEL_RESERVED;
 }
-void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
@@ -2373,7 +2462,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
-void DisableAlarmWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_DISABLE;
@@ -2410,6 +2499,7 @@ void Session_DoWhileSessionChange(void)
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x40_VehicleManufacturerSpecific:
+//		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 		EnableAlarmWhenSessionChange( &Axis[0] );
 		break;
 	case Session_0x60_SystemSupplierSpecific:
