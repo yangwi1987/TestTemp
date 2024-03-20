@@ -12,6 +12,10 @@
 float RecordedData[MAX_RECORD_CH][MAX_RECORD_NUM] = {0};
 
 uint8_t IsRecordActive = UNUSE_FUNCTION;
+uint16_t DataRECORDERCnt0 = 0;
+uint16_t DataRECORDERCnt1 = 0;
+uint16_t DataRECORDERCnt2 = 0;
+uint16_t DataRECORDERCnt3 = 0;
 
 void DataRecorder_Routine ( float Data0, float Data1, float Data2, float Data3 )
 {

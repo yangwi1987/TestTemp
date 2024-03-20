@@ -16,6 +16,10 @@
 
 extern float RecordedData[MAX_RECORD_CH][MAX_RECORD_NUM];
 extern uint8_t IsRecordActive;
+extern uint16_t DataRECORDERCnt0;
+extern uint16_t DataRECORDERCnt1;
+extern uint16_t DataRECORDERCnt2;
+extern uint16_t DataRECORDERCnt3;
 extern void DataRecorder_Routine ( float Data0, float Data1, float Data2, float Data3 );
 
 #endif /* INC_DATARECORDER_H_ */
