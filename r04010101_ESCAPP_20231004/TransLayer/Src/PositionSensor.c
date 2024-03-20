@@ -84,7 +84,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
     }
 }
 
-__attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) PositionSensor_ReadPosViaABZ(PS_t* v)
+void __attribute__((optimize("Ofast"))) PositionSensor_ReadPosViaABZ(PS_t* v)
 {
 	float tempMechPosCompensation = 0.0f;
 	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
