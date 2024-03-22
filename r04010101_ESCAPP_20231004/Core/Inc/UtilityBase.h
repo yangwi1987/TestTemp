@@ -11,7 +11,7 @@
 // Define app version, mask and check word
 #define PROJECT_CODE_X1					0x0004
 #define PRODUCT_AND_BIN_TYPE_X2			0x0001
-#define MAIN_RELEASE_NUMBER_YY			0x0001
+#define MAIN_RELEASE_NUMBER_YY			0x0081
 #define MINOR_RELEASE_NUMBER_ZZ			0x0000
 #define RELEASE_CANDIDATE_RC			0x0009
 #define APP_CHECK_WORD					0x4321
