@@ -199,25 +199,25 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->VoltCmd.VqCmd = p->VfControl.VoltAmp;
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
-		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
-
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
-		}
+//		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+//		{
+//			float Vgain = 0.0f;
+//			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
+//			p->VoltCmd.VdCmd *= Vgain;
+//			p->VoltCmd.VqCmd *= Vgain;
+//
+//			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
+//			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
+//			p->CurrentControl.IdRegulator.Ui *= Vgain;
+//			p->CurrentControl.IqRegulator.Ui *= Vgain;
+//		}
 
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->VoltCmd.VdCmd), (p->VoltCmd.VqCmd), SinValue, CosValue, (&(p->VoltCmd.StatorVoltCmd)) );
 
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+		p->PwmDutyCmd.MinDuty = p->DriverPara.Mosfet.LowerBridgeMinTime / p->CurrentControl.PwmPeriod;
 		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
 		if ( p->PwmDutyCmd.MinDuty > 1.0f)
 		{

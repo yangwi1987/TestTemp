@@ -97,7 +97,7 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	10000, 		5},	// 77 FN_PWM_V_CMD
 	{0, 	10000, 		5},	// 78 FN_PWM_W_CMD
 	{0, 	3, 		5},	// 79 FN_PWM_Mode
-	{0, 	0, 		Reserved7},	// 80
+	{0, 	50, 	5},	// 80
 	{0, 	0, 		Reserved7},	// 81
 	{0, 	0, 		Reserved7}, // 82
 	{0, 	0, 		Reserved7}, // 83

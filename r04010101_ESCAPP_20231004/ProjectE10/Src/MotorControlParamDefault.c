@@ -16,9 +16,9 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 {
 #if MOTOR_STAGE==MOTOR_P0
 	.PmMotorFlux = 0.0051f,     // When 120 degree C
-	.PmMotorLd = 0.000096f,		// 96 uh
-	.PmMotorLq = 0.000136f,    // 136 uh
-	.PmMotorRes = 0.05f,			//50mohm
+	.PmMotorLd = 0.0000096f,		// 9.6 uh
+	.PmMotorLq = 0.0000136f,    // 13.6 uh
+	.PmMotorRes = 0.001f,			//1mohm
 	.PmMotorPolepair = 5.0f,
 	.PmMotorJ = 0.00697189f,
 	.MosfetDriverDeadTime = 0.000002f, /*todo check with EE*/

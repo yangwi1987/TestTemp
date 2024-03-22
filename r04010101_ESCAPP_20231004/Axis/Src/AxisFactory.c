@@ -259,7 +259,7 @@ void AxisFactory_CleanParameter( void )
     DriveFnRegs[ FN_CURRENT_IQ_CMD - FN_BASE ] = 32768;
     DriveFnRegs[ FN_CURRENT_IS_CMD - FN_BASE ] = 0;
     DriveFnRegs[ FN_CURRENT_THETA_CMD - FN_BASE ] = 0;
-
+    DriveFnRegs[ FN_MIN_DUTY - FN_BASE ] = 25;
 }
 
 void AxisFactory_GetSetting( Axis_t *v )
@@ -467,6 +467,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
         {
             v->MotorControl.Cmd.VfRpmTarget = DriveFnRegs[ FN_OPEN_SPD_COMMAND - FN_BASE ];
             v->MotorControl.VfControl.Position.PositionCmd = (float)DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] * 0.0001f;
+            v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime = (float)DriveFnRegs[ FN_MIN_DUTY - FN_BASE ] * 0.0000001f;
             break;
         }
         case FN_MF_FUNC_SEL_IF:
@@ -644,7 +645,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     }
 
     // Change MinTime and calculate new VbusGain
-    v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime = ( v->SpeedInfo.ElecSpeedAbs > v->MotorControl.DriverPara.Mosfet.MinTimeEleSpeedAbs ) ? 0.0f : MotorDefault.MosfetDriverLowerBridgeMinTime;
+//    v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime = ( v->SpeedInfo.ElecSpeedAbs > v->MotorControl.DriverPara.Mosfet.MinTimeEleSpeedAbs ) ? 0.0f : MotorDefault.MosfetDriverLowerBridgeMinTime;
     v->MotorControl.TorqueToIdq.VbusGain = 1 - 2 * ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
 
     if( v->ServoOn )
