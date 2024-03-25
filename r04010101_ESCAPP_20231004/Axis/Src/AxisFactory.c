@@ -168,7 +168,9 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
         return;
     }
 
-    int ServoOnEnable = (v->HasCriAlarm == 0) && ((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1));
+    int ServoOnEnable = (v->HasCriAlarm == 0) &&
+    					((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1)) &&
+						(v->pParamMgr->ECUSoftResetEnable == 0);
 
     switch( v->ServoOnOffState )
     {
@@ -518,6 +520,7 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
     v->pCANStaion = &ExtranetCANStation;
     v->pCANRxInterface = &ExtranetCANStation.RxInfo;
     v->pCANTxInterface = &ExtranetCANStation.TxInfo;
+    v->pParamMgr = &ParamMgr1;
 
     // Prototype, Set Motor Parameters, then call motor control init
     MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorControlSetting = MotorDefault;
