@@ -35,6 +35,22 @@ void GlobalAlarmDetect_init( void )
 			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_READ_FAILED, SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmType );
 		}
 	}
+
+	if( SystemTable.AlarmTableInfo[ALARMID_FLASH_TOTAL_TIME_NULL].AlarmEnable == ALARM_ENABLE )
+	{
+		if( ExtFlash1.WarningStatus & FLASHWARNING_NULL_TOTAL_TIME )
+		{
+			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_TOTAL_TIME_NULL, SystemTable.AlarmTableInfo[ALARMID_FLASH_TOTAL_TIME_NULL].AlarmType );
+		}
+	}
+
+	if( SystemTable.AlarmTableInfo[ALARMID_FLASH_CURCAL_BCKUP_NULL].AlarmEnable == ALARM_ENABLE )
+	{
+		if( ExtFlash1.WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
+		{
+			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_CURCAL_BCKUP_NULL, SystemTable.AlarmTableInfo[ALARMID_FLASH_CURCAL_BCKUP_NULL].AlarmType );
+		}
+	}
 }
 
 void GlobalAlarmDetect_DoHouseKeeping( void )
@@ -55,7 +71,6 @@ void GlobalAlarmDetect_DoHouseKeeping( void )
 			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_READ_FAILED, SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmType );
 		}
 	}
-
 }
 
 void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int TargetID )
