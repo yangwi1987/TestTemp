@@ -2908,9 +2908,10 @@ void JumpCtrlFunction( void )
 	}
 	else;
 
-	if ( ( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || \
-		 ( IntranetCANStation.ECUSoftResetEnable == 1 ) || \
-		 ( ParamMgr1.ECUSoftResetEnable == 1) )
+	if( ( Axis[0].ServoOn == MOTOR_STATE_OFF ) &&
+		( ( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || \
+		  ( IntranetCANStation.ECUSoftResetEnable == 1 ) || \
+		  ( ParamMgr1.ECUSoftResetEnable == 1 ) ) )
 	{
 
 		HAL_Delay(100);
