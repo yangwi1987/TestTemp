@@ -39,7 +39,6 @@
 #include "BatCtrl.h"
 #include "E10App.h"
 
-
 #if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
 typedef struct
 {
