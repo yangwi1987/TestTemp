@@ -35,6 +35,7 @@
 #include "DiagnosticTroubleCode.h"
 #include "RemainingTime.h"
 #include "PositionSensor.h"
+#include "PositionCalibration.h"
 #include "BatCtrl.h"
 #include "E10App.h"
 

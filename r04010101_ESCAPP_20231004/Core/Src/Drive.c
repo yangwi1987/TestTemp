@@ -1116,6 +1116,24 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
     	    tempRsp = NRC_0x00_PR;
         	break;
         }
+        case DID_0xC040_Position_Linear_Points_In_Degree                 :
+        {
+        	static uint8_t PositionLinearPointsCnt = 0;
+        	if ( PositionLinearPointsCnt < 32 )
+        	{
+        		float tempLinearPointsMechPosRadDegree = 0.0f;
+        		tempLinearPointsMechPosRadDegree = LinearPointsMechPosRad[PositionLinearPointsCnt] * 360.0f / _2PI;
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, tempLinearPointsMechPosRadDegree );
+            	PositionLinearPointsCnt++;
+        	}
+        	else
+        	{
+        		PositionLinearPointsCnt = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
         case DID_0xC100_This_Driving_Cycle_Information  :
         {
         	break;
@@ -2067,7 +2085,7 @@ void drive_Init(void)
 	// Init ADC from tables
 	AdcStation1.Init( &AdcStation1 );
 
-	PSStation1.Init( &PSStation1 );
+	PSStation1.Init( &PSStation1, DriveParams.SystemParams.MechPositionZeroOffset, DriveParams.SystemParams.MechPositionCompCoefBySpeed );
 	/*
 	 * To calculate the throttle gain after read the external memory data
 	 */
@@ -2324,6 +2342,7 @@ void Session_DoPLCLoop(void)
 				MFStation1.CalibDcBusVoltage.Calib_StartFlag = DISABLE;
 			}
 #endif
+			PositionCalibration_Routine(&DriveFnRegs[ FN_MF_POS_CALIB_START - FN_BASE ], &PSStation1);
 		}
 		break;
 	default:

@@ -285,7 +285,6 @@ typedef struct
 	float	BatCurrentDrainLimit;
 	uint8_t ThrottleCmd;
 	uint8_t OutputModeCmd;
-	uint8_t PcuStateCmd;
 	uint8_t ServoOnCmd;
 	uint8_t ReceivedCANID;
 	uint16_t AccCANErrorCnt;
@@ -387,7 +386,6 @@ typedef struct {
 	DEFAULT_DC_LIMIT,  /* BatCurrentDrainLimit */\
 	0,      /* ThrottleCmd */\
 	0,      /* OutputModeCmd */\
-	0,      /* PcuStateCmd */\
 	0,      /* ServoOnCmd */\
 	0,      /* ReceivedCANID */\
 	0,      /* AccCANErrorCnt */\

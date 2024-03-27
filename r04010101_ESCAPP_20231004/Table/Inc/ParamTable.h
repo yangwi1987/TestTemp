@@ -120,8 +120,8 @@ typedef struct {
 	uint16_t DriveRisingRamp;	//P0-85
 	uint16_t DriveFallingRamp;	//P0-86
 	uint16_t LimpTransitSec;	//P0-87
-	uint16_t PosZeroOffset;	//P0-88
-	uint16_t PosCompBySpeed;	//P0-89
+	uint16_t Reserved088;	//P0-88
+	uint16_t Reserved089;	//P0-89
 	uint16_t Reserved090;	//P0-90
 	uint16_t Reserved091;	//P0-91
 	uint16_t Reserved092;	//P0-92
@@ -148,8 +148,8 @@ typedef struct {
 	uint16_t Reserved134;	//P1-34
 	uint16_t Reserved135;	//P1-35
 	uint16_t Reserved136;	//P1-36
-	uint16_t Reserved137;	//P1-37
-	uint16_t Reserved138;	//P1-38
+	uint16_t MechPositionZeroOffset;	//P1-37
+	uint16_t MechPositionCompCoefBySpeed;	//P1-38
 	uint16_t Reserved139;	//P1-39
 	uint16_t ParamMgrSecurity;	//P1-40
 	uint16_t Reserved141;	//P1-41
