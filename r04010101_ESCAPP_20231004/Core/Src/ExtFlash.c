@@ -304,7 +304,7 @@ static uint32_t ExtFlash_SearchNumQW( ExtFlash_t *v, uint32_t MinQWAddr, uint32_
 	else
 	{
 		// search fail or uninitialized, so register warning
-		v->AlarmStatus |= AlarmCode;
+		v->WarningStatus |= AlarmCode;
 
 		// use the first pack
 		return MinQWAddr;
@@ -322,8 +322,8 @@ void ExtFlash_Init( ExtFlash_t *v )
 	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	// Search Total Time in external flash
-	TempAddr = ExtFlash_SearchNumQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TIME_SIZE_IN_QW, TOTAL_TotalTime_QW, FLASHERROR_NULL_TOTAL_TIME );
-	if( v->AlarmStatus & FLASHERROR_NULL_TOTAL_TIME )
+	TempAddr = ExtFlash_SearchNumQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TIME_SIZE_IN_QW, TOTAL_TotalTime_QW, FLASHWARNING_NULL_TOTAL_TIME );
+	if( v->WarningStatus & FLASHWARNING_NULL_TOTAL_TIME )
 	{
 		ExtFlash_SER( v, SECTOR2_PACK4_ADDR );
 		v->TotalTimeQWAddress = TOTAL_TIME_END_ADDR;
@@ -334,8 +334,8 @@ void ExtFlash_Init( ExtFlash_t *v )
 	}
 
 	// Search Current Calibration in external flash
-	TempAddr = ExtFlash_SearchNumQW( v, CURRENT_CALIB_FIRST_ADDR, CURRENT_CALIB_END_ADDR, CURRENT_CALIB_SIZE_IN_QW, TOTAL_CURRENT_CALIB_8QW, FLASHERROR_NULL_CURR_CAL_BACKUP );
-	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+	TempAddr = ExtFlash_SearchNumQW( v, CURRENT_CALIB_FIRST_ADDR, CURRENT_CALIB_END_ADDR, CURRENT_CALIB_SIZE_IN_QW, TOTAL_CURRENT_CALIB_8QW, FLASHWARNING_NULL_CURR_CAL_BACKUP );
+	if( v->WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
 	{
 		ExtFlash_SER( v, SECTOR4_PACK8_ADDR );
 		v->CurrentCalib8QWAddress = CURRENT_CALIB_END_ADDR;
@@ -605,7 +605,7 @@ void ExtFlash_ReadCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibratio
 	uint8_t TempCheckSum = 0;
 	uint32_t ReadyOffest = FLASH_8QW_SIZE - 2;
 
-	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+	if( v->WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
 	{
 		// stop read data from external flash.
 		return;
@@ -708,7 +708,7 @@ void ExtFlash_ReadLastOPTotalTime( ExtFlash_t *v )
 	uint8_t TempCheckSum = 0;
 	TotalTimeQW_t TempTTQW = { 0 };
 
-	if( v->AlarmStatus & FLASHERROR_NULL_TOTAL_TIME )
+	if( v->WarningStatus & FLASHWARNING_NULL_TOTAL_TIME )
 	{
 		// stop read data from external flash.
 		return;

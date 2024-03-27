@@ -197,8 +197,6 @@ typedef enum
 	FLASHERROR_UNINITIALIZED	= 0b00000001,
 	FLASHERROR_CHECKSUM_FAIL	= 0b00000010,
 	FLASHERROR_DAMAGED			= 0b00001000,
-	FLASHERROR_NULL_CURR_CAL_BACKUP 	= 0b00010000, // no current calibration backup in another section of external flash
-	FLASHERROR_NULL_TOTAL_TIME			= 0b00100000, // no total time exist
 	FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME	= 0b01000000,
 	FLASHERROR_CHECKSUM_FAIL_CURR_CAL_BACKUP = 0b10000000,
 } E_FLASH_ERROR; // note: AlarmStatus is 8 bits;
@@ -208,6 +206,8 @@ typedef enum
 	FLASHWARNING_NONE				    = 0b00000000,
 	FLASHWARNING_CURRCLB_CHECK_WORD_ERR = 0b00010000, // check word is error in current calibration
 	FLASHWARNING_TT_CHECK_WORD_ERR	    = 0b00100000, // check word is error in total time
+	FLASHWARNING_NULL_TOTAL_TIME		= 0b01000000, // no total time exist
+	FLASHWARNING_NULL_CURR_CAL_BACKUP 	= 0b10000000, // no current calibration backup in another section of external flash
 } E_FLASH_WARNING; // note: WarningStatus is 8 bits;
 
 typedef enum
