@@ -1653,7 +1653,8 @@ __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 
 	/* put INV to servo off */
   Inv_ServoOffReq();
-
+  Led_TurnOffReq(LED_IDX_FRONT);
+  Led_TurnOffReq(LED_IDX_REAR);
   VehicleMainState = VEHICLE_STATE_ALARM;
 }
 
@@ -1686,6 +1687,9 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 
 	DualBtnTimeCnt = 0;
 
+	Led_TurnOnReq(LED_IDX_FRONT);
+	Led_TurnOnReq(LED_IDX_REAR);
+
 	VehicleMainState = VEHICLE_STATE_DRIVE;
 }
 
@@ -1717,7 +1721,8 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
   Inv_ServoOffReq();
-
+  Led_TurnOffReq(LED_IDX_FRONT);
+  Led_TurnOffReq(LED_IDX_REAR);
   VehicleMainState = VEHICLE_STATE_STANDBY;
 }
 
@@ -2509,6 +2514,7 @@ void drive_Do100HzLoop(void)
 	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
 	Btn_Do100HzLoop();
+	Led_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_INVStateMachine();
 	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
@@ -2631,6 +2637,7 @@ void drive_Do1HzLoop(void)
 	RemainingTime1.Do1secLoop ( &RemainingTime1, FCC, Related_SoC, Insta_Power, Axis[0].TriggerLimpHome );
 
 	Axis[0].pCANTxInterface->Debugf[IDX_REMAIN_TIME] = (float)RemainingTime1.Remaining_Time_Min;
+
 }
 
 // old function definition before 3.1.1.11, not necessary now
