@@ -27,7 +27,7 @@ static void PositionCalibration_STOP_IF_Control(void);
 
 void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
 {
-    if ( *PosCaliSel != 0 )
+    if ( *PosCaliSel != PS_CALI_SEL_NONE )
     {
     	PS_CALI_Vars.Calibration_Metho_Select = *PosCaliSel;
         switch ( PS_CALI_Vars.Calibration_Metho_Select )
@@ -37,7 +37,7 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             	PositionCalibration_Auto_Zero_Offset_Process(u);
             	if (( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_FINISHED ) || ( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_ERROR ))
             	{
-            		*PosCaliSel = 0;
+            		*PosCaliSel = PS_CALI_SEL_NONE;
             	}
             	break;
             }
@@ -46,13 +46,13 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             	PositionCalibration_Linear_Process(u);
             	if (( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_FINISHED ) || ( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_ERROR ))
             	{
-            		*PosCaliSel = 0;
+            		*PosCaliSel = PS_CALI_SEL_NONE;
             	}
             	break;
             }
             default:
             {
-            	*PosCaliSel = 0;
+            	*PosCaliSel = PS_CALI_SEL_NONE;
             	break;
             }
         }
