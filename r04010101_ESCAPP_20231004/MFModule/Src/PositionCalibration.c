@@ -21,13 +21,13 @@ float LinearPointsMechPosRad[32] = { 0.0f };
 
 static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u );
 static void PositionCalibration_Linear_Process(PS_t *u );
-static void PositionCalibration_Start_IF_Control(void);
+static void PositionCalibration_Start_IF_Control(uint32_t Icmd);
 static void PositionCalibration_Rotate_Until_Across_Mech_Zero( float MechPosition );
 static void PositionCalibration_STOP_IF_Control(void);
 
 void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
 {
-    if ( *PosCaliSel != 0 )
+    if ( *PosCaliSel != PS_CALI_SEL_NONE )
     {
     	PS_CALI_Vars.Calibration_Metho_Select = *PosCaliSel;
         switch ( PS_CALI_Vars.Calibration_Metho_Select )
@@ -37,7 +37,7 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             	PositionCalibration_Auto_Zero_Offset_Process(u);
             	if (( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_FINISHED ) || ( PS_CALI_Vars.Zero_Offset_State == PS_CALI_ZERO_SM_ERROR ))
             	{
-            		*PosCaliSel = 0;
+            		*PosCaliSel = PS_CALI_SEL_NONE;
             	}
             	break;
             }
@@ -46,13 +46,13 @@ void PositionCalibration_Routine(uint32_t *PosCaliSel, PS_t *u )
             	PositionCalibration_Linear_Process(u);
             	if (( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_FINISHED ) || ( PS_CALI_Vars.Linear_State == PS_CALI_LINEAR_SM_ERROR ))
             	{
-            		*PosCaliSel = 0;
+            		*PosCaliSel = PS_CALI_SEL_NONE;
             	}
             	break;
             }
             default:
             {
-            	*PosCaliSel = 0;
+            	*PosCaliSel = PS_CALI_SEL_NONE;
             	break;
             }
         }
@@ -68,13 +68,13 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         {
         	Positioning_Cnt = 0;
         	u->MechPosZeroOffset = 0.0f;
-        	PositionCalibration_Start_IF_Control();
+        	PositionCalibration_Start_IF_Control(DEFAULT_CURRENT_CMD_FOR_POS_CALI);
         	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_FIND_MECH_ZERO;
         	break;
         }
         case PS_CALI_ZERO_SM_FIND_MECH_ZERO:
         {
-        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING )
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_FIND_MECH_ZERO )
         	{
         		Positioning_Cnt++;
         	}
@@ -83,7 +83,8 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         		PositionCalibration_Rotate_Until_Across_Mech_Zero( u->MechPosition );
         		if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_END )
         		{
-        			PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_CAL_OFFSET;
+        			PositionCalibration_STOP_IF_Control();
+        			PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_POSITIONING_MECH_ZERO;
         		}
         		else if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_POSITIONING )
         		{
@@ -97,11 +98,25 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         	}
         	break;
         }
+        case PS_CALI_ZERO_SM_POSITIONING_MECH_ZERO:
+        {
+        	Positioning_Cnt = 0;
+        	PositionCalibration_Start_IF_Control(DEFAULT_CURRENT_CMD_FOR_POS_CALI_HIGH);
+        	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_CAL_OFFSET;
+        	break;
+        }
         case PS_CALI_ZERO_SM_CAL_OFFSET:
         {
-        	u->MechPosZeroOffset = u->MechPosition < _PI ? -u->MechPosition : _2PI -u->MechPosition;
-        	PositionCalibration_STOP_IF_Control();
-        	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_SAVING_PARAM;
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING_MECH_ZERO )
+        	{
+        		Positioning_Cnt++;
+        	}
+        	else
+        	{
+        	    u->MechPosZeroOffset = u->MechPosition < _PI ? -u->MechPosition : _2PI -u->MechPosition;
+        	    PositionCalibration_STOP_IF_Control();
+        	    PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_SAVING_PARAM;
+        	}
         	break;
         }
         case PS_CALI_ZERO_SM_SAVING_PARAM:
@@ -133,13 +148,13 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         {
         	Positioning_Cnt = 0;
         	u->MechPosZeroOffset = 0.0f;
-        	PositionCalibration_Start_IF_Control();
+        	PositionCalibration_Start_IF_Control(DEFAULT_CURRENT_CMD_FOR_POS_CALI);
         	PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_MECH_ZERO;
         	break;
         }
         case PS_CALI_LINEAR_SM_FIND_MECH_ZERO:
         {
-        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING )
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_FIND_MECH_ZERO )
         	{
         		Positioning_Cnt++;
         	}
@@ -148,6 +163,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         		PositionCalibration_Rotate_Until_Across_Mech_Zero( u->MechPosition );
         		if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_END )
         		{
+        			PositionCalibration_STOP_IF_Control();
         			PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_POINTS;
         		}
         		else if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_POSITIONING )
@@ -164,7 +180,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         }
         case PS_CALI_LINEAR_SM_FIND_POINTS:
         {
-        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_POSITIONING )
+        	if ( Positioning_Cnt < DEFAULT_DELAY_TIME_FOR_FIND_MECH_ZERO )
         	{
         		Positioning_Cnt++;
         	}
@@ -206,11 +222,11 @@ static void PositionCalibration_Linear_Process(PS_t *u )
     }
 }
 
-static void PositionCalibration_Start_IF_Control(void)
+static void PositionCalibration_Start_IF_Control(uint32_t Icmd)
 {
 	DriveFnRegs[ FN_MF_FUNC_SEL-FN_BASE ] = FN_MF_FUNC_SEL_IF;
 	DriveFnRegs[ FN_OPEN_POSITION_CMD_ENABLE - FN_BASE ] = FUNCTION_ENABLE;
-	DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ] = DEFAULT_CURRENT_CMD_FOR_POS_CALI;
+	DriveFnRegs[ FN_OPEN_SPD_V_I_LIMIT - FN_BASE ] = Icmd;
 	DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = 0;
 	DriveFnRegs[ FN_ENABLE - FN_BASE ] = FN_ENABLE_MF_START;
 	PS_CALI_Vars.Find_Mech_Zero_State = PS_CALI_FIND0_POSITIONING;
