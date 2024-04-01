@@ -2722,7 +2722,7 @@ void drive_DoHouseKeeping(void)
 							  &DriveParams.PCUParams);
 
 	// Load Current Calibration from another section of external flash
-	drive_DoExtFlashLoadCurrentCalib();
+	ParamMgr1.LoadCurrentCalibFromSecExtFlash( &ExtFlash1 );
 
 	// Check error flag in housekeeping every time. If error flag is on and alarm is enable, register alarm "again".
 	GlobalAlarmDetect_DoHouseKeeping();
@@ -2843,28 +2843,6 @@ void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpE
 	} else;
 }
 
-void drive_DoExtFlashLoadCurrentCalib( void )
-{
-	if( ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest == 0)
-	{
-		return;
-	}
-
-	uint8_t CurrentCalibrationSize = 36;		// byte, P2-40 to P2-57
-	ExtFlash_Current_Calibration_t TempCurrentCalibration = {0};
-
-	// Clear request
-	ExtFlash1.Curr_Calib_Store.LoadCurrCalibRequest = 0;
-
-	ExtFlash1.Curr_Calib_Store.ReadCurrentCalibration( &ExtFlash1, &TempCurrentCalibration );
-	if( ExtFlash1.Curr_Calib_Store.ReadDoneFlag )
-	{
-		// Clear flag
-		ExtFlash1.Curr_Calib_Store.ReadDoneFlag = 0;
-		memcpy( &DriveParams.PCUParams.Axis1_Iu_Scale[0], &TempCurrentCalibration, CurrentCalibrationSize );
-	}
-}
-
 void drive_DoHWOCPIRQ(void)
 {
 	if((Axis[0].AlarmDetect.POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable == ALARM_ENABLE) && (AlarmMgr1.State == ALARM_MGR_STATE_ENABLE))
@@ -2930,7 +2908,10 @@ void JumpCtrlFunction( void )
 	}
 	else;
 
-	if (( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || ( IntranetCANStation.ECUSoftResetEnable == 1 ))
+	if( ( Axis[0].ServoOn == MOTOR_STATE_OFF ) &&
+		( ( IntranetCANStation.ServiceCtrlBRP.BRPECUSoftResetEnable == 1 ) || \
+		  ( IntranetCANStation.ECUSoftResetEnable == 1 ) || \
+		  ( ParamMgr1.ECUSoftResetEnable == 1 ) ) )
 	{
 
 		HAL_Delay(100);
