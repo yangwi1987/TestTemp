@@ -434,10 +434,10 @@ void ExtFlash_LoadParam( ExtFlash_t *v )
 		}
 	}
 
-	// Check if version is illegal.
+	// Check if version is changed.
 	ExtFlash_CheckExtFlashVersion ( v, PackAddr );
-	v->RetryCount = 0;
 
+	v->RetryCount = 0;
 	do
 	{
 		// Write data to ParamPack from RxBuffer.
@@ -527,6 +527,7 @@ void ExtFlash_ParamBackup( ExtFlash_t *v, DriveParams_t *pDriveParams )
 
 void ExtFlash_CheckExtFlashVersion ( ExtFlash_t *v, uint32_t PACK_ADDR )
 {
+	uint16_t NewExtFlashVersion[EXT_FLASH_VER_NUM] = EXT_FLASH_VERSION;
 	uint16_t TempExtFlashVersion[EXT_FLASH_VER_NUM] = { 0 }; // X1.X2.nn.mm
 	uint8_t i = 0;
 
@@ -535,6 +536,15 @@ void ExtFlash_CheckExtFlashVersion ( ExtFlash_t *v, uint32_t PACK_ADDR )
 	for( i = 0; i < EXT_FLASH_VER_SIZE; i++ )
 	{
 		*((uint8_t*)TempExtFlashVersion + i) = v->RxBuff[NORD_LEN + i];
+	}
+
+	for( i = 0; i < EXT_FLASH_VER_NUM; i++ )
+	{
+		if( TempExtFlashVersion[i] != NewExtFlashVersion[i] )
+		{
+			v->IsExtFlashVerChanged = 1;
+			break;
+		}
 	}
 
 	// normal operation

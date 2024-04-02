@@ -222,7 +222,7 @@ void ParamMgr_Init( ParamMgr_t *v, ExtFlash_t *pExtFlash )
 
 	// Assign data to RAM from external flash or default value.
 	// If there is no parameter backup alarm in external flash (even though warning exists), assign data to RAM.
-	if ( pExtFlash->AlarmStatus == FLASHERROR_NONE )
+	if ( ( pExtFlash->AlarmStatus & 0x0F ) == FLASHERROR_NONE )
 	{
 		for( i = 0; i < PARAM_NUMBER_SIZE; i++ )
 		{
@@ -254,6 +254,40 @@ void ParamMgr_Init( ParamMgr_t *v, ExtFlash_t *pExtFlash )
 				*v->pParamTable[index].pAddr = v->pParamTable[index].Default;
 			}
 		}
+	}
+
+	// If Ext. flash version is changed, assign data from default value, but Current Calibration from Ext. flash.
+	if( pExtFlash->IsExtFlashVerChanged )
+	{
+		// Check if Current Calibration is not in another section of external flash.
+		if( pExtFlash->WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
+		{
+			// Backup Current Calibration to another section of external flash
+			pExtFlash->Curr_Calib_Store.CurrentCalibrationBackup( pExtFlash, &DriveParams );
+
+			// Clear Flash Warning
+			pExtFlash->WarningStatus &= ~FLASHWARNING_NULL_CURR_CAL_BACKUP;
+		}
+
+		// Use default value from constant table.
+		for ( i = 0; i < PARAM_NUMBER_SIZE; i++ )
+		{
+			ParamMgr_TableIndicator ( v, i, &index );
+			if ( v->pParamTable[index].pAddr != 0 ) // if the parameter index is not reserved.
+			{
+				*v->pParamTable[index].pAddr = v->pParamTable[index].Default;
+			}
+		}
+
+		// Load Current Calibration to DriveParams from another section of external flash.
+		pExtFlash->Curr_Calib_Store.LoadCurrCalibRequest = 1;
+		v->LoadCurrentCalibFromSecExtFlash( pExtFlash );
+
+		// Param Backup
+		pExtFlash->ParamBackup( pExtFlash, &DriveParams );
+
+		// Reset FW to use new Param
+		v->ECUSoftResetEnable = 1;
 	}
 }
 
@@ -440,4 +474,26 @@ uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float *Out )
 	}
 	*Out = Para;
 	return 0;
+}
+
+void ParamMgr_LoadCurrentCalibFromSecExtFlash( ExtFlash_t *pExtFlash )
+{
+	if( pExtFlash->Curr_Calib_Store.LoadCurrCalibRequest == 0 )
+	{
+		return;
+	}
+
+	uint8_t CurrentCalibrationSize = 36;		// byte, P2-40 to P2-57
+	ExtFlash_Current_Calibration_t TempCurrentCalibration = {0};
+
+	// Clear request
+	pExtFlash->Curr_Calib_Store.LoadCurrCalibRequest = 0;
+
+	pExtFlash->Curr_Calib_Store.ReadCurrentCalibration( pExtFlash, &TempCurrentCalibration );
+	if( pExtFlash->Curr_Calib_Store.ReadDoneFlag )
+	{
+		// Clear flag
+		pExtFlash->Curr_Calib_Store.ReadDoneFlag = 0;
+		memcpy( &DriveParams.PCUParams.Axis1_Iu_Scale[0], &TempCurrentCalibration, CurrentCalibrationSize );
+	}
 }
