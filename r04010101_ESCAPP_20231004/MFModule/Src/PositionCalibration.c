@@ -67,7 +67,6 @@ static void PositionCalibration_Auto_Zero_Offset_Process(PS_t *u )
         case PS_CALI_ZERO_SM_NONE:
         {
         	Positioning_Cnt = 0;
-        	u->MechPosZeroOffset = 0.0f;
         	PositionCalibration_Start_IF_Control();
         	PS_CALI_Vars.Zero_Offset_State = PS_CALI_ZERO_SM_FIND_MECH_ZERO;
         	break;

@@ -22,10 +22,7 @@ void GlobalAlarmDetect_init( void )
 	{
 		if( ExtFlash1.AlarmStatus & FLASHERROR_UNINITIALIZED )
 		{
-			// Temporary solution, enable the alarm state before registering Flash alarm and disable it again.
-			AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_UNINITIALIZED, SystemTable.AlarmTableInfo[ALARMID_FLASH_UNINITIALIZED].AlarmType );
-			AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
 		}
 	}
 
@@ -35,9 +32,7 @@ void GlobalAlarmDetect_init( void )
 			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_TOTAL_TIME) ||
 			(ExtFlash1.AlarmStatus & FLASHERROR_CHECKSUM_FAIL_CURR_CAL_BACKUP) )
 		{
-			AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
 			AlarmMgr1.RegisterAlarm( &AlarmMgr1, TARGET_ID_GLOBAL, ALARMID_FLASH_READ_FAILED, SystemTable.AlarmTableInfo[ALARMID_FLASH_READ_FAILED].AlarmType );
-			AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
 		}
 	}
 }

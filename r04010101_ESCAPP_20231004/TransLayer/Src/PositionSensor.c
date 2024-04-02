@@ -21,11 +21,8 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
 	FilterSettingTmp.Period =  0.0001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	v->CalcMechSpeedLPF.Init(&(v->CalcMechSpeedLPF),&FilterSettingTmp);
-#if USE_REVERVE_MR_DIRECTION
-	v->MechPosZeroOffset = _2PI - ((float)( MechPosZeroOffset - 32768 ) * 0.0001f);
-#else
+
 	v->MechPosZeroOffset = (float)( MechPosZeroOffset - 32768 ) * 0.0001f;
-#endif
 	v->MechPosCompCoefBySpeed = (float)(MechPosCompCoefBySpeed) * 0.0001f;
 }
 
@@ -55,11 +52,6 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
       {
 		  PositionSensor_ReadPosViaPWM(v);
 		  v->MechPosition = v->InitMechPosition;
-#if USE_REVERVE_MR_DIRECTION
-		  v->PreMechPosition = _2PI - v->MechPosition;
-#else
-		  v->PreMechPosition = v->MechPosition;
-#endif
           htim2.Instance->CNT = (uint32_t)(v->MechPosition * (float)DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI);
           HAL_NVIC_DisableIRQ(TIM20_CC_IRQn);
     	  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -98,14 +90,8 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 		v->MechPosition = v->MechPosition + _2PI;
 	}
 
-#if USE_REVERVE_MR_DIRECTION
-	v->MechPosition = _2PI - v->MechPosition;
-	if ( v->Direction == PS_DIRECTION_DOWNCOUNTER )
-	{
-#else
 	if ( v->Direction == PS_DIRECTION_UPCOUNTER )
 	{
-#endif
 		v->MechSpeedRaw = ( v->MechPosition >= v->PreMechPosition ) ? \
 				                                ( v->MechPosition - v->PreMechPosition ) * 10000.0f : \
 												( v->MechPosition - v->PreMechPosition + _2PI ) * 10000.0f;

@@ -28,7 +28,7 @@ void UdsSecurityAccess_Init ( UdsSecurityAccessCtrl_t *p )
 	p->SecureLvReq = 0;
 
 
-#if USE_INIT_HIGH_SECURITY
+#if USE_INIT_HIGH_SESSION_AND_SRCURITY
 	p->SecureLvNow = DEFAULT_SECURITY_LEVEL;
 #else
 	//	p->SecureLvNow = DEFAULT_SECURITY_LEVEL; // read from external flash
