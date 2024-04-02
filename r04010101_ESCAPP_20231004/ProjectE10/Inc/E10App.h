@@ -11,6 +11,8 @@
 #include "stdio.h"
 #include "string.h"
 
+#define SOC_INDICATION_VIA_FRONTLIGHT 1
+
 /*==== AC Power info Start ====*/
 #define INSTANT_POWER_LOG_SIZE 10
 #define INSTANT_POWER_LOG_SIZE_INVERSE 0.1				/* = 1/INSTANT_POWER_LOG_SIZE */
@@ -191,8 +193,9 @@ extern LedCmd_e Led_CmdGet(LedIdx_e Idx);
 
 typedef enum
 {
-  SOC_DISPLAY_MODE_DIRECTLY_ACCESS = 0,
-  SOC_DISPLAY_MODE_SOC,
+  SOC_DISPLAY_MODE_DIRECTLY_ACCESS = 0,   /* bypass SOC display function */
+  SOC_DISPLAY_MODE_SOC_LED_ARRAY,         /* show SOC value via RBG LED array */
+  SOC_DISPLAY_MODE_SOC_SINGLE_LED,        /* show SOC value via single LED */
 } SocDisplayMode_e;
 
 typedef struct
@@ -208,6 +211,7 @@ typedef struct
 extern void SocLightModeSet( SocDisplayMode_e ModeIn);
 extern void SocCtrlSet(LedRGBIdx_e ColorIn, LedMode_e ModeIn, LedBlinkConfig_t LedConfig);
 extern void SocValueSet( uint8_t SocIn);
+void SocIndicationByBLinking(LedIdx_e LedIdxIn);
 extern void SocLightCtrl_Do100HzLoop(void);
 
 /*=============== LED Indication control End ===============*/

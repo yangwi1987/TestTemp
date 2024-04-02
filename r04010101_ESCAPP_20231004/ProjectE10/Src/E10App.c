@@ -277,36 +277,69 @@ void SocValueSet( uint8_t SocIn)
   SocLightCtrl.Soc = SocIn;
 }
 
+void SocIndicationByBLinking(LedIdx_e LedIdxIn)
+{
+  if (SocLightCtrl.Soc >= 75)
+  {
+    Led_CtrlReq( LedIdxIn, LED_MODE_ON, 0, LED_BLINK_CONFIG_STEADY);
+  }
+  else if ( SocLightCtrl.Soc >= 50 )
+  {
+    Led_CtrlReq( LedIdxIn, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_1HZ);
+  }
+  else if ( SocLightCtrl.Soc >= 25 )
+  {
+    Led_CtrlReq( LedIdxIn, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_2HZ);    
+  }
+  else if ( SocLightCtrl.Soc >= 5 )
+  {
+    Led_CtrlReq( LedIdxIn, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_4HZ);    
+  }
+  else 
+  {
+    Led_CtrlReq( LedIdxIn, LED_MODE_OFF, 0, LED_BLINK_CONFIG_STEADY);        
+  }
+}
+
 void SocLightCtrl_Do100HzLoop(void)
 {
   uint8_t ScaledSoc;
 
-  if((SocLightCtrl.DisplayMode == SOC_DISPLAY_MODE_SOC) && (SocLightCtrl.ReqFlag == 1))
+  if(SocLightCtrl.ReqFlag == 1)
   {
-	  /*Update LED if OSC is changed*/
+    if(SocLightCtrl.DisplayMode == SOC_DISPLAY_MODE_SOC_LED_ARRAY)
+    {
+      /* decide the # of LED to turn on */
+      ScaledSoc = ( SocLightCtrl.Soc ) / 25;
 
-		/* decide the # of LED to turn on */
-		ScaledSoc = ( SocLightCtrl.Soc ) / 25;
+      if(SocLightCtrl.Soc > 0)
+      {
+        ScaledSoc += 1;
+      }
 
-		if(SocLightCtrl.Soc > 0)
-		{
-			ScaledSoc += 1;
-		}
+      /* Light the LED according to number, blink pattern and color selected by user */
+      for(uint8_t i = 0; i < 4 ; i++)
+      {
+        for(uint8_t j = 0; j < 3; j++)
+        {
+        Led_TurnOffReq((LED_IDX_SOC1_R + j) + (i * 3));
+        }
 
-		for(uint8_t i = 0; i < 4 ; i++)
-		{
-		  for(uint8_t j = 0; j < 3; j++)
-		  {
-			Led_TurnOffReq((LED_IDX_SOC1_R + j) + (i * 3));
-		  }
+        if( i < ScaledSoc )
+        {
+        Led_CtrlReq((LED_IDX_SOC1_R + SocLightCtrl.ColorReq + i * 3), SocLightCtrl.LedMode, 0, SocLightCtrl.BlinkConfig);
+        }
+      }
+    }
+    else if(SocLightCtrl.DisplayMode == SOC_DISPLAY_MODE_SOC_SINGLE_LED)
+    {
+      SocIndicationByBLinking(LED_IDX_REAR);
+    }
 
-		  if( i < ScaledSoc )
-		  {
-			Led_CtrlReq((LED_IDX_SOC1_R + SocLightCtrl.ColorReq + i * 3), SocLightCtrl.LedMode, 0, SocLightCtrl.BlinkConfig);
-		  }
-		}
-		SocLightCtrl.ReqFlag = 0;
+    SocLightCtrl.ReqFlag = 0;
   }
+
+
 }
 
 /*=============== LED Indication control End ===============*/
