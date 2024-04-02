@@ -292,7 +292,14 @@ void FourQuadControl_Switch( FourQuadControl *v )
 			}
 			else
 			{
-				v->FourQuadState = FourQuadState_Reverse_III;
+				if( MotorRPMTmp >= 100 )   //TBD
+				{
+					v->FourQuadState = FourQuadState_None;
+				}
+				else
+				{
+					v->FourQuadState = FourQuadState_Reverse_III;
+				}
 			}
 			v->FirstEntryFlg = 0;
 		}
