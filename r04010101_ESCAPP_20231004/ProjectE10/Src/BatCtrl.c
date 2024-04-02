@@ -464,7 +464,7 @@ void Bat_SMCtrl(void)
 			/* todo: keep monitoring error flags reported from both BMS */
 			for(uint8_t i=0; i<BAT_IDX_ALL; i++)
 			{
-				if(BatInfo[i].ErrorFlags != 0)
+				if(BatInfo[i].FetStatus.Bits.XDsg != 0)
 				{
 					BatCtrl.MainSm = BAT_MAIN_ALARM;
 					break;

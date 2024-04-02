@@ -311,13 +311,13 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved354},	//P3-54 ALARMID_OT_PCU_2
 				{		1,		THRE_MAX,		4065,		0x45,		&DriveParams.PCUParams.Reserved355},	//P3-55 ALARMID_BREAK_NTC_PCU_2
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved356},	//P3-56 ALARMID_SHORT_NTC_PCU_2
-				{		1,		THRE_MAX,		150,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
+				{		1,		THRE_MAX,		135,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
 				{		1,		THRE_MAX,		4075,		0x45,		&DriveParams.PCUParams.Reserved358},	//P3-58 ALARMID_BREAK_NTC_MOTOR_0
 				{		1,		THRE_MAX,		200,		0x45,		&DriveParams.PCUParams.Reserved359},	//P3-59 ALARMID_SHORT_NTC_MOTOR_0
 				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
 				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
-				{		1,		THRE_MAX,		130,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
+				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved364},	//P3-64 ALARMID_MOTORSTALL
 				{		0,		0,		0,		0,		0},	//P3-65
 				{		0,		0,		0,		0,		0},	//P3-66
