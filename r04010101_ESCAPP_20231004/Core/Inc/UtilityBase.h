@@ -13,7 +13,7 @@
 #define PRODUCT_AND_BIN_TYPE_X2			0x0001
 #define MAIN_RELEASE_NUMBER_YY			0x0001
 #define MINOR_RELEASE_NUMBER_ZZ			0x0000
-#define RELEASE_CANDIDATE_RC			0x000A
+#define RELEASE_CANDIDATE_RC			0x000B
 #define APP_CHECK_WORD					0x4321
 #define PRODUCT_TYPE_MASK				0x00F0
 #define BIN_TYPE_MASK					0x000F
@@ -49,9 +49,9 @@
 #define IS_MF_CODE_BIN_FILE	( (PRODUCT_AND_BIN_TYPE_X2 & BIN_TYPE_MASK) == 0x0E || \
 							  (PRODUCT_AND_BIN_TYPE_X2 & BIN_TYPE_MASK) == 0x0F )
 // Define System Suppler Identify
-#define ELEMENT_1ST						'L'
-#define ELEMENT_2ND						'S'
-#define ELEMENT_3RD						'C'
+#define ELEMENT_1ST						0x00
+#define ELEMENT_2ND						0x00
+#define ELEMENT_3RD						0x00
 #define ELEMENT_4TH						0x00
 #define ELEMENT_5TH						0x00
 #define ELEMENT_6TH						0x00
