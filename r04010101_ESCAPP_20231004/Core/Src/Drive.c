@@ -2328,7 +2328,7 @@ void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
 
 }
 
-void drive_DoCurrentLoop(void)
+__attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 {
 //	int i;
 

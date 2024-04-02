@@ -12,7 +12,7 @@
 #include "stdint.h"
 
 #define MAX_RECORD_CH 4
-#define MAX_RECORD_NUM 3000
+#define MAX_RECORD_NUM 2000
 
 extern float RecordedData[MAX_RECORD_CH][MAX_RECORD_NUM];
 extern uint8_t IsRecordActive;

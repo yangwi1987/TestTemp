@@ -545,7 +545,7 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 #endif
 }
 
-void AxisFactory_DoCurrentLoop( Axis_t *v )
+__attribute__(( section(".ram_function"))) void AxisFactory_DoCurrentLoop( Axis_t *v )
 {
     uint16_t AxisIndex = AXIS_ID_TO_AXIS_INDEX( v->AxisID );
 
