@@ -154,3 +154,159 @@ void Btn_Init()
 }
 
 /*=============== Button handle End ===============*/
+
+/*=============== LED Indication control start ===============*/
+LedCtrl_t LedCtrlArray[LED_IDX_MAX];
+SocLightCtrl_t SocLightCtrl;
+
+
+void Led_CtrlReq(LedIdx_e Idx, LedMode_e ModeIn, uint16_t NbrToBlink, LedBlinkConfig_t BlinkConfig)
+{
+  LedCtrlArray[Idx].Mode = ModeIn;
+  LedCtrlArray[Idx].TimeCnt = 0;
+  LedCtrlArray[Idx].NbrCnt = 0;
+  LedCtrlArray[Idx].NbrToBlink = NbrToBlink;
+  LedCtrlArray[Idx].BlinkConfig = BlinkConfig;
+}
+
+void Led_TurnOnReq(LedIdx_e Idx)
+{
+	Led_CtrlReq(Idx, LED_MODE_ON, 0, LED_BLINK_CONFIG_STEADY);
+}
+
+void Led_TurnOffReq(LedIdx_e Idx)
+{
+	Led_CtrlReq(Idx, LED_MODE_OFF, 0, LED_BLINK_CONFIG_STEADY);
+}
+
+void Led_Do100HzLoop(void)
+{
+
+  SocLightCtrl_Do100HzLoop();
+
+  for (uint8_t i = 0; i < LED_IDX_MAX; i++)
+  {
+    switch (LedCtrlArray[i].Mode)
+    {
+      case LED_MODE_OFF:
+      default:
+        LedCtrlArray[i].Cmd = LED_CMD_OFF;
+        break;
+      
+      case LED_MODE_ON:
+        LedCtrlArray[i].Cmd = LED_CMD_ON;
+        break;
+
+      case LED_MODE_BLINK:
+
+        if(LedCtrlArray[i].TimeCnt < LedCtrlArray[i].BlinkConfig.OnTime)
+        {
+          /* Turn on LED*/  
+          LedCtrlArray[i].Cmd = LED_CMD_ON;
+        }
+        else if(LedCtrlArray[i].TimeCnt < LedCtrlArray[i].BlinkConfig.Period)
+        {
+          /* Turn off LED*/
+          LedCtrlArray[i].Cmd = LED_CMD_OFF;
+        }
+        else
+        {
+          LedCtrlArray[i].TimeCnt = 0;  
+
+          /* increase the blink conter if nbr to blink is greater than "LED_NBR_TO_BLINK_FOREVER" */
+          if(LedCtrlArray[i].NbrToBlink > LED_NBR_TO_BLINK_FOREVER)
+          {
+        	  LedCtrlArray[i].NbrCnt++;
+
+        	  if(LedCtrlArray[i].NbrCnt >= LedCtrlArray[i].NbrToBlink)
+        	  {
+        		  LedCtrlArray[i].Mode = LED_MODE_OFF;
+        	  }
+          }
+        }
+        
+        LedCtrlArray[i].TimeCnt++;
+
+        break;
+    }
+  }
+}
+
+LedCmd_e Led_CmdGet(LedIdx_e Idx)
+{
+  return LedCtrlArray[Idx].Cmd; 
+}
+
+/**/
+void SocLightModeSet( SocDisplayMode_e ModeIn)
+{
+  SocLightCtrl.DisplayMode = ModeIn;
+  SocLightCtrl.ReqFlag  = 1;
+  /* Force to clear the LED indication first */
+  for (uint8_t i = 0; i < 4 ; i++)
+  {
+    for (uint8_t j = 0; j < 3; j++)
+    {
+	  Led_TurnOffReq((LED_IDX_SOC1_R + j) + (i * 3));
+    }
+  }
+}
+
+void SocCtrlSet(LedRGBIdx_e ColorIn, LedMode_e ModeIn, LedBlinkConfig_t LedConfig)
+{
+  SocLightCtrl.ColorReq = ColorIn;
+  SocLightCtrl.LedMode = ModeIn;
+  SocLightCtrl.BlinkConfig = LedConfig;
+  SocLightCtrl.ReqFlag  = 1;
+}
+/*
+ *
+ * 	Note	To write/update the current SOC value when required
+	Input	SocIn : the SOC value to write, should be 0~100%
+	Output	NA
+ *
+ * */
+void SocValueSet( uint8_t SocIn)
+{
+
+  if(SocLightCtrl.Soc != SocIn)
+  {
+	  SocLightCtrl.ReqFlag  = 1;
+  }
+
+  SocLightCtrl.Soc = SocIn;
+}
+
+void SocLightCtrl_Do100HzLoop(void)
+{
+  uint8_t ScaledSoc;
+
+  if((SocLightCtrl.DisplayMode == SOC_DISPLAY_MODE_SOC) && (SocLightCtrl.ReqFlag == 1))
+  {
+	  /*Update LED if OSC is changed*/
+
+		/* decide the # of LED to turn on */
+		ScaledSoc = ( SocLightCtrl.Soc ) / 25;
+
+		if(SocLightCtrl.Soc > 0)
+		{
+			ScaledSoc += 1;
+		}
+
+		for(uint8_t i = 0; i < 4 ; i++)
+		{
+		  for(uint8_t j = 0; j < 3; j++)
+		  {
+			Led_TurnOffReq((LED_IDX_SOC1_R + j) + (i * 3));
+		  }
+
+		  if( i < ScaledSoc )
+		  {
+			Led_CtrlReq((LED_IDX_SOC1_R + SocLightCtrl.ColorReq + i * 3), SocLightCtrl.LedMode, 0, SocLightCtrl.BlinkConfig);
+		  }
+		}
+		SocLightCtrl.ReqFlag = 0;
+  }
+}
+
+/*=============== LED Indication control End ===============*/
