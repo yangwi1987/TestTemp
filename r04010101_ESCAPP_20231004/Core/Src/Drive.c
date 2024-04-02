@@ -1701,6 +1701,7 @@ void Inv_ServoOnReq()
 
   /* Enable boost mode function */
   GearMode_EnableBoostMode();
+  GearMode_EnableReverseMode();
 }
 
 void Inv_ServoOffReq()
