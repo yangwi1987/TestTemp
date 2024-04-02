@@ -1721,8 +1721,7 @@ __STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
 
 	/* put INV to servo off */
   Inv_ServoOffReq();
-  Led_TurnOffReq(LED_IDX_FRONT);
-  Led_TurnOffReq(LED_IDX_REAR);
+  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_4HZ);
   VehicleMainState = VEHICLE_STATE_ALARM;
 }
 
@@ -1740,6 +1739,7 @@ __STATIC_FORCEINLINE void EnterVehicleWarningState( void )
 {
 	/* Disable boost mode function */
 	GearMode_DisableBoostMode();
+	Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_1HZ);
   VehicleMainState = VEHICLE_STATE_WARNING;
 }
 
@@ -1754,9 +1754,7 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 	}
 
 	DualBtnTimeCnt = 0;
-
 	Led_TurnOnReq(LED_IDX_FRONT);
-	Led_TurnOnReq(LED_IDX_REAR);
 
 	VehicleMainState = VEHICLE_STATE_DRIVE;
 	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_SET);
@@ -1765,7 +1763,9 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 
 __STATIC_FORCEINLINE void EnterVehicleIdleState( void )
 {
-
+	SocLightModeSet(SOC_DISPLAY_MODE_DIRECTLY_ACCESS);
+	Led_TurnOffReq(LED_IDX_REAR);
+	Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
   VehicleMainState = VEHICLE_STATE_IDLE;
 }
 
@@ -1774,6 +1774,7 @@ __STATIC_FORCEINLINE void EnterVehicleStartupState( void )
   /* Enable global alarm detection */
   AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
   BatStation.PwrOnReq();
+  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
   VehicleMainState = VEHICLE_STATE_STARTUP;
 }
 
@@ -1782,7 +1783,8 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   // set Axis trigger limp home flag
   Axis[0].TriggerLimpHome = 0;
   DualBtnTimeCnt = 0;
-  
+  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
+  SocLightModeSet(SOC_DISPLAY_MODE_SOC_SINGLE_LED);
   /* Enable CAN1 timeout detection */
   Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
   /* Enable UVP detection */
@@ -1791,9 +1793,6 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
   Inv_ServoOffReq();
-
-  Led_TurnOffReq(LED_IDX_FRONT);
-  Led_TurnOffReq(LED_IDX_REAR);
 
   VehicleMainState = VEHICLE_STATE_STANDBY;
 }
@@ -1813,7 +1812,9 @@ __STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
 
   /* Request BMS to turn off battery */
   BatStation.PwrOffReq();
-  
+  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
+
+
   VehicleMainState = VEHICLE_STATE_SHUTDOWN;
 }
 
@@ -1831,7 +1832,12 @@ __STATIC_FORCEINLINE void EnterVehicleInitialState( void )
   AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
   BootAppTrig = BOOT_ENA;
   INVMainState = INV_OP_INITIALIZING;
+  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
+  SocLightModeSet(SOC_DISPLAY_MODE_DIRECTLY_ACCESS);
+  Led_TurnOffReq(LED_IDX_REAR);
+
   VehicleMainState = VEHICLE_STATE_INITIALIZING;
+
   /* Disable CAN1 timeout detection */
   Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
   /* Disable UVP detection */
@@ -2604,12 +2610,17 @@ void drive_Do100HzLoop(void)
 	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
 	Btn_Do100HzLoop();
-	Led_Do100HzLoop();
+
 	Drive_VehicleStateMachine();
 	Drive_INVStateMachine();
 	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
 	BatStation.Do100HzLoop();
+	SocValueSet(Bat_SocGet(BAT_INSTANCE_MAIN));
+	Led_Do100HzLoop();
 
+	/*LED output*/
+	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, Led_CmdGet(LED_IDX_FRONT));
+	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, Led_CmdGet(LED_IDX_REAR));
 }
 
 // Check if "any" component's temperature is higher then minimum temperature in relative derating table.
