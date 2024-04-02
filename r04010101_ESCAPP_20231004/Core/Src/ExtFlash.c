@@ -304,7 +304,7 @@ static uint32_t ExtFlash_SearchNumQW( ExtFlash_t *v, uint32_t MinQWAddr, uint32_
 	else
 	{
 		// search fail or uninitialized, so register warning
-		v->AlarmStatus |= AlarmCode;
+		v->WarningStatus |= AlarmCode;
 
 		// use the first pack
 		return MinQWAddr;
@@ -322,8 +322,8 @@ void ExtFlash_Init( ExtFlash_t *v )
 	HAL_GPIO_WritePin( FLASH_CS_DO_GPIO_Port, FLASH_CS_DO_Pin, GPIO_PIN_SET );
 
 	// Search Total Time in external flash
-	TempAddr = ExtFlash_SearchNumQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TIME_SIZE_IN_QW, TOTAL_TotalTime_QW, FLASHERROR_NULL_TOTAL_TIME );
-	if( v->AlarmStatus & FLASHERROR_NULL_TOTAL_TIME )
+	TempAddr = ExtFlash_SearchNumQW( v, TOTAL_TIME_FIRST_ADDR, TOTAL_TIME_END_ADDR, TOTAL_TIME_SIZE_IN_QW, TOTAL_TotalTime_QW, FLASHWARNING_NULL_TOTAL_TIME );
+	if( v->WarningStatus & FLASHWARNING_NULL_TOTAL_TIME )
 	{
 		ExtFlash_SER( v, SECTOR2_PACK4_ADDR );
 		v->TotalTimeQWAddress = TOTAL_TIME_END_ADDR;
@@ -334,8 +334,8 @@ void ExtFlash_Init( ExtFlash_t *v )
 	}
 
 	// Search Current Calibration in external flash
-	TempAddr = ExtFlash_SearchNumQW( v, CURRENT_CALIB_FIRST_ADDR, CURRENT_CALIB_END_ADDR, CURRENT_CALIB_SIZE_IN_QW, TOTAL_CURRENT_CALIB_8QW, FLASHERROR_NULL_CURR_CAL_BACKUP );
-	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+	TempAddr = ExtFlash_SearchNumQW( v, CURRENT_CALIB_FIRST_ADDR, CURRENT_CALIB_END_ADDR, CURRENT_CALIB_SIZE_IN_QW, TOTAL_CURRENT_CALIB_8QW, FLASHWARNING_NULL_CURR_CAL_BACKUP );
+	if( v->WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
 	{
 		ExtFlash_SER( v, SECTOR4_PACK8_ADDR );
 		v->CurrentCalib8QWAddress = CURRENT_CALIB_END_ADDR;
@@ -434,10 +434,10 @@ void ExtFlash_LoadParam( ExtFlash_t *v )
 		}
 	}
 
-	// Check if version is illegal.
+	// Check if version is changed.
 	ExtFlash_CheckExtFlashVersion ( v, PackAddr );
-	v->RetryCount = 0;
 
+	v->RetryCount = 0;
 	do
 	{
 		// Write data to ParamPack from RxBuffer.
@@ -527,6 +527,7 @@ void ExtFlash_ParamBackup( ExtFlash_t *v, DriveParams_t *pDriveParams )
 
 void ExtFlash_CheckExtFlashVersion ( ExtFlash_t *v, uint32_t PACK_ADDR )
 {
+	uint16_t NewExtFlashVersion[EXT_FLASH_VER_NUM] = EXT_FLASH_VERSION;
 	uint16_t TempExtFlashVersion[EXT_FLASH_VER_NUM] = { 0 }; // X1.X2.nn.mm
 	uint8_t i = 0;
 
@@ -535,6 +536,15 @@ void ExtFlash_CheckExtFlashVersion ( ExtFlash_t *v, uint32_t PACK_ADDR )
 	for( i = 0; i < EXT_FLASH_VER_SIZE; i++ )
 	{
 		*((uint8_t*)TempExtFlashVersion + i) = v->RxBuff[NORD_LEN + i];
+	}
+
+	for( i = 0; i < EXT_FLASH_VER_NUM; i++ )
+	{
+		if( TempExtFlashVersion[i] != NewExtFlashVersion[i] )
+		{
+			v->IsExtFlashVerChanged = 1;
+			break;
+		}
 	}
 
 	// normal operation
@@ -605,7 +615,7 @@ void ExtFlash_ReadCurrentCalibration( ExtFlash_t *v, ExtFlash_Current_Calibratio
 	uint8_t TempCheckSum = 0;
 	uint32_t ReadyOffest = FLASH_8QW_SIZE - 2;
 
-	if( v->AlarmStatus & FLASHERROR_NULL_CURR_CAL_BACKUP )
+	if( v->WarningStatus & FLASHWARNING_NULL_CURR_CAL_BACKUP )
 	{
 		// stop read data from external flash.
 		return;
@@ -708,7 +718,7 @@ void ExtFlash_ReadLastOPTotalTime( ExtFlash_t *v )
 	uint8_t TempCheckSum = 0;
 	TotalTimeQW_t TempTTQW = { 0 };
 
-	if( v->AlarmStatus & FLASHERROR_NULL_TOTAL_TIME )
+	if( v->WarningStatus & FLASHWARNING_NULL_TOTAL_TIME )
 	{
 		// stop read data from external flash.
 		return;
