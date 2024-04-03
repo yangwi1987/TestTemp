@@ -172,6 +172,7 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	float PropulseOut = 0.0f;
 	float PropulseMin = 0.0f;
 	float Smax = pTable->Para[DRIVE_SPEED_MAX] ;
+	float ABSMotorRPM = ABS(v->MotorRPM);
 
 	if ( v->Driving_TNIndex == 0 )
 	{
@@ -182,10 +183,10 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX];
 	}
 
-	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
+	float F1 = ABSMotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
 	float F2 = pTable->Para[DRIVE_PROPULSION_MAX];
-	float F3 = ( v->MotorRPM > 1.0f ) ? v->DrivePowerCmd / ( v->MotorRPM * RPM_TO_SPEED ): v->DrivePowerCmd;
-	float F4 = ( v->MotorRPM - Smax ) * pTable->Para[DRIVE_SLOPE_END];
+	float F3 = ( ABSMotorRPM > 1.0f ) ? v->DrivePowerCmd / ( ABSMotorRPM * RPM_TO_SPEED ): v->DrivePowerCmd;
+	float F4 = ( ABSMotorRPM - Smax ) * pTable->Para[DRIVE_SLOPE_END];
 	PropulseOut = ( F1 < F2 ) ? F1 : F2;
 	PropulseOut = ( PropulseOut < F3 ) ? PropulseOut : F3;
 	PropulseOut = ( PropulseOut < F4 ) ? PropulseOut : F4;
@@ -275,20 +276,30 @@ void FourQuadControl_Switch( FourQuadControl *v )
 		{
 			v->FourQuadState = FourQuadState_None;
 		}
-		else if( MotorRPMTmp < 0 )
-		{
-			v->FourQuadState = FourQuadState_BackRoll_II;
-			v->FirstEntryFlg = 0;
-		}
 		else
 		{
 			if ( v->DriveGearModeSelect != REVERSE_MODE )
 			{
-				v->FourQuadState = FourQuadState_Driving_I;
+				if( MotorRPMTmp >= 0 )
+				{
+					v->FourQuadState = FourQuadState_Driving_I;
+				}
+				else
+				{
+					v->FourQuadState = FourQuadState_BackRoll_II;
+					v->FirstEntryFlg = 0;
+				}
 			}
 			else
 			{
-				v->FourQuadState = FourQuadState_Reverse_III;
+				if( MotorRPMTmp >= 100 )   //TBD
+				{
+					v->FourQuadState = FourQuadState_None;
+				}
+				else
+				{
+					v->FourQuadState = FourQuadState_Reverse_III;
+				}
 			}
 			v->FirstEntryFlg = 0;
 		}
@@ -320,6 +331,12 @@ void FourQuadControl_Calc( FourQuadControl *v )
 		{
 			CalcTorque = FourQuadControl_CalcBackRollTable(v);
 			FourQuadControl_ResetDrive(v);
+			break;
+		}
+		case FourQuadState_Reverse_III:
+		{
+			CalcTorque = -FourQuadControl_CalcDriveTable(v);
+			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
 			break;
 		}
 		default:

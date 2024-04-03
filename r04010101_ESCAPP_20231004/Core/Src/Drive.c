@@ -1632,8 +1632,9 @@ void Inv_ServoOnReq()
   Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
   Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
 
-  /* Enable boost mode function */
+  /* Enable boost and reverse mode function */
   GearMode_EnableBoostMode();
+  GearMode_EnableReverseMode();
 }
 
 void Inv_ServoOffReq()

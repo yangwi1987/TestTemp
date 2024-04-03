@@ -446,9 +446,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 			v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
 			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
 
-			// Decide the Torque Output( TO DO: Negative Torque )
-			TempTorqueCommandOut = ((float)( DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768 )) * 0.1f;
-			TempTorqueCommandOut = ( TempTorqueCommandOut >= 0.0f ) ? TempTorqueCommandOut : 0.0f;
+			TempTorqueCommandOut = (( (float)DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768.0f )) * 0.1f;
 			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
 			v->ThrotMapping.PercentageOut = 1.0f;
 
