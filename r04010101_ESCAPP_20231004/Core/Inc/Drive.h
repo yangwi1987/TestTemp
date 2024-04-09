@@ -39,7 +39,6 @@
 #include "BatCtrl.h"
 #include "E10App.h"
 
-
 #if JUDGE_FUNCTION_DELAY || MEASURE_CPU_LOAD
 typedef struct
 {
@@ -121,6 +120,7 @@ extern PwmStation PwmStation1;
 extern AlarmMgr_t AlarmMgr1;
 extern ExtranetCANStation_t ExtranetCANStation;
 extern PS_t PSStation1;
+extern ParamMgr_t ParamMgr1;
 
 extern FDCAN_HandleTypeDef hfdcan2;
 extern TIM_HandleTypeDef htim6; // PLC loop
@@ -154,7 +154,6 @@ extern void drive_DoLoad_DataToAdcGain(void);
 extern void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT );
-extern void drive_DoExtFlashLoadCurrentCalib(void);
 extern void drive_DoHWOCPIRQ(void);
 /*
  * Version Read #define

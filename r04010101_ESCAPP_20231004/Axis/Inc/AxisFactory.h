@@ -162,6 +162,7 @@ typedef struct {
 	AdcStation  *pAdcStation;
 	PwmStation	*pPwmStation;
 	ExtranetCANStation_t *pCANStaion;
+	ParamMgr_t *pParamMgr;
 	AlarmDetect_t AlarmDetect;
 	ThrottleMapping_t ThrotMapping;
 	FourQuadControl FourQuadCtrl;
@@ -212,6 +213,7 @@ typedef struct {
 	0, /*pAdcStation;  */\
 	0, /*pPwmStation;  */\
 	0, /*pCANStaion*/\
+	0, /*pParamMgr*/\
 	ALARM_DETECT_DEFAULT, \
 	THROTTLE_CALIB_DEFAULT, \
 	FOURQUADCONTROL_DEFAULT, \
@@ -262,6 +264,7 @@ typedef struct {
 	AdcStation  *pAdcStation;
 	PwmStation	*pPwmStation;
 	ExtranetCANStation_t *pCANStaion;
+	ParamMgr_t *pParamMgr;
 	AlarmDetect_t AlarmDetect;
 	ThrottleMapping_t ThrotMapping;
 	FourQuadControl FourQuadCtrl;
@@ -309,6 +312,7 @@ typedef struct {
 	0, /*pAdcStation;  */\
 	0, /*pPwmStation;  */\
 	0, /*pCANStaion*/\
+	0, /*pParamMgr*/\
 	ALARM_DETECT_DEFAULT, \
 	THROTTLE_CALIB_DEFAULT, \
 	FOURQUADCONTROL_DEFAULT, \
