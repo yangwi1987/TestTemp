@@ -367,7 +367,7 @@ void TIM8_BRK_IRQHandler(void)
 void TIM8_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM8_UP_IRQn 0 */
-
+	HAL_GPIO_WritePin( Debug_DO2_GPIO_Port, Debug_DO2_Pin, GPIO_PIN_SET );
 #if  JUDGE_FUNCTION_DELAY
 uint32_t currentTimestamp = DWT->CYCCNT;
 uint32_t delta = currentTimestamp - TIM8INT_Judge_Delay.previousTimestamp;
@@ -573,6 +573,7 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
         }
 #endif
 		CPUCounter.ADCCounter++;
+		HAL_GPIO_WritePin( Debug_DO2_GPIO_Port, Debug_DO2_Pin, GPIO_PIN_RESET );
 		drive_DoCurrentLoop();
 #if MEASURE_CPU_LOAD_CURRENTLOOP
         EndTimeStamp =  DWT->CYCCNT;
