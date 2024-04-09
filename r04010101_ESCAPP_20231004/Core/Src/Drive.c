@@ -1139,6 +1139,68 @@ EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *p
 
         	break;
         }
+#if USE_DATA_RECORDER
+        case DID_0xC050_DATA_RECORDER_CH0                 :
+        {
+        	if ( DataRECORDERCnt0 < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[0][DataRECORDERCnt0] );
+            	DataRECORDERCnt0++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt0 = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+        case DID_0xC051_DATA_RECORDER_CH1                 :
+        {
+        	if ( DataRECORDERCnt1 < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[1][DataRECORDERCnt1] );
+            	DataRECORDERCnt1++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt1 = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+        case DID_0xC052_DATA_RECORDER_CH2                 :
+        {
+        	if ( DataRECORDERCnt2 < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[2][DataRECORDERCnt2] );
+            	DataRECORDERCnt2++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt2 = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+        case DID_0xC053_DATA_RECORDER_CH3                 :
+        {
+        	if ( DataRECORDERCnt3 < MAX_RECORD_NUM )
+        	{
+            	tempRsp = drive_RDBI_CopyF32toTx( pRx, pTx, RecordedData[3][DataRECORDERCnt3] );
+            	DataRECORDERCnt3++;
+        	}
+        	else
+        	{
+        		DataRECORDERCnt3 = 0;
+        		tempRsp = NRC_0x22_CNC;
+        	}
+
+        	break;
+        }
+#endif
         case DID_0xC100_This_Driving_Cycle_Information  :
         {
         	break;
@@ -1639,6 +1701,7 @@ void Inv_ServoOnReq()
 
   /* Enable boost mode function */
   GearMode_EnableBoostMode();
+  GearMode_EnableReverseMode();
 }
 
 void Inv_ServoOffReq()
@@ -1697,6 +1760,8 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 	Led_TurnOnReq(LED_IDX_REAR);
 
 	VehicleMainState = VEHICLE_STATE_DRIVE;
+	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, GPIO_PIN_SET);
 }
 
 __STATIC_FORCEINLINE void EnterVehicleIdleState( void )
@@ -1731,6 +1796,7 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
   Inv_ServoOffReq();
+
   VehicleMainState = VEHICLE_STATE_STANDBY;
 }
 
@@ -1800,11 +1866,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_IDLE:
     
       /* waiting for killing switch to transfer to startup state */
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
-      {
-        EnterVehicleAlarmState();
-      }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
+			if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
       {
         EnterVehicleStartupState();
       }
@@ -2269,7 +2331,7 @@ void drive_DoPwmPositionCatch(TIM_HandleTypeDef *htim)
 
 }
 
-void drive_DoCurrentLoop(void)
+__attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 {
 //	int i;
 
@@ -2295,6 +2357,15 @@ void drive_DoCurrentLoop(void)
 		// Do Current Loop Tasks
 		Axis[0].DoCurrentLoop(&Axis[0]);
 //	}
+
+#if USE_DATA_RECORDER
+		DataRecorder_Routine(\
+				AdcStation1.AdcTraOut.Iu[0], \
+				AdcStation1.AdcTraOut.Iv[0], \
+				AdcStation1.AdcTraOut.Iw[0], \
+				AdcStation1.AdcTraOut.BatVdc \
+				);
+#endif
 }
 
 void Session_DoPLCLoop(void)
@@ -2363,6 +2434,18 @@ void Session_DoPLCLoop(void)
 			}
 #endif
 			PositionCalibration_Routine(&DriveFnRegs[ FN_MF_POS_CALIB_START - FN_BASE ], &PSStation1);
+
+#if USE_DATA_RECORDER
+			if ( DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] == 1)
+			{
+			    IsRecordActive = USE_FUNCTION;
+			    DataRECORDERCnt0 = 0;
+			    DataRECORDERCnt1 = 0;
+			    DataRECORDERCnt2 = 0;
+			    DataRECORDERCnt3 = 0;
+			    DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] = 0;
+			}
+#endif
 		}
 		break;
 	default:
@@ -2370,7 +2453,7 @@ void Session_DoPLCLoop(void)
 	}
 }
 
-void ResetMFWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void ResetMFWhenSessionChange(Axis_t *pAxis)
 {
 	DriveFnRegs[FN_ENABLE-FN_BASE] = 0;
 	DriveFnRegs[FN_MF_FUNC_SEL-FN_BASE] = 0;
@@ -2382,7 +2465,7 @@ void ResetMFWhenSessionChange(Axis_t *pAxis)
 	pAxis->CtrlUiEnable = 0;
 	CtrlUi.MfFunMode = FN_MF_FUNC_SEL_RESERVED;
 }
-void EnableAlarmWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
@@ -2393,7 +2476,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
-void DisableAlarmWhenSessionChange(Axis_t *pAxis)
+__STATIC_FORCEINLINE void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 {
 	pAxis->AlarmDetect.BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_DISABLE;

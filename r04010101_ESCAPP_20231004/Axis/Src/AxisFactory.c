@@ -447,8 +447,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
 
 			// Decide the Torque Output( TO DO: Negative Torque )
-			TempTorqueCommandOut = ((float)( DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768 )) * 0.1f;
-			TempTorqueCommandOut = ( TempTorqueCommandOut >= 0.0f ) ? TempTorqueCommandOut : 0.0f;
+			TempTorqueCommandOut = (( (float)DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768.0f )) * 0.1f;
 			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
 			v->ThrotMapping.PercentageOut = 1.0f;
 
@@ -546,7 +545,7 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 #endif
 }
 
-void AxisFactory_DoCurrentLoop( Axis_t *v )
+__attribute__(( section(".ram_function"))) void AxisFactory_DoCurrentLoop( Axis_t *v )
 {
     uint16_t AxisIndex = AXIS_ID_TO_AXIS_INDEX( v->AxisID );
 

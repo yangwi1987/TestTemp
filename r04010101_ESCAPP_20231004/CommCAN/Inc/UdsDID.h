@@ -98,6 +98,11 @@ typedef enum
 
 	DID_0xC040_Position_Linear_Points_In_Degree                     = 0xC040,
 
+	DID_0xC050_DATA_RECORDER_CH0                                     = 0xC050,
+	DID_0xC051_DATA_RECORDER_CH1                                     = 0xC051,
+	DID_0xC052_DATA_RECORDER_CH2                                     = 0xC052,
+	DID_0xC053_DATA_RECORDER_CH3                                     = 0xC053,
+
 	DID_0xC100_This_Driving_Cycle_Information                       = 0xC100,
 
 	DID_0xC200_Last_Driving_Cycle_Information_1                     = 0xC200,

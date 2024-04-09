@@ -539,7 +539,7 @@ void FDCAN2_IT1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
+__attribute__(( section(".ram_function"))) void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	/* The following are the general injection reading */
 //	AdcStation1.ReadInjectionGroupValue( &AdcStation1, hadc );
@@ -667,7 +667,7 @@ void USER_HAL_TIM_IRQHandler( TIM_HandleTypeDef *htim )
 	__HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
 }
 
-void USER_HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
+__attribute__(( section(".ram_function"))) void USER_HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
 {
 	uint32_t tmp_isr = hadc->Instance->ISR;
 	uint32_t tmp_ier = hadc->Instance->IER;

@@ -258,7 +258,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-01
 				{		0,		0,		0,		0,		0},	//P3-02
 				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved303},	//P3-03 ALARMID_CAN1_COMM_ERROR
-				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved304},	//P3-04 ALARMID_CAN1_TIMEOUT
+				{		0,		THRE_MAX,		10,		0x45,		&DriveParams.PCUParams.Reserved304},	//P3-04 ALARMID_CAN1_TIMEOUT
 				{		0,		0,		0,		0,		0},	//P3-05
 				{		0,		0,		0,		0,		0},	//P3-06
 				{		0,		0,		0,		0,		0},	//P3-07
