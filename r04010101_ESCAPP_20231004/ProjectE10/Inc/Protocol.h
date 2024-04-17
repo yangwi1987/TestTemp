@@ -29,6 +29,8 @@
 #define CANTXID_INV_LOG_INFO_8  0x728   /*Debug information for Inv develop 08*/
 #define CANTXID_INV_LOG_INFO_9  0x729   /*Debug information for Inv develop 09*/
 
+#define CANTXID_INV_LOG_INFO_SP00 0x740   /*Debug information for Inv develop SP*/
+#define CANTXID_INV_LOG_INFO_SP01 0x741
 /* ==== macro for CANRX IDs for receive ==== */
 #define CANRXID_BMS_FILTER_START_01   0x402   /* info shows BMS status */
 #define CANRXID_BMS_FILTER_START_02   0x403   /* info shows BMS status */

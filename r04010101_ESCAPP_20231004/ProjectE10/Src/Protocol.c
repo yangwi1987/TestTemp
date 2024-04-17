@@ -9,6 +9,7 @@
 #include "ICANInterface.h"
 #include <BatCtrl.h>
 #include "E10App.h"
+#include "Drive.h"
 //uint8_t VcuEnableFlag=0;
 /*
  * "ExtranetInformInSystemTableExample" will be stored in system table bin
@@ -23,12 +24,11 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
 
 const CANProtocol ExtranetInformInSystemTableExample =
 {
-  50,
-  10,
+  2,
+  2,
   {
-	  CANTXID_INV_LOG_INFO_0, CANTXID_INV_LOG_INFO_1, CANTXID_INV_LOG_INFO_2, CANTXID_INV_LOG_INFO_3, CANTXID_INV_LOG_INFO_4,
-	  CANTXID_INV_LOG_INFO_5, CANTXID_INV_LOG_INFO_6, CANTXID_INV_LOG_INFO_7, CANTXID_INV_LOG_INFO_8, CANTXID_INV_LOG_INFO_9
-  },
+	  CANTXID_INV_LOG_INFO_SP00, CANTXID_INV_LOG_INFO_SP01, CANTXID_INV_LOG_INFO_SP00, CANTXID_INV_LOG_INFO_SP01, CANTXID_INV_LOG_INFO_SP00,
+	  CANTXID_INV_LOG_INFO_SP01, CANTXID_INV_LOG_INFO_SP00, CANTXID_INV_LOG_INFO_SP01, CANTXID_INV_LOG_INFO_SP00, CANTXID_INV_LOG_INFO_SP01  },
   (pRxTranslate)CAN_RxDataTranslate,
   (pTxTranslate)CAN_TxDataTranslate,
 };
@@ -329,6 +329,18 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       {
         lStatus = ID_NO_MATCH;
       }
+      break;
+    }
+    case CANTXID_INV_LOG_INFO_SP00 :
+    {
+      p->DataF[0] = PSStation1.MechSpeedRaw;
+      p->DataF[1] = PSStation1.MechPosition;
+      break;
+    }
+    case CANTXID_INV_LOG_INFO_SP01 :
+    {
+      p->DataF[0] = PSStation1.ElecSpeed;
+      p->DataF[1] = PSStation1.ElecPosition;
       break;
     }
     default :

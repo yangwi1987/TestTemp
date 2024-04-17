@@ -17,7 +17,7 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
  * Load pole pairs
  */
 	FILTER_INIT_BILINEAR_1ORDER_TYPE FilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
-	FilterSettingTmp.BandwithHz = 400.0f;
+	FilterSettingTmp.BandwithHz = 50.0f;
 	FilterSettingTmp.Period =  0.0001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	v->CalcMechSpeedLPF.Init(&(v->CalcMechSpeedLPF),&FilterSettingTmp);
