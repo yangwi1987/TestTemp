@@ -12,6 +12,7 @@
 
 static uint8_t CurrToPLCCnt = 0;
 extern uint16_t IsUseDigitalFoilSensor;
+static uint16_t StayInBootstrap = 0;
 
 void AxisSync_SyncFourQuadParams( Axis_t *v )
 {
@@ -40,6 +41,7 @@ void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
     case PN_DEBUG_PARAM_8:
     case PN_DEBUG_PARAM_9:
     case PN_DEBUG_PARAM_10:
+    	StayInBootstrap = DriveParams.PCUParams.DebugParam5;
         break;
     case PN_POLE_PAIR:
     case PN_LD:
@@ -192,7 +194,16 @@ void AxisFactory_RunMotorStateMachine( Axis_t *v )
             {
                 if( v->BootstrapCounter >= v->BootstrapMaxCounter )
                 {
-                	v->ServoOnOffState = MOTOR_STATE_ON;
+                	if(StayInBootstrap == 1)
+                	{
+//                    	v->ServoOnOffState = MOTOR_STATE_WAIT_BOOT;
+//                		do nothing
+                	}
+                	else
+                	{
+                    	v->ServoOnOffState = MOTOR_STATE_ON;
+
+                	}
 
                     if( v->PhaseLoss.Enable == FUNCTION_ENABLE )
                     {

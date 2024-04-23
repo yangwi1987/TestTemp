@@ -423,6 +423,8 @@
 #define FN_PWM_W_CMD                978
 #define FN_PWM_Mode                 979
 
+#define FN_DREBUG_RECORD_FLAG		998
+
 #define FN_TEST_USAGE				999
 #define PN_MAX						1000
 

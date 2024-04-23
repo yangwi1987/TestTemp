@@ -115,7 +115,7 @@ const DriveFnRegsInfo_t DriveFnRegsInfo[PARAM_FN_REGS_SIZE] =
 	{0, 	0, 		Reserved7},	// 95
 	{0, 	0, 		Reserved7},	// 96
 	{0, 	0, 		Reserved7},	// 97
-	{0, 	0, 		Reserved7},	// 98
+	{0, 	1, 		5},	// 98
 	{0, 	65535, 	7},			// 99-DEBUG COMMAND
 };
 
