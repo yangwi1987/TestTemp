@@ -64,25 +64,31 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		EleSpeedTmp = p->CurrentControl.EleSpeed;
 		p->CurrentControl.Decoupling.PIDWayId.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IqCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.Q), &(p->CurrentControl.Decoupling.PIDWayId) );
 		p->CurrentControl.Decoupling.PIDWayIq.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IdCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.D), &(p->CurrentControl.Decoupling.PIDWayIq) );
-		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
-		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
+//		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
+//		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
+
+		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output;
+		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output;
+
 
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 
 		//PwmMode = PWM_MODE_SVPWM;
 		//Limit voltage command Vdq : 2us = 16.6us-14.6us
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if( p->VoltCmd.VcmdAmp > VbusLimit )
+		if( p->VoltCmd.VcmdAmp > (VbusLimit * 0.95f) )
 		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
+			float Vgain1 = 0.0f;
+			float Vgain2 = 0.0f;
+			Vgain1 = (VbusLimit * 0.95f) / p->VoltCmd.VcmdAmp;
+			Vgain2 = (VbusLimit * 0.98f) / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= Vgain1;
+			p->VoltCmd.VqCmd *= Vgain1;
 
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain2;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain2;
+			p->CurrentControl.IdRegulator.Ui *= Vgain2;
+			p->CurrentControl.IqRegulator.Ui *= Vgain2;
 
 		}
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
