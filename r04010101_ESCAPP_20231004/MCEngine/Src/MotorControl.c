@@ -15,7 +15,7 @@ STATOR_TO_PHASE_TYPE IphaseCmd = STATOR_TO_PHASE_DEFAULT;
 
 PHASE_TO_STATOR_TYPE StatorCurrFbTmp = PHASE_TO_STATOR_DEFAULT;
 uint8_t FlagHere = 0;
-uint8_t UseEleSpeed = 1;
+uint8_t UseEleSpeed = 0;
 
 //__attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 

@@ -2357,10 +2357,10 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 
 #if USE_DATA_RECORDER
 		DataRecorder_Routine(\
-				AdcStation1.AdcTraOut.Iu[0], \
-				AdcStation1.AdcTraOut.Iv[0], \
-				AdcStation1.AdcTraOut.Iw[0], \
-				Axis[0].MotorControl.SensorFb.EleSpeed \
+				PSStation1.ElecPosition, \
+				PSStation1.MechPosition, \
+				PSStation1.MechSpeedRaw, \
+				PSStation1.MechSpeed \
 				);
 /*
 		DataRecorder_Routine(\
