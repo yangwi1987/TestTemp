@@ -15,6 +15,7 @@ STATOR_TO_PHASE_TYPE IphaseCmd = STATOR_TO_PHASE_DEFAULT;
 
 PHASE_TO_STATOR_TYPE StatorCurrFbTmp = PHASE_TO_STATOR_DEFAULT;
 uint8_t FlagHere = 0;
+uint8_t UseEleSpeed = 0;
 
 //__attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) MotorControl_Algorithm( MOTOR_CONTROL_TYPE *p, uint16_t FunctionMode)
 
@@ -65,17 +66,23 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		EleSpeedTmp = p->CurrentControl.EleSpeed;
 		p->CurrentControl.Decoupling.PIDWayId.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IqCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.Q), &(p->CurrentControl.Decoupling.PIDWayId) );
 		p->CurrentControl.Decoupling.PIDWayIq.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IdCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.D), &(p->CurrentControl.Decoupling.PIDWayIq) );
-#if 1 // do not use ele speed
-		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output;
-		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output;
-		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle;
-		FlagHere = 2;
-#else
-		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
-		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
-		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
-		FlagHere =3;
-#endif
+//#if 1 // do not use ele speed
+		if (UseEleSpeed == 0)
+		{
+			p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output;
+			p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output;
+			p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle;
+			FlagHere = 2;
+		}
+//#else
+		else
+		{
+			p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
+			p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
+			p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
+			FlagHere = 3;
+		}
+//#endif
 
 
 
@@ -324,7 +331,7 @@ void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
 	//ComplexVector
 	p->CurrentControl.Decoupling.PIDWayId.Clean( &(p->CurrentControl.Decoupling.PIDWayId) );
 	p->CurrentControl.Decoupling.PIDWayIq.Clean( &(p->CurrentControl.Decoupling.PIDWayIq) );
-
+	FlagHere = 0;
 	//Sensorless
 //	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
 
