@@ -2360,7 +2360,7 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 				AdcStation1.AdcTraOut.Iu[0], \
 				AdcStation1.AdcTraOut.Iv[0], \
 				AdcStation1.AdcTraOut.Iw[0], \
-				AdcStation1.AdcTraOut.BatVdc \
+				Axis[0].MotorControl.SensorFb.EleSpeed \
 				);
 /*
 		DataRecorder_Routine(\
