@@ -33,7 +33,7 @@ void DataRecorder_Routine ( float Data0, float Data1, float Data2, float Data3 )
     	{
     		i = 0;
     		IsRecordActive = UNUSE_FUNCTION;
-    		DriveFnRegs[98] = 0;
+//    		DriveFnRegs[98] = 0;
     	}
     	else
     	{
