@@ -164,7 +164,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         		if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_END )
         		{
         			PositionCalibration_STOP_IF_Control();
-        			PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_POINTS;
+        			PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_POSITIONING_MECH_ZERO;
         		}
         		else if ( PS_CALI_Vars.Find_Mech_Zero_State == PS_CALI_FIND0_POSITIONING )
         		{
@@ -176,6 +176,13 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         			PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_ERROR;
         		}
         	}
+        	break;
+        }
+        case PS_CALI_LINEAR_SM_POSITIONING_MECH_ZERO:
+        {
+        	Positioning_Cnt = 0;
+        	PositionCalibration_Start_IF_Control(DEFAULT_CURRENT_CMD_FOR_POS_CALI_HIGH);
+        	PS_CALI_Vars.Zero_Offset_State = PS_CALI_LINEAR_SM_FIND_POINTS;
         	break;
         }
         case PS_CALI_LINEAR_SM_FIND_POINTS:
