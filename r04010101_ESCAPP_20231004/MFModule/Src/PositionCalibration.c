@@ -182,7 +182,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         {
         	Positioning_Cnt = 0;
         	PositionCalibration_Start_IF_Control(DEFAULT_CURRENT_CMD_FOR_POS_CALI_HIGH);
-        	PS_CALI_Vars.Zero_Offset_State = PS_CALI_LINEAR_SM_FIND_POINTS;
+        	PS_CALI_Vars.Linear_State = PS_CALI_LINEAR_SM_FIND_POINTS;
         	break;
         }
         case PS_CALI_LINEAR_SM_FIND_POINTS:
