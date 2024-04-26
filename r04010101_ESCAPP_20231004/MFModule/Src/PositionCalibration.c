@@ -195,10 +195,32 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         	{
         		if ( LinearPointNow < 31 )
         		{
-        			LinearPointsMechPosRad[LinearPointNow] = u->MechPosition;
-        			DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] =  LinearElePosCmd[LinearPointNow] ;
-               		LinearPointNow++;
-            		Positioning_Cnt = 0;
+        			static uint8_t SaveFlg = 1;
+        			if ( SaveFlg == 1 )
+        			{
+    				    LinearPointsMechPosRad[LinearPointNow] = u->MechPosition;
+    				    SaveFlg = 0;
+        			}
+        			if ( LinearElePosCmd[LinearPointNow] > DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] )
+        			{
+        				DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] += ROTATE_STEPS_FOR_ELE_POS;
+        				DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = ( DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] >= \
+        						LinearElePosCmd[LinearPointNow] ) ? LinearElePosCmd[LinearPointNow] : DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ];
+        			}
+        			else if ( LinearElePosCmd[LinearPointNow] < DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] )
+        			{
+        				DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] += ROTATE_STEPS_FOR_ELE_POS;
+        				if ( DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] > 62831)
+        				{
+        					DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] - 62832;
+        				}
+        			}
+        			else
+        			{
+        				SaveFlg = 1;
+                   		LinearPointNow++;
+                		Positioning_Cnt = 0;
+        			}
         		}
         		else
         		{
