@@ -8,6 +8,11 @@
 #include "PositionSensor.h"
 
 static void PositionSensor_ReadPosViaPWM(PS_t* v);
+static float ABZtoMechPos[4096] = ABZtoMechPos_Default;
+uint16_t tempABZ = 0;
+float tempMechPosition = 0.0f;
+//
+
 
 void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCompCoefBySpeed)
 {
@@ -88,7 +93,19 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 {
 	float tempMechPosCompensation = 0.0f;
 	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
+	tempABZ = v->CntFromABZ & 0x0FFF;
+
+#if 1 // use debug
+	// debug linear table mapping ABZ to calibration value;
+	tempMechPosition = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION + tempMechPosCompensation + v->MechPosZeroOffset;
+	v->MechPosition = ABZtoMechPos[tempABZ];
+#else // normal
+	// debug linear table mapping ABZ to calibration value;
+	tempMechPosition = ABZtoMechPos[tempABZ];
+
 	v->MechPosition = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION + tempMechPosCompensation + v->MechPosZeroOffset;
+#endif
+
 	if ( v->MechPosition >= _2PI )
 	{
 		v->MechPosition = v->MechPosition - _2PI;
