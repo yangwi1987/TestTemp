@@ -322,6 +322,20 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
+#if USE_MOTOR_CTRL_DEBUG
+
+          i16Temp = (int16_t)(v->Debugf[IDX_ID_ERR]*50.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo8.IdErr, (void*)&i16Temp, 2);
+
+          i16Temp = (int16_t)(v->Debugf[IDX_IQ_ERR]*50.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo8.IqErr, (void*)&i16Temp, 2);
+
+          i16Temp = (int16_t)(v->Debugf[IDX_DCP_D_ERR]*50.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo8.DCP_D_Err, (void*)&i16Temp, 2);
+
+          i16Temp = (int16_t)(v->Debugf[IDX_DCP_Q_ERR]*50.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo8.DCP_Q_Err, (void*)&i16Temp, 2);
+#else
           i16Temp = (int16_t)(v->Debugf[IDX_IU_FBK]*40.0f);
           ByteOrderReverse((void*)&p->InvLogInfo8.IuFbk, (void*)&i16Temp, 2);
 
@@ -333,6 +347,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
 
           i16Temp = (int16_t)(v->Debugf[IDX_PREC]*10.0f);
           ByteOrderReverse((void*)&p->InvLogInfo8.PreC, (void*)&i16Temp, 2);
+#endif
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
       else

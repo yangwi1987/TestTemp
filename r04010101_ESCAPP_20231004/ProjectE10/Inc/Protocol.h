@@ -245,6 +245,14 @@ typedef struct
   uint8_t ServoOnOffState;
   uint8_t Reserved;
 } CanTxMsg_InvLogInfo7_t;
+
+typedef struct
+{
+  int16_t IdErr;     /* unit : 0.02A */
+  int16_t IqErr;     /* unit : 0.02A */
+  int16_t DCP_D_Err;     /* unit : 0.02A */
+  int16_t DCP_Q_Err;      /* unit : 0.02A */
+} CanTxMsg_InvLogInfo8_t;
 #else
 typedef struct
 {
@@ -284,7 +292,7 @@ typedef struct
   uint8_t HWID_ID1Last4bits:4;            /* HWID 1 last 4 bits   */
   uint8_t HWID_ID2Last8bits;			  /* HWID 2 last 8 bits */
 } CanTxMsg_InvLogInfo7_t;
-#endif
+
 typedef struct
 {
   int16_t IuFbk;     /* unit : 0.02A */
@@ -292,7 +300,7 @@ typedef struct
   int16_t IwFbk;     /* unit : 0.02A */
   uint16_t PreC;      /* unit : 0.1V */
 } CanTxMsg_InvLogInfo8_t;
-
+#endif
 typedef struct
 {
   uint8_t AccPedal2Volt;    /* unit: 0.02V */

@@ -156,7 +156,10 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_DCP_D] = v->MotorControl.CurrentControl.Decoupling.PIDWayId.Output;
         v->pCANTxInterface->Debugf[IDX_DCP_Q] = v->MotorControl.CurrentControl.Decoupling.PIDWayIq.Output;
         v->pCANTxInterface->Debugf[IDX_VS] = v->MotorControl.VoltCmd.VcmdAmp;
-
+        v->pCANTxInterface->Debugf[IDX_ID_ERR] = v->MotorControl.CurrentControl.IdRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_IQ_ERR] = v->MotorControl.CurrentControl.IqRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_DCP_D_ERR] = v->MotorControl.CurrentControl.Decoupling.PIDWayId.Error;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q_ERR] = v->MotorControl.CurrentControl.Decoupling.PIDWayIq.Error;
 #endif
     }
 

@@ -355,6 +355,10 @@ typedef enum DebugFloatIdx_e
   IDX_DCP_D,
   IDX_DCP_Q,
   IDX_VS,
+  IDX_ID_ERR,
+  IDX_IQ_ERR,
+  IDX_DCP_D_ERR,
+  IDX_DCP_Q_ERR,
 #endif
 
   IDC_DEBUG_FLOAT_MAX = 64, /* no more than this value*/
