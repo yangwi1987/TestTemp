@@ -23,7 +23,11 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
 
 const CANProtocol ExtranetInformInSystemTableExample =
 {
+#if USE_MOTOR_CTRL_DEBUG
+  20,
+#else
   50,
+#endif
   10,
   {
 	  CANTXID_INV_LOG_INFO_0, CANTXID_INV_LOG_INFO_1, CANTXID_INV_LOG_INFO_2, CANTXID_INV_LOG_INFO_3, CANTXID_INV_LOG_INFO_4,
@@ -236,6 +240,19 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
+#if USE_MOTOR_CTRL_DEBUG
+        i16Temp = (int16_t)(v->Debugf[IDX_ID_CMD_ORI]*10.0f);
+        ByteOrderReverse((void*)&p->InvLogInfo6.IdCmdOriI16, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_IQ_CMD_ORI]*10.0f);
+        ByteOrderReverse((void*)&p->InvLogInfo6.IqCmdOriI16, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_VD_ORI]*100.0f);
+        ByteOrderReverse((void*)&p->InvLogInfo6.VdOriI16, (void*)&i16Temp, 2);
+
+        i16Temp = (int16_t)(v->Debugf[IDX_VD_ORI]*100.0f);
+        ByteOrderReverse((void*)&p->InvLogInfo6.VqOriI16, (void*)&i16Temp, 2);
+#else
         /*todo: assign true value for signals*/
         i16Temp = (int16_t)(v->Debugf[IDX_AVERAGE_AC_POWER]);
         ByteOrderReverse((void*)&p->InvLogInfo6.AvgPwr , (void*)&i16Temp, 2);
@@ -256,6 +273,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
         p->InvLogInfo6.ISenUFaultDI = (uint8_t)HAL_GPIO_ReadPin(ISEN_UFault_DI_GPIO_Port, ISEN_UFault_DI_Pin);
         p->InvLogInfo6.ISenVFaultDI = (uint8_t)HAL_GPIO_ReadPin(ISEN_VFault_DI_GPIO_Port, ISEN_VFault_DI_Pin);
         p->InvLogInfo6.ISenWFaultDI = (uint8_t)HAL_GPIO_ReadPin(ISEN_WFault_DI_GPIO_Port, ISEN_WFault_DI_Pin);
+#endif
       }
       else
       {
@@ -267,6 +285,19 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
+#if USE_MOTOR_CTRL_DEBUG
+
+          i16Temp = (int16_t)(v->Debugf[IDX_VS]*100.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo7.Vs, (void*)&i16Temp, 2);
+
+          i16Temp = (int16_t)(v->Debugf[IDX_DCP_D]*100.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo7.DCP_D, (void*)&i16Temp, 2);
+
+          i16Temp = (int16_t)(v->Debugf[IDX_DCP_Q]*100.0f);
+          ByteOrderReverse((void*)&p->InvLogInfo7.DCP_Q, (void*)&i16Temp, 2);
+
+    	  p->InvLogInfo7.ServoOnOffState = v->ServoOnOffState;
+#else
     	  p->InvLogInfo7.MainBatSoc = BatStation.SocGet(BAT_INSTANCE_MAIN);
     	  p->InvLogInfo7.ServoOnOffState = v->ServoOnOffState;
     	  p->InvLogInfo7.BatMainSm = BatStation.MainSMGet();
@@ -278,6 +309,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     	  p->InvLogInfo7.HWID_ID1Last4bits = (uint8_t)( v->HWID[0] & 0x00F );
     	  p->InvLogInfo7.HWID_ID2First4bits = (uint8_t)( v->HWID[1] >> 8 );
     	  p->InvLogInfo7.HWID_ID2Last8bits = (uint8_t)( v->HWID[1] & 0xFF );
+#endif
         v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 1;
       }
       else

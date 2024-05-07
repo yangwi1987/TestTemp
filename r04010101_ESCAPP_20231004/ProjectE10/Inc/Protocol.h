@@ -228,6 +228,24 @@ typedef struct
   uint8_t AlarmCode[8];     /* Alarm code list in order of detected time, refer to "ALARMID_XXxxXXxx" defined in AlramTable.h */
 } CanTxMsg_InvLogInfo5_t;
 
+#if USE_MOTOR_CTRL_DEBUG
+typedef struct
+{
+  int16_t IdCmdOriI16;       /* unit : 0.1A */
+  int16_t IqCmdOriI16;       /* unit : 0.1A */
+  int16_t VdOriI16;       /* unit : 0.01V */
+  int16_t VqOriI16;       /* unit : 0.01V */
+} CanTxMsg_InvLogInfo6_t;
+
+typedef struct
+{
+  int16_t Vs;       /* unit : 0.01V */
+  int16_t DCP_D;       /* unit : 0.01V */
+  int16_t DCP_Q;       /* unit : 0.01V */
+  uint8_t ServoOnOffState;
+  uint8_t Reserved;
+} CanTxMsg_InvLogInfo7_t;
+#else
 typedef struct
 {
   int16_t InstPwr;          /* unit: W, instant output power */
@@ -266,7 +284,7 @@ typedef struct
   uint8_t HWID_ID1Last4bits:4;            /* HWID 1 last 4 bits   */
   uint8_t HWID_ID2Last8bits;			  /* HWID 2 last 8 bits */
 } CanTxMsg_InvLogInfo7_t;
-
+#endif
 typedef struct
 {
   int16_t IuFbk;     /* unit : 0.02A */

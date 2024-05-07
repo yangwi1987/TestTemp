@@ -148,6 +148,16 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->HWID[1] = v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[HW_ID2].AdcGroupIndex][v->pAdcStation->RegCh[HW_ID2].AdcRankIndex];
         v->pCANTxInterface->ServoOnOffState = v->ServoOnOffState;
 //        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
+#if USE_MOTOR_CTRL_DEBUG
+        v->pCANTxInterface->Debugf[IDX_ID_CMD_ORI] = v->MotorControl.Cmd.IdCmd;
+        v->pCANTxInterface->Debugf[IDX_IQ_CMD_ORI] = v->MotorControl.Cmd.IqCmd;
+        v->pCANTxInterface->Debugf[IDX_VD_ORI] = v->MotorControl.CurrentControl.IdRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_VQ_ORI] = v->MotorControl.CurrentControl.IqRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_DCP_D] = v->MotorControl.CurrentControl.Decoupling.PIDWayId.Output;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q] = v->MotorControl.CurrentControl.Decoupling.PIDWayIq.Output;
+        v->pCANTxInterface->Debugf[IDX_VS] = v->MotorControl.VoltCmd.VcmdAmp;
+
+#endif
     }
 
 }

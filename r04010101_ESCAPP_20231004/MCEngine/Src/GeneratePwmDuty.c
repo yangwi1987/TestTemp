@@ -106,7 +106,7 @@ uint16_t GeneratePwmDuty_DutyCommandInit( float PwmPeriod, float DeadTime, float
 		return DUTY_COMMAND_INIT_ERROR_MINTIME_IS_LARGER_PERIOD;
 	}
 
-	p->MinDuty = ( MinTime + DeadTime ) / PwmPeriod;
+	p->MinDuty = 0.0f;//( MinTime + DeadTime ) / PwmPeriod;
 	p->MaxDuty = 1 - p->MinDuty;
 	if ( p->MinDuty > 1.0f)
 	{
