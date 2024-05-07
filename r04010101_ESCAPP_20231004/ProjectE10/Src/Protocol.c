@@ -250,7 +250,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
         i16Temp = (int16_t)(v->Debugf[IDX_VD_ORI]*100.0f);
         ByteOrderReverse((void*)&p->InvLogInfo6.VdOriI16, (void*)&i16Temp, 2);
 
-        i16Temp = (int16_t)(v->Debugf[IDX_VD_ORI]*100.0f);
+        i16Temp = (int16_t)(v->Debugf[IDX_VQ_ORI]*100.0f);
         ByteOrderReverse((void*)&p->InvLogInfo6.VqOriI16, (void*)&i16Temp, 2);
 #else
         /*todo: assign true value for signals*/

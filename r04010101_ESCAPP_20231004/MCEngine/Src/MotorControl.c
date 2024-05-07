@@ -74,18 +74,33 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//PwmMode = PWM_MODE_SVPWM;
 		//Limit voltage command Vdq : 2us = 16.6us-14.6us
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if( p->VoltCmd.VcmdAmp > VsSaturation )
+//		if( p->VoltCmd.VcmdAmp > VsSaturation )
+//		{
+//			float Vgain = 0.0f;
+//			Vgain = VsSaturation / p->VoltCmd.VcmdAmp;
+//			p->VoltCmd.VdCmd *= Vgain;
+//			p->VoltCmd.VqCmd *= Vgain;
+//
+//			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
+//			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
+//			p->CurrentControl.IdRegulator.Ui *= Vgain;
+//			p->CurrentControl.IqRegulator.Ui *= Vgain;
+//
+//		}
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
-			float Vgain = 0.0f;
-			Vgain = VsSaturation / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
+			float VgainSatCmd = 0.0f;
+			float VgainSatFluxWeakening = 0.0f;
 
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
+			VgainSatCmd = VsSaturation / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= VgainSatCmd; // limit to 93.5%
+			p->VoltCmd.VqCmd *= VgainSatCmd; // limit to 93.5%
+			VgainSatFluxWeakening = VgainSatCmd * 1.048f; // limit to 97.988%.
 
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IdRegulator.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Ui *= VgainSatFluxWeakening;
 		}
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
