@@ -15,7 +15,7 @@
 #define DEFAULT_CURRENT_CMD_FOR_POS_CALI_HIGH 1500  //unit 0.1A
 #define DEFAULT_DELAY_TIME_FOR_FIND_MECH_ZERO 2000 // uint: ms
 #define DEFAULT_DELAY_TIME_FOR_POSITIONING_MECH_ZERO 5000 // uint: ms
-#define ROTATE_STEPS_FOR_ELE_POS 500
+#define ROTATE_STEPS_FOR_ELE_POS 100
 #define ROTATE_ELE_POS_PER_MS ( _2PI * 10000.0f / (float)ROTATE_STEPS_FOR_ELE_POS )
 #define MECH_ZERO_UP_BONDARY ( _2PI / DEFAULT_POLE_PAIRS / 2.0f )
 #define MECH_ZERO_LOW_BONDARY ( _2PI - MECH_ZERO_UP_BONDARY)
@@ -63,7 +63,14 @@ typedef enum
 	PS_CALI_SEL_NONE = 0,
 	PS_CALI_SEL_AUTO_ZERO_OFFSET,
 	PS_CALI_SEL_LINEARIZATION,
+	PS_CALI_SEL_MANUALL_LINEARIZATION,
 }PS_CALI_SEL_e;
+
+typedef enum
+{
+	PS_CALI_WAIT_NEXT_NONE = 0,
+	PS_CALI_WAIT_NEXT_RELEASE_CALI_SEL,
+}PS_CALI_WAIT_NEXT_e;
 
 typedef struct
 {
@@ -73,6 +80,7 @@ typedef struct
 	PS_CALI_FIND0_SM_e Find_Mech_Zero_State;
 	PS_CALI_ROTATE_DIR_e Rotate_Direction;
 	uint8_t Positioning_Trying_Cnt;
+	PS_CALI_WAIT_NEXT_e WaitNextStep;
 }PS_CALI_t;
 
 #define PS_CALI_DEFAULT {\
@@ -82,6 +90,7 @@ typedef struct
 		PS_CALI_FIND0_NONE,\
 		UP,\
 		0,\
+		PS_CALI_WAIT_NEXT_NONE,\
 }
 
 extern 	float LinearPointsMechPosRad[32];
