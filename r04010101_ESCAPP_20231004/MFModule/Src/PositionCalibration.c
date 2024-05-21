@@ -224,7 +224,7 @@ static void PositionCalibration_Linear_Process(PS_t *u )
         				DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] += ROTATE_STEPS_WHEN_LINEARIZATION;
         				if ( DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] > 62831)
         				{
-        					DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = 0;
+        					DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] - 62832;
         				}
         			}
         			else
@@ -267,13 +267,34 @@ static void PositionCalibration_Manual_Linear_Process(PS_t *u )
 {
 	static uint16_t Positioning_Cnt = 0;
 	static uint8_t LinearPointNow = 0;
+	static uint16_t RotatetoZeroCnt = 0;
     switch ( PS_CALI_Vars.Manual_Linear_State )
     {
         case PS_CALI_MANUAL_LINEAR_SM_NONE:
         {
         	u->MechPosZeroOffset = 0.0f;
         	PositionCalibration_Start_IF_Control(DEFAULT_CURRENT_CMD_FOR_POS_CALI_HIGH);
-        	PS_CALI_Vars.Manual_Linear_State = PS_CALI_MANUAL_LINEAR_SM_POSITIONING;
+        	PS_CALI_Vars.Manual_Linear_State = PS_CALI_MANUAL_LINEAR_SM_ROTATE_TO_ZERO;
+        	break;
+        }
+        case PS_CALI_MANUAL_LINEAR_SM_ROTATE_TO_ZERO:
+        {
+        	RotatetoZeroCnt++;
+        	if ( RotatetoZeroCnt <= 100 )
+        	{
+        		DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] += ROTATE_STEPS_WHEN_LINEARIZATION;
+        	}
+        	else if ( RotatetoZeroCnt <= 200 )
+        	{
+        		DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] -= ROTATE_STEPS_WHEN_LINEARIZATION;
+        	}
+        	else
+        	{
+        		DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] = 0;
+        		RotatetoZeroCnt = 0;
+            	PS_CALI_Vars.Manual_Linear_State = PS_CALI_MANUAL_LINEAR_SM_POSITIONING;
+        	}
+
         	break;
         }
         case PS_CALI_MANUAL_LINEAR_SM_POSITIONING:
