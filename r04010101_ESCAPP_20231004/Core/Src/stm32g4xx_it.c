@@ -471,12 +471,12 @@ void TIM7_DAC_IRQHandler(void)
 #if MEASURE_CPU_LOAD
     Max_100Hz_Load_pct = ((float)Max_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
     Max_PLCLoop_Load_pct = ((float)Max_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
-    Max_CurrentLoop_Load_pct = ((float)Max_CurrentLoop_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
+    Max_CurrentLoop_Load_pct = ((float)Max_CurrentLoop_Cnt * (float)INITIAL_CURRENT_LOOP_FREQ / 1700000.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
 
     Ave_100Hz_Cnt = Ave_100Hz_Cnt - aveLoad_filter_coef * 100.0f* ( Ave_100Hz_Cnt - (float)( EndTimeStamp - CurrentTimeStamp ) );
     Ave_100Hz_Load_pct = ((float)Ave_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
     Ave_PLCLoop_Load_pct = ((float)Ave_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
-    Ave_CurrentLoop_Load_pct = ((float)Ave_CurrentLoop_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
+    Ave_CurrentLoop_Load_pct = ((float)Ave_CurrentLoop_Cnt * (float)INITIAL_CURRENT_LOOP_FREQ / 1700000.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
 #endif
 
   /* USER CODE END TIM7_DAC_IRQn 1 */
