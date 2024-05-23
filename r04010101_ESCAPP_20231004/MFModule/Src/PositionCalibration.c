@@ -305,7 +305,7 @@ static void PositionCalibration_Manual_Linear_Process(PS_t *u )
         }
         case PS_CALI_MANUAL_LINEAR_SM_ROTATING:
         {
-            if ( LinearPointNow < 32 )
+            if ( LinearPointNow < 31 )
             {
             	if ( LinearElePosCmd[LinearPointNow] > DriveFnRegs[ FN_OPEN_POSITION_CMD - FN_BASE ] )
             	{
