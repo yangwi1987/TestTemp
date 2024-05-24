@@ -92,6 +92,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
 __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) PositionSensor_ReadPosViaABZ(PS_t* v)
 {
 	float tempMechPosCompensation = 0.0f;
+	static float oldMechSpeedRaw = 0.0f;
 	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
 //	tempABZ = v->CntFromABZ & 0x0FFF;
 //	tempMechPosition = ABZtoMechPos[tempABZ];
@@ -125,6 +126,11 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 				                                ( v->MechPosition - v->PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
 												( v->MechPosition - v->PreMechPosition - _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
 	}
+
+
+
+	v->MechSpeedRaw = ABS(v->MechSpeedRaw) > DEFAULT_ABNORMAL_SPEED ? oldMechSpeedRaw : v->MechSpeedRaw;
+	oldMechSpeedRaw = v->MechSpeedRaw;
 
 	v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(v->CalcMechSpeedLPF), v->MechSpeedRaw);
 
