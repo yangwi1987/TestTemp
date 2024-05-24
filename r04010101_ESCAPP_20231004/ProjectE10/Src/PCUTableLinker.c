@@ -123,14 +123,14 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			TIM_BREAKINPUTSOURCE_ENABLE,		\
 			TIM_BREAKINPUTSOURCE_POLARITY_LOW,	/*BKINP = 1 (low active)*/\
 			TIM_OCMODE_PWM2,	/*no use*/		\
-			8501, /*	InitDutyCntChU	*/		\
+			(uint16_t)(((float)SYSTEM_CLK_FREQ/(float)INITIAL_CURRENT_LOOP_FREQ/2.0f) + 0.5f) + 1, /*	InitDutyCntChU	*/		\
 			TIM_OCPOLARITY_LOW,	/*CC1P=1 => low active*/ \
 			TIM_OCNPOLARITY_LOW, /*CC1NP=1 => low active*/ \
 			TIM_OCFAST_DISABLE,					\
 			TIM_OCIDLESTATE_RESET,				\
 			TIM_OCNIDLESTATE_RESET,				\
-			8501, /*	InitDutyCntChV	*/		\
-			8501, /*	InitDutyCntChW	*/		\
+			(uint16_t)(((float)SYSTEM_CLK_FREQ/(float)INITIAL_CURRENT_LOOP_FREQ/2.0f) + 0.5f) + 1, /*	InitDutyCntChV	*/		\
+			(uint16_t)(((float)SYSTEM_CLK_FREQ/(float)INITIAL_CURRENT_LOOP_FREQ/2.0f) + 0.5f) + 1, /*	InitDutyCntChW	*/		\
 			TIM_OSSR_DISABLE,					\
 			TIM_OSSI_DISABLE,					\
 			TIM_LOCKLEVEL_OFF,					\

@@ -22,6 +22,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 {
 
 	float VbusLimit = 0.0f;
+	float VsSaturation = 0.0f;
 	float DevideVbus = 0.0f;
 	float SinValue = 0.0f;
 	float CosValue = 0.0f;
@@ -31,6 +32,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 
 	DevideVbus = 1.0f / p->SensorFb.Vbus;
 	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
+	VsSaturation = 0.577350269f * (p->SensorFb.Vbus * ( 1.0f - (( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime * 2 ) * p->CurrentControl.PwmHz )));
 	if (( FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL ))
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
@@ -72,18 +74,33 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//PwmMode = PWM_MODE_SVPWM;
 		//Limit voltage command Vdq : 2us = 16.6us-14.6us
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if( p->VoltCmd.VcmdAmp > VbusLimit )
+//		if( p->VoltCmd.VcmdAmp > VsSaturation )
+//		{
+//			float Vgain = 0.0f;
+//			Vgain = VsSaturation / p->VoltCmd.VcmdAmp;
+//			p->VoltCmd.VdCmd *= Vgain;
+//			p->VoltCmd.VqCmd *= Vgain;
+//
+//			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
+//			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
+//			p->CurrentControl.IdRegulator.Ui *= Vgain;
+//			p->CurrentControl.IqRegulator.Ui *= Vgain;
+//
+//		}
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
+			float VgainSatCmd = 0.0f;
+			float VgainSatFluxWeakening = 0.0f;
 
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
+			VgainSatCmd = VsSaturation / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= VgainSatCmd; // limit to 93.5%
+			p->VoltCmd.VqCmd *= VgainSatCmd; // limit to 93.5%
+			VgainSatFluxWeakening = VgainSatCmd * 1.048f; // limit to 97.988%.
 
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IdRegulator.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Ui *= VgainSatFluxWeakening;
 		}
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
@@ -92,13 +109,13 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) * p->CurrentControl.PwmHz;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
+//		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) * p->CurrentControl.PwmHz;
+//		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+//		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+//		{
+//			p->PwmDutyCmd.MaxDuty = 1.0f;
+//			p->PwmDutyCmd.MinDuty = 0.0f;
+//		}
 
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
@@ -151,10 +168,10 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
 			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
+			Vgain = VsSaturation / p->VoltCmd.VcmdAmp;
 			p->VoltCmd.VdCmd *= Vgain;
 			p->VoltCmd.VqCmd *= Vgain;
 
@@ -170,13 +187,13 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
+//		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+//		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+//		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+//		{
+//			p->PwmDutyCmd.MaxDuty = 1.0f;
+//			p->PwmDutyCmd.MinDuty = 0.0f;
+//		}
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
 		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
@@ -199,10 +216,10 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->VoltCmd.VqCmd = p->VfControl.VoltAmp;
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
 			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
+			Vgain = VsSaturation / p->VoltCmd.VcmdAmp;
 			p->VoltCmd.VdCmd *= Vgain;
 			p->VoltCmd.VqCmd *= Vgain;
 
@@ -217,13 +234,13 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
+//		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+//		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+//		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+//		{
+//			p->PwmDutyCmd.MaxDuty = 1.0f;
+//			p->PwmDutyCmd.MinDuty = 0.0f;
+//		}
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
 		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
@@ -400,8 +417,8 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_SIX_WAVE;
 
 	//Decoupling
-	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IqRegulator.Kp, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
-	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IdRegulator.Kp, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
+	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IqRegulator.Kp/3, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
+	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IdRegulator.Kp/3, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
 
 	//Compensation Deadtime
 	p->CompDuty.Init(&(p->CompDuty),0.0125f,5.0f,0.0125f,5.0f);

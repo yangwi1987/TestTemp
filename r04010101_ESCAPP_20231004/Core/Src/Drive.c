@@ -2363,8 +2363,15 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 				AdcStation1.AdcTraOut.Iu[0], \
 				AdcStation1.AdcTraOut.Iv[0], \
 				AdcStation1.AdcTraOut.Iw[0], \
-				AdcStation1.AdcTraOut.BatVdc \
+				(1.732050808f * Axis[0].MotorControl.VoltCmd.VcmdAmp / Axis[0].MotorControl.SensorFb.Vbus) \
 				);
+
+//		DataRecorder_Routine(\
+//				Axis[0].MotorControl.CurrentControl.IdCmd,\
+//				Axis[0].MotorControl.CurrentControl.RotorCurrFb.D,\
+//				Axis[0].MotorControl.CurrentControl.IqCmd,\
+//				Axis[0].MotorControl.CurrentControl.RotorCurrFb.Q\
+//				);
 #endif
 }
 
