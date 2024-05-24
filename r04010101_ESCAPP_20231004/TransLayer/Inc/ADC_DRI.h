@@ -8,8 +8,6 @@
 #include "main.h"
 #include "stm32g4xx_hal.h"
 #include "PCUTableLinker.h"
-#include "Constant.h"
-#include "MathFunctionInclude.h"
 
 #ifndef ADC_DRI_H_
 #define ADC_DRI_H_
@@ -207,7 +205,6 @@ typedef struct {
 	uint16_t			  AdcDmaChCnt[ADC_DMA_GROUP_SIZE];
 	uint16_t			  AdcDmaData[ADC_DMA_GROUP_SIZE][ADC_DMA_CHANNEL_SIZE];
 	uint16_t			  *pTempADCValue[THERMAL_CHANNEL_SIZE];				// Temperature ADC pointer
-	FILTER_BILINEAR_1ORDER_TYPE ThrotAdcFilter;
 	float			  ThrotADCRawRatio;
 	uint16_t			  NTCIsAbnormal;
 	functypeAdcStation_Init	Init;
@@ -267,7 +264,6 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	 {0,0,0,0,0,0,0,0}, \
 	 {0,0,0,0,0,0,0,0}}, \
 	 {0,0,0,0,0,0,0,0,0,0,0}, \
-	 FILTER_BILINEAR_1ORDER_DEFAULT, \
 	 0.0f, \
 	 0, \
 	(functypeAdcStation_Init)AdcStation_Init, \

@@ -9,7 +9,6 @@
 #ifndef INC_PCUTABLELINKER_H_
 #define INC_PCUTABLELINKER_H_
 
-#include "ParamTable.h"
 #include "ADC_Init_Table.h"
 #include "PWM_Init_Table.h"
 
@@ -30,7 +29,6 @@ typedef struct
 	PWM_TIM_INIT_PARA Pwm_Tim_Initializer_Axis1;							// 88 Bytes
 	uint16_t Reserved_Pwm[128];												// 256 Bytes
 	uint16_t Reserved_PcuTable[1298];										// 2596 Bytes + 48 Bytes
-	ParamTableInfo_t PcuParamTableInfoArray[PCU_PARAM_SIZE];				// 4000 Bytes
 	uint16_t Reserved_PcuParam[47];											// 94 Bytes
 	uint16_t CheckWord;														// 2 Bytes
 } PCU_Table_t_Linker;

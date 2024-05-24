@@ -9,7 +9,6 @@
 #define INC_ICANINTERFACE_H_
 
 #include "stdio.h"
-#include "AlarmMgr.h"
 #include "Protocol.h"
 
 #define ID_MATCH	0
@@ -330,7 +329,7 @@ typedef struct
 	uint8_t ServoOnOffState;
 	uint16_t HWID[2];
 	BmsCtrlCmd_t BmsCtrlCmd;
-	AlarmStack_t *pAlarmStack;
+	uint32_t *pAlarmStack;
 } STRUCT_CANTxInterface;
 
 typedef uint8_t (*pRxTranslate)( uint32_t, uint8_t*, void *, void *);

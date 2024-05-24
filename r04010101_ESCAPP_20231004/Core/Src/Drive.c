@@ -6,11 +6,8 @@
  */
 
 #include "UtilityBase.h"
-#include "UiApp.h"
 #include "Drive.h"
 
-
-DriveParams_t DriveParams;
 PwmStation PwmStation1 = PWM_STATION_DEFAULT;
 AdcStation AdcStation1 = ADC_STATION_DEFAULT;
 ExtranetCANStation_t ExtranetCANStation = EXTRANET_CAN_STATION_DEFAULT;
@@ -82,7 +79,6 @@ void DisableMcuModule( void )
 //	__HAL_RCC_USART2_FORCE_RESET();
 
 	//SPI
-	HAL_SPI_MspDeInit(&hspi1);
 	__HAL_RCC_SPI1_FORCE_RESET();
 
 	/*

@@ -7,8 +7,6 @@
 #if E10
 #include "Protocol.h"
 #include "ICANInterface.h"
-#include <BatCtrl.h>
-#include "E10App.h"
 //uint8_t VcuEnableFlag=0;
 /*
  * "ExtranetInformInSystemTableExample" will be stored in system table bin
@@ -65,27 +63,7 @@ void ByteOrderReverse(void *Dest, void *Src, uint8_t Size)
 
 uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
 {
-  uint8_t	lStatus=ID_MATCH;
 
-
-  if(IdIn>=CAN_ID_DEV_CMD_START && IdIn <= CAN_ID_DEV_CMD_END)
-  {
-	  switch (IdIn)
-	  {
-	  	  case CAN_ID_DEV_CMD_START:
-
-	  		  break;
-
-	  	  default:
-	  		  break;
-	  }
-  }
-  else
-  {
-	  BatStation.CanMsgLoad(IdIn, pDataIn);
-	  v->ReceivedCANID |= RECEIVED_BAT_ID_1;
-  }
-  return lStatus;
 }
 
 uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
@@ -93,8 +71,6 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
   uint8_t	lStatus = ID_MATCH;
   InvCanTxCmd_t *p;
   uint8_t lIdx = 0;
-  uint16_t u16Temp=0;
-  int16_t i16Temp=0;
 
   v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] = 1;
   for(lIdx=0; lIdx < 8; lIdx++)

@@ -164,11 +164,7 @@ void AdcStation_Init( AdcStation *v )
 	/*
 	 * Throttle ADC filter Initial
 	 */
-	FILTER_INIT_BILINEAR_1ORDER_TYPE FilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
-	FilterSettingTmp.BandwithHz = 10.0f;
-	FilterSettingTmp.Period = 0.0001f;
-	FilterSettingTmp.Type = FILTER_TYPE_LPF;
-	Filter_Bilinear1OrderInit( &(v->ThrotAdcFilter), &FilterSettingTmp );
+
 }
 
 void AdcStation_ZeroCalibInjectionGroup( AdcStation *v )
