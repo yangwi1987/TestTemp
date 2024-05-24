@@ -36,28 +36,7 @@ const CANProtocol ExtranetInformInSystemTableExample =
  * "LscCanIdTableExtra" will be stored in system table bin
  */
 const CanIdConfig_t CanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
-{
-  //	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
-  {CAN_ID_BMS_FILTER,	CAN_ID_BMS_MASK,	{{(uint8_t)FDCAN_FILTER_MASK,CAN_ID_CONIFG_TYPE_EXTENDED,CAN_ID_CONFIG_USED,0,0}}},
-  {CAN_ID_DEV_CMD_START,	CAN_ID_DEV_CMD_END,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_EXTENDED,CAN_ID_CONFIG_USED,0,0}}},
-  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-  {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
-};
-
-
-void ByteOrderReverse(void *Dest, void *Src, uint8_t Size)
-{
-  uint8_t EndIdx = Size - 1;
-
-  for(uint8_t i = 0; i < Size; i++)
-  {
-    *(uint8_t*)(Dest + i) = *(uint8_t*)(Src + EndIdx - i);
-  }
-}
-
-
+{0};
 
 
 
@@ -72,7 +51,6 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
   InvCanTxCmd_t *p;
   uint8_t lIdx = 0;
 
-  v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] = 1;
   for(lIdx=0; lIdx < 8; lIdx++)
   {
     *(pDataIn+lIdx) = 0;	//clear input buffer
@@ -84,13 +62,6 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
   {
     case CANTXID_INV_LOG_INFO_0:
     {
-      if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 0)
-      {
-        lStatus = ID_NO_MATCH;
-        break;
-      }
-
-      v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_SAMPLE_FLAG] = 0;
       p->InvLogInfo0.IU_ADC = (uint16_t)(v->Debugf[IDX_IU_FBK]);
       p->InvLogInfo0.IV_ADC = (uint16_t)(v->Debugf[IDX_IV_FBK]);
       p->InvLogInfo0.IW_ADC = (uint16_t)(v->Debugf[IDX_IW_FBK]);

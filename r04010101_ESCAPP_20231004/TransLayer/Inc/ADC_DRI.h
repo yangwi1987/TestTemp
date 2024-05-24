@@ -138,51 +138,8 @@ typedef union{
 	0.0f	\
 }	\
 
-#define ADC_TRA_DATA_DEFAULT { \
-	{0.0, 0.0},         /*Iu[2];      */\
-	{0.0, 0.0},         /*Iv[2];      */\
-	{0.0, 0.0},         /*Iw[2];      */\
-	0.0,                /*BatVdc;     */\
-	0.0,                /*Idc;        */\
-	0.0,                /*HwID1;      */\
-	0.0,                /*HwID2;      */\
-	0.0,                /*ES5V;       */\
-	0.0,                /*E5V;        */\
-	0.0,                /*EA5V;       */\
-	0.0,                /*PreC;       */\
-	0.0,                /*S13V8;      */\
-	0.0,                /*Pedal_V1;   */\
-	0.0,                /*Pedal_V2;   */\
-	{0.0f, 0.0f, 0.0f}, /*PCU_NTC[3]; */\
-	0.0f,               /*MOTOR_NTC;  */\
-    0.0f,               /*MOTOR_NTC_1;*/\
-    0.0f,               /*MOTOR_NTC_2;*/\
-	0.0f                /*Throttle;   */\
-	}
 
 typedef struct {
-	uint16_t NTCID;
-	uint16_t ReplaceID;
-	float *Temperature;
-	float *ReplaceTemperature;
-	float p0;
-	float p1;
-} NTC_BREAK_REPLACE_t;
-
-#define NTC_BREAK_REPLACE_DEFAULT { \
-	0,		\
-	0,		\
-	0,		\
-	0,		\
-	0.0f,	\
-	0.0f,	\
-}
-
-typedef struct {
-	uint16_t 			  AdcState;									// Indicating ADC status
-	uint16_t			  ThermoTraIndex;							// A ring queue index indicating the current processing thermo channel
-	uint16_t			  ThermoADCCatcher;							// Catch temperature ADC every 10ms
-	uint16_t			  ThermoADCCatchValue[THERMAL_CHANNEL_SIZE];// Catch temperature ADC every 10ms
 	uint16_t			  ZeroCalibInjChCount;						// Record the total injection group channels that need zero calibration
 	uint16_t			  ZeroCalibInjDone;							// All the injection group channels that need zero calibration done
 	uint16_t			  ZeroCalibRegChCount;						// Record the total regular group channels that need zero calibration
@@ -191,29 +148,18 @@ typedef struct {
 	uint16_t			  AdcRegGroup;								// A flag recording which ADC regular group had done in that system loop interrupt
 	uint16_t			  AdcInjGroupFlag;							// A flag recording all the ADC injection group that need to be done in current loop
 	uint16_t			  AdcRegGroupFlag;							// A flag recording all the ADC regular group that need to be done in current loop
-	ADC_EXE_TYPE_DEFINE   AdcExeGain[CURRENT_LOOP_CHANNEL_SIZE];	// Execution Gain Point U, V, W
-	uint16_t		      AdcExeZeroP[CURRENT_LOOP_CHANNEL_SIZE]; 	// Execution Zero Point U, V, W
-	ADC_EXE_TYPE_DEFINE	  AdcExeThrotGain;							// Execution Throt Gain
-	float			      AdcExeThrotZero;							// Execution Throt Zero
-	float		    	  AdcExeThrotMax;							// Execution Throt Max
 	ADC_INJ_GROUP_CHANNEL InjCh[CURRENT_LOOP_CHANNEL_SIZE];			// Record injection channel informations from table at initial
 	ADC_REG_GROUP_CHANNEL RegCh[PLC_LOOP_CHANNEL_SIZE];				// Record regular channel informations from table at initial
 	ADC_THERMO_CHANNEL	  ThermoCh[THERMAL_CHANNEL_SIZE];			// Record thermo channel informations from table at initial
-	NTC_CURVE_GAIN		  NTCTable[NTC_TYPE_NUMBER];				// Record thermo tables at initial
-	ADC_TRA_DATA		  AdcTraOut;								// Output: Adc values after  transition
 	ADC_CH_RAW_DATA		  AdcRawData;								// Record Adc raw data
 	uint16_t			  AdcDmaChCnt[ADC_DMA_GROUP_SIZE];
 	uint16_t			  AdcDmaData[ADC_DMA_GROUP_SIZE][ADC_DMA_CHANNEL_SIZE];
 	uint16_t			  *pTempADCValue[THERMAL_CHANNEL_SIZE];				// Temperature ADC pointer
-	float			  ThrotADCRawRatio;
 	uint16_t			  NTCIsAbnormal;
 	functypeAdcStation_Init	Init;
-	functypeAdcStation_DoCurrentLoop DoCurrentLoop;
 	functypeAdcStation_MarkInjectionGroupReadFlag MarkInjectionGroupReadFlag;
 	functypeAdcStation_MarkRegularGroupReadFlag MarkRegularGroupReadFlag;
 	functypeAdcStation_ReadInjectionGroupValue ReadInjectionGroupValue;
-	functypeAdcStation_DoPLCLoop DoPLCLoop;
-	functypeAdcStation_Do100HzLoop Do100HzLoop;
 } AdcStation;
 
 void AdcStation_Init( AdcStation *v );
@@ -222,17 +168,9 @@ void AdcStation_ZeroCalibRegularGroup( AdcStation *v );
 void AdcStation_MarkInjectionGroupReadFlag( AdcStation *v, ADC_HandleTypeDef* hadc );
 void AdcStation_MarkRegularGroupReadFlag( AdcStation *v, ADC_HandleTypeDef* hadc );
 void AdcStation_ReadInjectionGroupValue( AdcStation *v, ADC_HandleTypeDef* hadc );
-float AdcStation_DoThermoTransition( AdcStation *v );
-void AdcStation_DoCurrentLoop( AdcStation *v );
-void AdcStation_DoPLCLoop( AdcStation *v );
-void AdcStation_Do100HzLoop( AdcStation *v );
 
 
 #define ADC_STATION_DEFAULT { \
-	0, \
-	0, \
-	0, \
-	{0,0,0,0,0,0,0,0,0,0,0}, \
 	0, \
 	0, \
 	0, \
@@ -241,12 +179,6 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	0, \
 	0, \
 	0, \
-	{ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, \
-	ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT, ADC_EXE_TYPE_DEFINE_DEFAULT },	\
-	{0,    0,    0,    0,    0,    0,    0,    0,    0    },	\
-	ADC_EXE_TYPE_DEFINE_DEFAULT,	\
-	0.0f,	\
-	0.0f,	\
 	{ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, \
 	 ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT, ADC_INJ_GROUP_CHANNEL_DEFAULT}, \
 	{ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, \
@@ -254,8 +186,6 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	 ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT, ADC_REG_GROUP_CHANNEL_DEFAULT}, \
 	{ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, \
 	 ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT, ADC_THERMO_CHANNEL_DEFAULT}, \
-	{NTC_CURVE_GAIN_DEFAULT, NTC_CURVE_GAIN_DEFAULT}, \
-	ADC_TRA_DATA_DEFAULT, \
 	ADC_CH_RAW_DATA_DEFAULT, \
 	{0,0,0,0,0}, \
 	{{0,0,0,0,0,0,0,0}, \
@@ -264,15 +194,11 @@ void AdcStation_Do100HzLoop( AdcStation *v );
 	 {0,0,0,0,0,0,0,0}, \
 	 {0,0,0,0,0,0,0,0}}, \
 	 {0,0,0,0,0,0,0,0,0,0,0}, \
-	 0.0f, \
 	 0, \
 	(functypeAdcStation_Init)AdcStation_Init, \
-	(functypeAdcStation_DoCurrentLoop)AdcStation_DoCurrentLoop, \
 	(functypeAdcStation_MarkInjectionGroupReadFlag)AdcStation_MarkInjectionGroupReadFlag, \
 	(functypeAdcStation_MarkRegularGroupReadFlag)AdcStation_MarkRegularGroupReadFlag, \
-	(functypeAdcStation_ReadInjectionGroupValue)AdcStation_ReadInjectionGroupValue, \
-	(functypeAdcStation_DoPLCLoop)AdcStation_DoPLCLoop, \
-	(functypeAdcStation_Do100HzLoop) AdcStation_Do100HzLoop }
+	(functypeAdcStation_ReadInjectionGroupValue)AdcStation_ReadInjectionGroupValue} \
 
 
 
