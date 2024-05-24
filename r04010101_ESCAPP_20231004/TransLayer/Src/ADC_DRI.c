@@ -7,7 +7,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "ADC_DRI.h"
-#include "ConstantParamAndUseFunction.h"
 
 #define RING(X, XMax)		( (X > XMax) ? 0 : X )
 

@@ -104,41 +104,6 @@ typedef struct{
 	ADC_CH_DATA_DEFAULT, ADC_CH_DATA_DEFAULT, ADC_CH_DATA_DEFAULT, ADC_CH_DATA_DEFAULT, ADC_CH_DATA_DEFAULT, \
 	ADC_CH_DATA_DEFAULT, ADC_CH_DATA_DEFAULT, ADC_CH_DATA_DEFAULT} }
 
-typedef struct{
-	float  Iu[2];
-	float  Iv[2];
-	float  Iw[2];
-	float  BatVdc;
-	float  Idc; // no use
-	float  HwID1;
-	float  HwID2;
-	float  ES5V; // sense 5V for monitor voltage source of I2C
-	float  E5V; // sense 5V for monitor voltage source of position sensor
-	float  EA5V; // sense 5V for monitor voltage source of pedal sensor
-	float  PreC; // analog input pin to indicate the precharge finish
-	float  S13V8;
-	float  Pedal_V1;
-	float  Pedal_V2;
-	float  PCU_NTC[3];
-	float  MOTOR_NTC_0;
-	float  MOTOR_NTC_1;
-	float  MOTOR_NTC_2;
-	float  Throttle;
-} ADC_TRA_DATA;
-
-typedef union{
-	float FDta;
-	int16_t	Int16Type[2];
-	uint16_t Uint16Type[2];
-	int8_t Int8Type[4];
-	uint8_t Uint8Type[4];
-}ADC_EXE_TYPE_DEFINE;
-
-#define ADC_EXE_TYPE_DEFINE_DEFAULT {	\
-	0.0f	\
-}	\
-
-
 typedef struct {
 	uint16_t			  ZeroCalibInjChCount;						// Record the total injection group channels that need zero calibration
 	uint16_t			  ZeroCalibInjDone;							// All the injection group channels that need zero calibration done

@@ -61,23 +61,7 @@ uint8_t ExtranetCANStation_ReadRxFIFO( ExtranetCANStation_t *v, uint32_t lFifoN 
 
 uint8_t ExtranetCANStation_RxHandlePacket( ExtranetCANStation_t *v )
 {
-	uint32_t lId = 0;
-	uint8_t lStatus = 0;
-	STRUCT_CAN_DATA CANDataTemp = CAN_DATA_DEFAULT;
-	lStatus = v->RxQ.DeQ( &v->RxQ, &CANDataTemp);
-	if( lStatus != QUEUE_EMPTY )
-	{
-		if(CANDataTemp.ID.StdFrame.XTD == 0)
-		{
-			lId = CANDataTemp.ID.StdFrame.StdID;
-		}
-		else
-		{
-			lId = CANDataTemp.ID.ExtFrame.ExtID;
-		}
-		lStatus = v->pProtocol->RxTranslate( lId, CANDataTemp.Data, &v->RxInfo, &v->TxInfo  );
-	}
-	return lStatus;
+
 }
 
 uint8_t ExtranetCANStation_WriteTxFIFO( ExtranetCANStation_t *v )

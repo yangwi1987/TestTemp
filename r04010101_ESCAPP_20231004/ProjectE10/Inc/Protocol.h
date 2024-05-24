@@ -13,7 +13,6 @@
 #include "string.h"
 #include "CANDrive.h"
 #include "math.h"
-#include "ConstantParamAndUseFunction.h"
 
 
 /* ==== macro for CANTX IDs for transmit ==== */

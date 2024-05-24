@@ -44,7 +44,6 @@ typedef struct {
 	uint16_t				TxPeriodMs;
 	uint16_t				PeriodicTxIDNumber;
 	uint32_t				PeriodicTxIDTable[10];
-	pRxTranslate			RxTranslate;
 	pTxTranslate			TxTranslate;
 } CANProtocol;
 

@@ -43,34 +43,6 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
-#if JUDGE_FUNCTION_DELAY
-Judge_Delay TIM8INT_Judge_Delay = { 0 };
-Judge_Delay CurrentLoop_Judge_Delay = { 0 };
-Judge_Delay PLCLoop_Judge_Delay = { 0 };
-Judge_Delay _100HzLoop_Judge_Delay = { 0 };
-float aveDelta_filter_coef = 0.001;
-#endif
-#if MEASURE_CPU_LOAD
-uint32_t Max_100Hz_Cnt = 0.0f;
-float Max_100Hz_Load_pct = 100.0f;
-uint32_t Max_PLCLoop_Cnt = 0.0f;
-float Max_PLCLoop_Load_pct = 100.0f;
-uint32_t Max_CurrentLoop_Cnt = 0.0f;
-float Max_CurrentLoop_Load_pct = 100.0f;
-
-uint32_t Ave_100Hz_Cnt = 0.0f;
-float Ave_100Hz_Load_pct = 100.0f;
-uint32_t Ave_PLCLoop_Cnt = 0.0f;
-float Ave_PLCLoop_Load_pct = 100.0f;
-uint32_t Ave_CurrentLoop_Cnt = 0.0f;
-float Ave_CurrentLoop_Load_pct = 100.0f;
-
-float aveLoad_filter_coef = 0.001;
-
-uint32_t CurrentTimeStampCurrentLoop = 0;
-
-#endif
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,7 +72,6 @@ extern FDCAN_HandleTypeDef hfdcan2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
-extern TIM_HandleTypeDef htim20;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -108,6 +79,14 @@ extern TIM_HandleTypeDef htim20;
 /******************************************************************************/
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
+
+void __stack_chk_fail()
+{
+printf("__stack_chk_fail()\n");
+while(1);
+}
+
+void *__stack_chk_guard = (void *)0;
 /**
   * @brief This function handles Non maskable interrupt.
   */
@@ -395,58 +374,7 @@ void ADC3_IRQHandler(void)
 void TIM7_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
-
-#if MEASURE_CPU_LOAD || JUDGE_FUNCTION_DELAY
-	uint32_t CurrentTimeStamp = DWT->CYCCNT;
-	uint32_t EndTimeStamp = 0;
-#endif
-#if JUDGE_FUNCTION_DELAY
-    uint32_t delta = CurrentTimeStamp - _100HzLoop_Judge_Delay.previousTimestamp;
-    static uint8_t initial_ignore = 0;
-    _100HzLoop_Judge_Delay.deltaCnt = delta;
-    _100HzLoop_Judge_Delay.previousTimestamp = CurrentTimeStamp;
-    _100HzLoop_Judge_Delay.Intervals_us = (float)delta / 170.0f;
-    if ( initial_ignore > 10 )
-    {
-    	_100HzLoop_Judge_Delay.maxDelta = delta > _100HzLoop_Judge_Delay.maxDelta ? delta : _100HzLoop_Judge_Delay.maxDelta;
-    	_100HzLoop_Judge_Delay.AveDelta = _100HzLoop_Judge_Delay.AveDelta - aveDelta_filter_coef * 100.0f* ( _100HzLoop_Judge_Delay.AveDelta - (float)delta );
-        _100HzLoop_Judge_Delay.Max_Intervals_us = (float)_100HzLoop_Judge_Delay.maxDelta / 170.0f;
-    	CurrentLoop_Judge_Delay.Max_Intervals_us = (float)CurrentLoop_Judge_Delay.maxDelta / 170.0f;
-    	PLCLoop_Judge_Delay.Max_Intervals_us = (float)PLCLoop_Judge_Delay.maxDelta / 170.0f;
-    	TIM8INT_Judge_Delay.Max_Intervals_us = (float)TIM8INT_Judge_Delay.maxDelta / 170.0f;
-        _100HzLoop_Judge_Delay.Ave_Intervals_us = (float)_100HzLoop_Judge_Delay.AveDelta / 170.0f;
-    	CurrentLoop_Judge_Delay.Ave_Intervals_us = (float)CurrentLoop_Judge_Delay.AveDelta / 170.0f;
-    	PLCLoop_Judge_Delay.Ave_Intervals_us = (float)PLCLoop_Judge_Delay.AveDelta / 170.0f;
-    	TIM8INT_Judge_Delay.Ave_Intervals_us = (float)TIM8INT_Judge_Delay.AveDelta / 170.0f;
-    }
-    else
-    {
-    	initial_ignore++;
-    }
-#endif
-
-#if 0
-  /* USER CODE END TIM7_DAC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim7);
-  /* USER CODE BEGIN TIM7_DAC_IRQn 1 */
-#endif
   USER_HAL_TIM_7_IRQHandler(&htim7);
-
-#if MEASURE_CPU_LOAD
-    EndTimeStamp =  DWT->CYCCNT;
-    Max_100Hz_Cnt = Max_100Hz_Cnt > ( EndTimeStamp - CurrentTimeStamp ) ? Max_100Hz_Cnt : ( EndTimeStamp - CurrentTimeStamp );
-#endif
-#if MEASURE_CPU_LOAD
-    Max_100Hz_Load_pct = ((float)Max_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
-    Max_PLCLoop_Load_pct = ((float)Max_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
-    Max_CurrentLoop_Load_pct = ((float)Max_CurrentLoop_Cnt * (float)INITIAL_CURRENT_LOOP_FREQ / 1700000.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
-
-    Ave_100Hz_Cnt = Ave_100Hz_Cnt - aveLoad_filter_coef * 100.0f* ( Ave_100Hz_Cnt - (float)( EndTimeStamp - CurrentTimeStamp ) );
-    Ave_100Hz_Load_pct = ((float)Ave_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
-    Ave_PLCLoop_Load_pct = ((float)Ave_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
-    Ave_CurrentLoop_Load_pct = ((float)Ave_CurrentLoop_Cnt * (float)INITIAL_CURRENT_LOOP_FREQ / 1700000.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
-#endif
-
   /* USER CODE END TIM7_DAC_IRQn 1 */
 }
 
@@ -466,19 +394,6 @@ void ADC4_IRQHandler(void)
   /* USER CODE END ADC4_IRQn 1 */
 }
 
-/**
-  * @brief This function handles TIM20 capture compare interrupt.
-  */
-void TIM20_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM20_CC_IRQn 0 */
-
-  /* USER CODE END TIM20_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim20);
-  /* USER CODE BEGIN TIM20_CC_IRQn 1 */
-
-  /* USER CODE END TIM20_CC_IRQn 1 */
-}
 
 /**
   * @brief This function handles FDCAN2 interrupt 0.
@@ -536,31 +451,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 
 	}
 
-}
-
-void HAL_TIMEx_EncoderIndexCallback(TIM_HandleTypeDef *htim)
-{
-	__NOP();
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-//	if( htim->Instance == TIM7 )
-//	{
-//		CPUCounter.Loop100HzCounter++;
-//		drive_Do100HzLoop();
-//
-//		if( CPUCounter.Loop100HzCounter % 10 == 0 )
-//		{
-//		  CPUCounter.Loop10HzCounter++;
-//		  drive_Do10HzLoop();
-//
-//		  if( CPUCounter.Loop10HzCounter % 10 == 0 )
-//		  {
-//			  drive_Do1HzLoop();
-//		  }
-//		}
-//	}
 }
 
 void USER_HAL_TIM_7_IRQHandler( TIM_HandleTypeDef *htim )

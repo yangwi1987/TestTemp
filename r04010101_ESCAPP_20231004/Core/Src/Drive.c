@@ -5,7 +5,6 @@
  *      Author: MikeSFWen
  */
 
-#include "UtilityBase.h"
 #include "Drive.h"
 
 PwmStation PwmStation1 = PWM_STATION_DEFAULT;
@@ -66,20 +65,6 @@ void DisableMcuModule( void )
 	HAL_FDCAN_MspDeInit(&hfdcan2);
 	__HAL_RCC_FDCAN_FORCE_RESET();
 
-	//UART
-//	HAL_UART_MspDeInit(&huart3);
-//	__HAL_RCC_UART5_FORCE_RESET();
-
-	//USART
-//	HAL_UART_MspDeInit(&huart3);
-//	__HAL_RCC_USART3_FORCE_RESET();
-
-	//USART
-//	HAL_USART_MspDeInit(&husart2);
-//	__HAL_RCC_USART2_FORCE_RESET();
-
-	//SPI
-	__HAL_RCC_SPI1_FORCE_RESET();
 
 	/*
 	 * DeInit GPIO State/ Flag/ IT
@@ -149,13 +134,5 @@ void DisableMcuModule( void )
 	HAL_ADC_MspDeInit(&hadc4);
 	__HAL_RCC_ADC345_FORCE_RESET();
 
-	//DAC
-	HAL_DAC_MspDeInit(&hdac1);
-	__HAL_RCC_DAC1_FORCE_RESET();
 
-	/*
-	 * Other Functions
-	 */
-	HAL_CORDIC_MspInit(&hcordic);
-	__HAL_RCC_CORDIC_FORCE_RESET();
 }

@@ -7,17 +7,8 @@
 #if E10
 #include "Protocol.h"
 #include "ICANInterface.h"
-//uint8_t VcuEnableFlag=0;
-/*
- * "ExtranetInformInSystemTableExample" will be stored in system table bin
- * and the pointer will be loaded in drive_ini when memory control module is ready
- */
 
-uint8_t InvFrameCnt = 0;
-uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t );
 uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r );
-
-
 
 const CANProtocol ExtranetInformInSystemTableExample =
 {
@@ -26,7 +17,6 @@ const CANProtocol ExtranetInformInSystemTableExample =
   {
 	  CANTXID_INV_LOG_INFO_0
   },
-  (pRxTranslate)CAN_RxDataTranslate,
   (pTxTranslate)CAN_TxDataTranslate,
 };
 
@@ -39,11 +29,6 @@ const CanIdConfig_t CanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
 {0};
 
 
-
-uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterface *v, STRUCT_CANTxInterface *t )
-{
-
-}
 
 uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterface *v, STRUCT_CANRxInterface *r )
 {
