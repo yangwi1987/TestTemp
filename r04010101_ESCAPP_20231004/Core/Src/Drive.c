@@ -13,7 +13,6 @@ ExtranetCANStation_t ExtranetCANStation = EXTRANET_CAN_STATION_DEFAULT;
 
 extern const CANProtocol ExtranetInformInSystemTableExample;
 
-
 void drive_Init(void)
 {
 
@@ -87,36 +86,16 @@ void DisableMcuModule( void )
      * DeInit Timer
      */
 
-	// Timer 2
-    HAL_TIM_Base_Stop_IT( &htim2 );
-	__HAL_TIM_DISABLE_IT( &htim2, TIM_IT_IDX );
-    HAL_TIM_Base_MspDeInit( &htim2 );
-	__HAL_RCC_TIM2_FORCE_RESET();
-
-	// Timer 3
-    HAL_TIM_Base_Stop_IT( &htim3 );
-    HAL_TIM_Base_MspDeInit( &htim3 );
-    __HAL_RCC_TIM3_FORCE_RESET();
 
     // Timer 6
     HAL_TIM_Base_Stop_IT( &htim6 );
     HAL_TIM_Base_MspDeInit( &htim6 );
     __HAL_RCC_TIM6_FORCE_RESET();
 
-    // Timer 7
-    HAL_TIM_Base_Stop_IT( &htim7 );
-    HAL_TIM_Base_MspDeInit( &htim7 );
-    __HAL_RCC_TIM7_FORCE_RESET();
-
     // Timer 8
     HAL_TIM_Base_Stop_IT( &htim8 );
     HAL_TIM_Base_MspDeInit( &htim8 );
     __HAL_RCC_TIM8_FORCE_RESET();
-
-	// Timer 20
-	HAL_TIM_Base_Stop_IT( &htim20 );
-	HAL_TIM_Base_MspDeInit( &htim20 );
-	__HAL_RCC_TIM20_FORCE_RESET();
 
 	/*
 	 * DeInit ADC & DAC

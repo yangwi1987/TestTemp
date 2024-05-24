@@ -53,7 +53,6 @@
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void USER_HAL_TIM_IRQHandler( TIM_HandleTypeDef *htim );
-void USER_HAL_TIM_7_IRQHandler( TIM_HandleTypeDef *htim );
 void USER_HAL_ADC_IRQHandler( ADC_HandleTypeDef *hadc );
 /* USER CODE END 0 */
 
@@ -68,8 +67,6 @@ extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern ADC_HandleTypeDef hadc4;
 extern FDCAN_HandleTypeDef hfdcan2;
-// extern TIM_HandleTypeDef htim2; todo
-extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
 /* USER CODE BEGIN EV */
@@ -309,19 +306,6 @@ void ADC1_2_IRQHandler(void)
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
-/**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
-}
 
 /**
   * @brief This function handles TIM8 break interrupt.
@@ -366,16 +350,6 @@ void ADC3_IRQHandler(void)
   USER_HAL_ADC_IRQHandler( &hadc3 );
 
   /* USER CODE END ADC3_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM7 global interrupt, DAC2 and DAC4 channel underrun error interrupts.
-  */
-void TIM7_DAC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM7_DAC_IRQn 0 */
-  USER_HAL_TIM_7_IRQHandler(&htim7);
-  /* USER CODE END TIM7_DAC_IRQn 1 */
 }
 
 /**
@@ -427,16 +401,13 @@ void FDCAN2_IT1_IRQHandler(void)
 __attribute__(( section(".ram_function"))) void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	/* The following are the general injection reading */
-//	AdcStation1.ReadInjectionGroupValue( &AdcStation1, hadc );
-//	AdcStation1.MarkInjectionGroupReadFlag( &AdcStation1, hadc );
 
-//	ADC_HANDLE_INJECTION_GROUP_MACRO( (&AdcStation1), hadc ) // newX setting
 	ADC_HANDLE_INJECTION_GROUP_MACRO_E10( (&AdcStation1), hadc ) // E10 setting
 
 	// Check if all ADC injection groups are finish and start to do current loop
 	if( AdcStation1.AdcInjGroup == AdcStation1.AdcInjGroupFlag )
 	{
-
+		drive_DoPLCLoop();
 	}
 }
 
@@ -446,17 +417,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 
 	if( AdcStation1.AdcRegGroup == AdcStation1.AdcRegGroupFlag )
 	{
-		drive_DoPLCLoop();
+		//drive_DoPLCLoop();
 		AdcStation1.AdcRegGroup = 0;
 
 	}
 
-}
-
-void USER_HAL_TIM_7_IRQHandler( TIM_HandleTypeDef *htim )
-{
-	__HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
-	HAL_TIM_PeriodElapsedCallback(htim);
 }
 
 void USER_HAL_TIM_IRQHandler( TIM_HandleTypeDef *htim )
