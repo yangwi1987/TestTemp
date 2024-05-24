@@ -301,6 +301,7 @@ void SocIndicationByBLinking(LedIdx_e LedIdxIn)
   }
 }
 
+
 void SocLightCtrl_Do100HzLoop(void)
 {
   uint8_t ScaledSoc;
@@ -338,7 +339,6 @@ void SocLightCtrl_Do100HzLoop(void)
 
     SocLightCtrl.ReqFlag = 0;
   }
-
 
 }
 

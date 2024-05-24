@@ -1756,9 +1756,6 @@ __STATIC_FORCEINLINE void EnterVehicleDriveState( void )
 	DualBtnTimeCnt = 0;
 	Led_TurnOnReq(LED_IDX_FRONT);
 
-	Led_TurnOnReq(LED_IDX_FRONT);
-	Led_TurnOnReq(LED_IDX_REAR);
-
 	VehicleMainState = VEHICLE_STATE_DRIVE;
 	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, GPIO_PIN_SET);
@@ -2620,6 +2617,7 @@ void drive_Do100HzLoop(void)
 	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
 	Btn_Do100HzLoop();
+
 	Drive_VehicleStateMachine();
 	Drive_INVStateMachine();
 	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
