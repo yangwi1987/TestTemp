@@ -200,8 +200,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  drive_DoHouseKeeping();
-	  JumpCtrlFunction();
+//	  drive_DoHouseKeeping();
+//	  JumpCtrlFunction();
   }
   /* USER CODE END 3 */
 }
