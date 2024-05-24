@@ -40,7 +40,7 @@ void TIM_CCxAllChannelCmdClose_Local(TIM_TypeDef *TIMx, uint32_t Channel, uint32
 void PwmStation_Init( PwmStation *v )
 {
 	v->PwmTimerParam[AXIS_0] = PCUTable.Pwm_Tim_Initializer_Axis1;
-	v->Duty2PwmCountGain = v->PwmTimerParam[AXIS_0].Period;
+//	v->Duty2PwmCountGain = v->PwmTimerParam[AXIS_0].Period;
 
 	PwmTIMx_Init_Func( &v->PwmTimerParam[AXIS_0] );
 

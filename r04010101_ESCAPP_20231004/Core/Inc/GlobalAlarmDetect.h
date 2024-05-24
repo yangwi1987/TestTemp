@@ -7,8 +7,6 @@
 
 #ifndef GLOBALALARMDETECT_H_
 
-#include "AxisFactory.h"
-
 void GlobalAlarmDetect_init( void );
 void GlobalAlarmDetect_DoHouseKeeping( void );
 void GlobalAlarmDetect_Accumulation( PROTECT_POLLING_TYPE *p, int Signal, int TargetID );
