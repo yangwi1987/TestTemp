@@ -18,11 +18,11 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcSetupTab =
 		{
 				// Group,		Group Enable,		DMAEna,			InjectedMode
-				{ADC_1,			ADC_ENABLE,			ADC_ENABLE,		ADC_DISABLE		},
-				{ADC_2,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
-				{ADC_3,			ADC_ENABLE,			ADC_ENABLE,		ADC_ENABLE		},
-				{ADC_4,			ADC_ENABLE,		    ADC_ENABLE,	    ADC_ENABLE		},
-				{ADC_5,			ADC_ENABLE,		    ADC_ENABLE,	    ADC_DISABLE		}
+				{ADC_1,			ADC_ENABLE,			ADC_DISABLE,		ADC_DISABLE		},
+				{ADC_2,			ADC_ENABLE,			ADC_DISABLE,		ADC_ENABLE		},
+				{ADC_3,			ADC_ENABLE,			ADC_DISABLE,		ADC_ENABLE		},
+				{ADC_4,			ADC_ENABLE,		    ADC_DISABLE,	    ADC_ENABLE		},
+				{ADC_5,			ADC_ENABLE,		    ADC_DISABLE,	    ADC_DISABLE		}
 		},
 
 		.AdcInjectionGroupTable =
@@ -47,15 +47,15 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		.AdcRegularGroupTable =
 		{
 				//Name			ZeroFlagEnable,	 	Channel Enable, Adc Group,			Adc Rank,		GainValue
-				{HW_ID2,	    ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_4,		    DEFAULT_GAIN	},
-				{ES5V_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_2,			E5V_GAIN		},
-				{HW_ID1,    	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_1,				RANK_3,			DEFAULT_GAIN	},
-				{E5V_FB,    	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_2,				RANK_1,			E5V_GAIN    	},
-				{EA5V_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_6,	        E5V_GAIN    	},
-				{PREC_FB,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_4,	        DC_VOLT_GAIN	},
-				{S13V8,     	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_3,		        RANK_5,	        S13V8_GAIN    	},
-				{ACC_FB2,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_4,		        RANK_1,	        PEDAL_GAIN	    },
-				{ACC_FB1,   	ADC_DISABLE, 	 	ADC_ENABLE, 	ADC_5,        		RANK_1,        	PEDAL_GAIN	    },
+				{REG_REVD_0,    ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{REG_REVD_1,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{REG_REVD_2,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{REG_REVD_3,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{REG_REVD_4,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
+				{REG_REVD_5,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,      RANK_DISABLE,	DEFAULT_GAIN	},
+				{REG_REVD_6,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN  	},
+				{REG_REVD_7,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN    },
+				{REG_REVD_8,  	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,      RANK_DISABLE,   DEFAULT_GAIN    },
 				{REG_REVD_9,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
 				{REG_REVD_10,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
 				{REG_REVD_11,	ADC_DISABLE, 	 	ADC_DISABLE, 	GROUP_DISABLE,		RANK_DISABLE,	DEFAULT_GAIN	},
@@ -66,29 +66,21 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 		{
 				// PCU Thermal
 				//Name			ZeroFlagEnable,		TableIdx,			Channel Enable,		Adc Group,			Adc Rank
-				{MOS_NTC_1,		ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,			ADC_3,				RANK_2			},	// MOS NTC Center, use the same table as Motor NTC at P0 phase
-				{MOS_NTC_2,		ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,			ADC_3,				RANK_3			},	// MOS NTC Side, use the same table as Motor NTC at P0 phase
-				{CAP_NTC,		ADC_DISABLE,		GWX_LS103H12,		ADC_ENABLE,			ADC_3,				RANK_1			},	// CAP NTC
+				{MOS_NTC_1,		ADC_DISABLE,		NO_TABLE,	ADC_DISABLE,			GROUP_DISABLE,				RANK_DISABLE			},
+				{MOS_NTC_2,		ADC_DISABLE,		NO_TABLE,	ADC_DISABLE,			GROUP_DISABLE,				RANK_DISABLE			},
+				{CAP_NTC,		ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,			GROUP_DISABLE,			RANK_DISABLE			},
 				{PCU_NTC_3,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
 				{PCU_NTC_4,		ADC_DISABLE,		NO_TABLE,			ADC_DISABLE,		GROUP_DISABLE,		RANK_DISABLE	},
 				// Axis - 0 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
-				{MOTOR_NTC_0_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,		ADC_1,				RANK_1	},
-				{MOTOR_NTC_1_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,	    ADC_2,		        RANK_2	},
-				{MOTOR_NTC_2_A0,ADC_DISABLE,		GWX_LS103H20,	ADC_ENABLE,	    ADC_2,		        RANK_3	},
+				{MOTOR_NTC_0_A0,ADC_DISABLE,		NO_TABLE,	ADC_DISABLE,		GROUP_DISABLE,				RANK_DISABLE	},
+				{MOTOR_NTC_1_A0,ADC_DISABLE,		NO_TABLE,	ADC_DISABLE,	    GROUP_DISABLE,		        RANK_DISABLE	},
+				{MOTOR_NTC_2_A0,ADC_DISABLE,		NO_TABLE,	ADC_DISABLE,	    GROUP_DISABLE,		        RANK_DISABLE	},
 				// Axis - 1 Thermal
 				//Name			ZeroFlagEnable,	 	Table Idx,		Channel Enable, Adc Group,			Adc Rank
 				{MOTOR_NTC_0_A1,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				{MOTOR_NTC_1_A1,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	},
 				{MOTOR_NTC_2_A1,ADC_DISABLE,		NO_TABLE,		ADC_DISABLE,	GROUP_DISABLE,		RANK_DISABLE	}
-		},
-
-		.AdcCurveFittingTable =
-		{
-				// A6,			A5,				A4,				A3,				A2,				A1,				A0
-				{ 226.34901f, 	410.00309f, 	-321.93657f, 	46.95519f, 		7.8639097f,		-1.1499592f, 	-0.29832702f},		//	NTC On board number for MOS - NTCG163JX103DT1S
-				{ 286.91117f, 	256.03905f, 	-208.99333f, 	31.554341f,		3.6156109f,		-1.5739555f,	0.12358828f	},		//	NTC Motor Winding number - GWX_LS103H20
-				{ 243.11277f,	-123.32722f,	8.3642276f,		2.0067563f,		0.26944288f,	-0.35931768f,	0.056648032f}		//  NTC On board for CAP - GWX_LS103H12
 		},
 
 		.PwmStartUpTable_Axis1 =

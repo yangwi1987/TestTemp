@@ -35,15 +35,15 @@ enum AdcInjGroupEnum {
 /* WARNING: DO NOT CHANGE THE ORDER
  * keep the same order as AdcRegularGroupTable*/
 enum AdcRegGroupEnum {
-	HW_ID2 = 0,
-	ES5V_FB,
-	HW_ID1,
-	E5V_FB,
-	EA5V_FB,
-	PREC_FB,
-	S13V8,
-	ACC_FB2,
-	ACC_FB1,
+	REG_REVD_0 = 0,
+	REG_REVD_1,
+	REG_REVD_2,
+	REG_REVD_3,
+	REG_REVD_4,
+	REG_REVD_5,
+	REG_REVD_6,
+	REG_REVD_7,
+	REG_REVD_8,
 	REG_REVD_9,
 	REG_REVD_10,
 	REG_REVD_11,
@@ -103,9 +103,6 @@ enum AdcEnable {
 
 enum AdcThermoTableIdxEnum {
 	NO_TABLE = 0,
-	NTCG163JX103DT1S,			// On board NTC for MOS
-	GWX_LS103H20,				// Motor NTC
-	GWX_LS103H12,				// On board NTC for CAP
 };
 
 /* Table Size Define */

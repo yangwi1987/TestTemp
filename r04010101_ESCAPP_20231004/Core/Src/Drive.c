@@ -32,7 +32,8 @@ void drive_Init(void)
 
 }
 
-
+float testfloat[1000] = {0};
+uint16_t testi = 0;
 // 1kHz
 void drive_DoPLCLoop(void)
 {
@@ -45,6 +46,11 @@ void drive_DoPLCLoop(void)
 
 	ExtranetCANStation.DoPlcLoop ( &ExtranetCANStation );
 
+	testfloat[testi] = AdcStation1.AdcRawData.Inj[ISE_W_A0].RawAdcValue;
+    if ( testi++ >= 999 )
+    {
+    	testi = 0;
+    }
 
 }
 
