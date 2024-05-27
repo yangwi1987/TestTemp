@@ -31,8 +31,8 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 	COORDINATE_TRANSFER_Phase_to_Stator_Calc( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) );
 
 	DevideVbus = 1.0f / p->SensorFb.Vbus;
-	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
-	VsSaturation = 0.577350269f * (p->SensorFb.Vbus * ( 1.0f - (( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime * 2 ) * p->CurrentControl.PwmHz )));
+	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGainForFW); // 0.577350269f line voltage to phase
+	VsSaturation = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGainForVsaturation);
 	if (( FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL ))
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
@@ -74,19 +74,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//PwmMode = PWM_MODE_SVPWM;
 		//Limit voltage command Vdq : 2us = 16.6us-14.6us
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-//		if( p->VoltCmd.VcmdAmp > VsSaturation )
-//		{
-//			float Vgain = 0.0f;
-//			Vgain = VsSaturation / p->VoltCmd.VcmdAmp;
-//			p->VoltCmd.VdCmd *= Vgain;
-//			p->VoltCmd.VqCmd *= Vgain;
-//
-//			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-//			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-//			p->CurrentControl.IdRegulator.Ui *= Vgain;
-//			p->CurrentControl.IqRegulator.Ui *= Vgain;
-//
-//		}
+
 		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
 			float VgainSatCmd = 0.0f;
@@ -108,14 +96,8 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
-		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-//		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) * p->CurrentControl.PwmHz;
-//		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-//		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-//		{
-//			p->PwmDutyCmd.MaxDuty = 1.0f;
-//			p->PwmDutyCmd.MinDuty = 0.0f;
-//		}
+		p->PwmDutyCmd.MaxDuty = 1.0f;
+		p->PwmDutyCmd.MinDuty = 0.0f;
 
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
@@ -406,8 +388,9 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	FilterSettingTmp.Period = 0.001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	Filter_Bilinear1OrderInit( &(p->TorqueToIdq.EleSpeedFilter), &FilterSettingTmp );
-	p->TorqueToIdq.VbusGain = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
-
+	p->TorqueToIdq.VbusGainForIcmd = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+	p->TorqueToIdq.VbusGainForFW = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+	p->TorqueToIdq.VbusGainForVsaturation = 1 - (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
 	//20200702 Six Wave Init;
 	p->SensorFb.HallSignal = ( p->SensorFb.HallSignal == 0) ? 5 : p->SensorFb.HallSignal;
 	p->SensorFb.TestHallSignal = 5;

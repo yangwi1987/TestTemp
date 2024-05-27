@@ -24,7 +24,9 @@ typedef struct
 	uint16_t Way;
 	float IdCmd;
 	float IqCmd;
-	float VbusGain;
+	float VbusGainForIcmd;
+	float VbusGainForFW;
+	float VbusGainForVsaturation;
 	float VbusUsed;
 	float VbusReal;
 	float OutputTqRatio;
@@ -39,12 +41,14 @@ typedef struct
 #define TORQUE_TO_IDQ_DEFAULT				\
 {											\
 	GET_IDQ_BY_LUT,							\
-	0.0f,									\
-	0.0f,									\
-	0.87f, /* VBusGain */					\
-	0.0f,									\
-	0.0f,									\
-	0.0f,									\
+	0.0f,/*IdCmd;                 */		\
+	0.0f,/*IqCmd;                 */		\
+	0.87f,/*VbusGainForIcmd;       */		\
+	0.87f,/*VbusGainForFW;         */		\
+	0.935f,/*VbusGainForVsaturation;*/		\
+	0.0f,/*VbusUsed;              */		\
+	0.0f,/*VbusReal;              */		\
+	0.0f,/*OutputTqRatio;         */		\
 	LUT_INT16_2DIM_DEFAULT,					\
 	LUT_INT16_2DIM_DEFAULT,					\
 	LUT_INT16_1DIM_DEFAULT,					\
