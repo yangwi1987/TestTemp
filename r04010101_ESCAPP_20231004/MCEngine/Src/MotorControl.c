@@ -388,9 +388,9 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	FilterSettingTmp.Period = 0.001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	Filter_Bilinear1OrderInit( &(p->TorqueToIdq.EleSpeedFilter), &FilterSettingTmp );
-	p->TorqueToIdq.VbusGainForIcmd = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
-	p->TorqueToIdq.VbusGainForFW = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
-	p->TorqueToIdq.VbusGainForVsaturation = 1 - (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+//	p->TorqueToIdq.VbusGainForIcmd = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+//	p->TorqueToIdq.VbusGainForFW = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+//	p->TorqueToIdq.VbusGainForVsaturation = 1 - (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
 	//20200702 Six Wave Init;
 	p->SensorFb.HallSignal = ( p->SensorFb.HallSignal == 0) ? 5 : p->SensorFb.HallSignal;
 	p->SensorFb.TestHallSignal = 5;
