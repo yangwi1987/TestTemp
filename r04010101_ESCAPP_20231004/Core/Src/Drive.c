@@ -2450,6 +2450,10 @@ void Session_DoPLCLoop(void)
 			    DriveFnRegs[ FN_MF_DATA_RECORDER_ACTIVE - FN_BASE ] = 0;
 			}
 #endif
+			if ( DriveFnRegs[ FN_PWM_ASC - FN_BASE ] == 1)
+			{
+			    PwmStation1.ASC_Enable = 1;
+			}
 		}
 		break;
 	default:

@@ -422,6 +422,7 @@
 #define FN_PWM_V_CMD                977
 #define FN_PWM_W_CMD                978
 #define FN_PWM_Mode                 979
+#define FN_PWM_ASC                  980
 
 #define FN_TEST_USAGE				999
 #define PN_MAX						1000
