@@ -400,8 +400,8 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_SIX_WAVE;
 
 	//Decoupling
-	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IqRegulator.Kp * pSetting->IdDCPHz / pSetting->IdHz, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
-	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IdRegulator.Kp * pSetting->IqDCPHz / pSetting->IqHz, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
+	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IqRegulator.Kp/3, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
+	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IdRegulator.Kp/3, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
 
 	//Compensation Deadtime
 	p->CompDuty.Init(&(p->CompDuty),0.0125f,5.0f,0.0125f,5.0f);

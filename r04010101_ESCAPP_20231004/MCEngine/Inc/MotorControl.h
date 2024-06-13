@@ -131,8 +131,6 @@ typedef struct
 	float PwmPeriod;
 	float IdHz;
 	float IqHz;
-	float IdDCPHz;
-	float IqDCPHz;
 	float Ilimit;
 	float IfGain;
 	float IfAecel;
