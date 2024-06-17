@@ -6,13 +6,18 @@
  */
 
 #include "PositionSensor.h"
-
+#include "AngleObserver.h"
 static void PositionSensor_ReadPosViaPWM(PS_t* v);
 // todo 4096 linear table in inverter
 //static float ABZtoMechPos[4096] = ABZtoMechPos_Default;
 //uint16_t tempABZ = 0;
 //float tempMechPosition = 0.0f;
 
+#define JEFF_TEST2 1
+
+#if JEFF_TEST2
+AngleObserver_t MR_AngleObsvr = ANGLE_OBSERVER_DEFAULT;
+#endif
 
 void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCompCoefBySpeed)
 {
@@ -32,6 +37,24 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
 	v->MechPosZeroOffset = (float)( MechPosZeroOffset - 32768 ) * 0.0001f;
 #endif
 	v->MechPosCompCoefBySpeed = (float)(MechPosCompCoefBySpeed) * 0.0001f;
+
+#if JEFF_TEST2
+	float Pole1 =  10.0f * _2PI * 1.5f;
+	float Pole2 =  50.0f * _2PI * 1.5f;
+	float Pole3 =  110.0f * _2PI * 1.5f;
+	AngleObserverInitParm_t AngleObserverSetting = ANGLE_OBSERVER_INIT_PARAM_DEFAULT;
+	AngleObserverSetting.Period = 1.0f / (float)INITIAL_CURRENT_LOOP_FREQ;
+	AngleObserverSetting.J = 0.00697189f;
+	AngleObserverSetting.L1 = Pole1 + Pole2 + Pole3 ;
+	AngleObserverSetting.L2 = Pole1 * Pole2 + Pole2 * Pole3 + Pole3 * Pole1;
+	AngleObserverSetting.L3 = Pole1 * Pole2 * Pole3;
+	AngleObserverSetting.SpeedLowerLimit = -7853.9815f;	//1500RPM/60*5*2*pi = 7853.9815 rad/s(Electrical)
+	AngleObserverSetting.SpeedUpperLimit = 7853.9815f;	//1500RPM/60*5*2*pi = 7853.9815 rad/s(Electrical)
+	AngleObserverSetting.AcelLowerLimit = -111374.6392f;
+	AngleObserverSetting.AcelUpperLimit = 111374.6392f;
+
+	MR_AngleObsvr.Init( &(MR_AngleObsvr) , &AngleObserverSetting );
+#endif
 }
 
 void PositionSesnor_DoPLCLoop(PS_t* v)
@@ -135,6 +158,13 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 	v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(v->CalcMechSpeedLPF), v->MechSpeedRaw);
 
 	v->PreMechPosition = v->MechPosition;
+
+#if JEFF_TEST2
+	float tempMechPos = v->MechPosition;
+	ANGLE_OBSERVER_CALC_MACRO( (&(MR_AngleObsvr)), tempMechPos );
+	v->MechPosition = MR_AngleObsvr.Angle;
+	v->MechSpeed = MR_AngleObsvr.Speed;
+#endif
 
 	v->ElecSpeed = v->MechSpeed  * DEFAULT_POLE_PAIRS;
 	v->ElecPosition = fmod( v->MechPosition * DEFAULT_POLE_PAIRS, _2PI );

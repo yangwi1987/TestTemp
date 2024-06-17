@@ -104,7 +104,7 @@ uint32_t VersionAddressArray[5] =
 		MOT_1_TAB_START_ADDRESS,
 		MOT_2_TAB_START_ADDRESS
 };
-
+extern AngleObserver_t MR_AngleObsvr;
 /*
  * Boot-loader function declare
  */
@@ -2357,10 +2357,10 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 
 #if USE_DATA_RECORDER
 		DataRecorder_Routine(\
-				AdcStation1.AdcTraOut.Iu[0], \
-				AdcStation1.AdcTraOut.Iv[0], \
-				AdcStation1.AdcTraOut.Iw[0], \
-				(1.732050808f * Axis[0].MotorControl.VoltCmd.VcmdAmp / Axis[0].MotorControl.SensorFb.Vbus) \
+				PSStation1.MechPosition, \
+				PSStation1.MechSpeed, \
+				MR_AngleObsvr.Angle, \
+				MR_AngleObsvr.Speed \
 				);
 
 //		DataRecorder_Routine(\
