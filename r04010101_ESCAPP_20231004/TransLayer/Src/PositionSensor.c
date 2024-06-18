@@ -89,6 +89,9 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
 		  v->PreMechPosition = v->MechPosition;
 #endif
           htim2.Instance->CNT = (uint32_t)(v->MechPosition * (float)DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI);
+#if JEFF_TEST2
+          MR_AngleObsvr.Angle = v->PreMechPosition;
+#endif
           HAL_NVIC_DisableIRQ(TIM20_CC_IRQn);
     	  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
     	  v->DoCurrentLoop = (functypePositionSensor_DoCurrentLoop)&PositionSensor_ReadPosViaABZ;
@@ -114,12 +117,42 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
 
 __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) PositionSensor_ReadPosViaABZ(PS_t* v)
 {
-	float tempMechPosCompensation = 0.0f;
-	static float oldMechSpeedRaw = 0.0f;
-	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
+//	static float oldMechSpeedRaw = 0.0f;
+//	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
 //	tempABZ = v->CntFromABZ & 0x0FFF;
 //	tempMechPosition = ABZtoMechPos[tempABZ];
-	v->MechPosition = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION + tempMechPosCompensation + v->MechPosZeroOffset;
+
+#if JEFF_TEST2
+	float AngleIn = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION;
+	v->MechPosition = AngleIn;
+	MR_AngleObsvr.AngleError = ( AngleIn - MR_AngleObsvr.Angle );
+	MR_AngleObsvr.Quotient = (int16_t)( MR_AngleObsvr.AngleError * INV_2PI);
+	MR_AngleObsvr.Quotient = ( MR_AngleObsvr.Quotient >= 0 ) ? MR_AngleObsvr.Quotient : MR_AngleObsvr.Quotient - 1;
+	MR_AngleObsvr.CorrespondingAngleError = MR_AngleObsvr.AngleError - ((float)MR_AngleObsvr.Quotient) * _2PI;
+	MR_AngleObsvr.CorrespondingAngleError = ( MR_AngleObsvr.CorrespondingAngleError > _PI ) ? ( MR_AngleObsvr.CorrespondingAngleError - _2PI ) : MR_AngleObsvr.CorrespondingAngleError;
+	MR_AngleObsvr.CorrespondingAngleError = ( MR_AngleObsvr.CorrespondingAngleError < -_PI ) ? ( MR_AngleObsvr.CorrespondingAngleError + _2PI ) : MR_AngleObsvr.CorrespondingAngleError;
+	MR_AngleObsvr.L1Result = MR_AngleObsvr.CorrespondingAngleError * MR_AngleObsvr.L1;
+	MR_AngleObsvr.L2Result = MR_AngleObsvr.CorrespondingAngleError * MR_AngleObsvr.L2;
+	MR_AngleObsvr.L3Result = MR_AngleObsvr.CorrespondingAngleError * MR_AngleObsvr.L3;
+	MR_AngleObsvr.AcelTmp += ( MR_AngleObsvr.L3Result * MR_AngleObsvr.Period );
+	MR_AngleObsvr.AcelTmp = ( MR_AngleObsvr.AcelTmp > MR_AngleObsvr.AcelUpperLimit ) ? MR_AngleObsvr.AcelUpperLimit : MR_AngleObsvr.AcelTmp;
+	MR_AngleObsvr.AcelTmp = ( MR_AngleObsvr.AcelTmp < -MR_AngleObsvr.AcelUpperLimit ) ? -MR_AngleObsvr.AcelUpperLimit : MR_AngleObsvr.AcelTmp;
+	MR_AngleObsvr.Acel = MR_AngleObsvr.L2Result + MR_AngleObsvr.AcelTmp;
+	MR_AngleObsvr.Acel = ( MR_AngleObsvr.Acel > MR_AngleObsvr.AcelUpperLimit ) ? MR_AngleObsvr.AcelUpperLimit : MR_AngleObsvr.Acel;
+	MR_AngleObsvr.Acel = ( MR_AngleObsvr.Acel < -MR_AngleObsvr.AcelUpperLimit ) ? -MR_AngleObsvr.AcelUpperLimit : MR_AngleObsvr.Acel;
+	MR_AngleObsvr.SpeedTmp += ( MR_AngleObsvr.Acel * MR_AngleObsvr.Period );
+	MR_AngleObsvr.SpeedTmp = ( MR_AngleObsvr.SpeedTmp > MR_AngleObsvr.SpeedUpperLimit ) ? MR_AngleObsvr.SpeedUpperLimit : MR_AngleObsvr.SpeedTmp;
+	MR_AngleObsvr.SpeedTmp = ( MR_AngleObsvr.SpeedTmp < -MR_AngleObsvr.SpeedUpperLimit ) ? -MR_AngleObsvr.SpeedUpperLimit : MR_AngleObsvr.SpeedTmp;
+	MR_AngleObsvr.Speed = MR_AngleObsvr.L1Result + MR_AngleObsvr.SpeedTmp;
+	MR_AngleObsvr.Speed = ( MR_AngleObsvr.Speed > MR_AngleObsvr.SpeedUpperLimit ) ? MR_AngleObsvr.SpeedUpperLimit : MR_AngleObsvr.Speed;
+	MR_AngleObsvr.Speed = ( MR_AngleObsvr.Speed < -MR_AngleObsvr.SpeedUpperLimit ) ? -MR_AngleObsvr.SpeedUpperLimit : MR_AngleObsvr.Speed;
+	MR_AngleObsvr.Angle += ( MR_AngleObsvr.Speed * MR_AngleObsvr.Period );
+	MR_AngleObsvr.Angle = ( MR_AngleObsvr.Angle >= _2PI ) ? MR_AngleObsvr.Angle - _2PI : MR_AngleObsvr.Angle;
+	MR_AngleObsvr.Angle = ( MR_AngleObsvr.Angle < 0 ) ? MR_AngleObsvr.Angle + _2PI : MR_AngleObsvr.Angle;
+
+	v->MechPosition = MR_AngleObsvr.Angle - ( MR_AngleObsvr.Speed * MR_AngleObsvr.Period ) + v->MechPosZeroOffset;
+	v->MechSpeed = MR_AngleObsvr.Speed;
+#endif
 
 	if ( v->MechPosition >= _2PI )
 	{
@@ -129,42 +162,6 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 	{
 		v->MechPosition = v->MechPosition + _2PI;
 	}
-
-#if USE_REVERVE_MR_DIRECTION
-	v->MechPosition = _2PI - v->MechPosition;
-	if ( v->Direction == PS_DIRECTION_DOWNCOUNTER )
-	{
-#else
-	if ( v->Direction == PS_DIRECTION_UPCOUNTER )
-	{
-#endif
-		v->MechSpeedRaw = ( v->MechPosition >= v->PreMechPosition ) ? \
-				                                ( v->MechPosition - v->PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
-												( v->MechPosition - v->PreMechPosition + _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
-
-	}
-	else
-	{
-		v->MechSpeedRaw = ( v->MechPosition <= v->PreMechPosition ) ? \
-				                                ( v->MechPosition - v->PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
-												( v->MechPosition - v->PreMechPosition - _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
-	}
-
-
-
-	v->MechSpeedRaw = ABS(v->MechSpeedRaw) > DEFAULT_ABNORMAL_SPEED ? oldMechSpeedRaw : v->MechSpeedRaw;
-	oldMechSpeedRaw = v->MechSpeedRaw;
-
-	v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(v->CalcMechSpeedLPF), v->MechSpeedRaw);
-
-	v->PreMechPosition = v->MechPosition;
-
-#if JEFF_TEST2
-	float tempMechPos = v->MechPosition;
-	ANGLE_OBSERVER_CALC_MACRO( (&(MR_AngleObsvr)), tempMechPos );
-	v->MechPosition = MR_AngleObsvr.Angle;
-	v->MechSpeed = MR_AngleObsvr.Speed;
-#endif
 
 	v->ElecSpeed = v->MechSpeed  * DEFAULT_POLE_PAIRS;
 	v->ElecPosition = fmod( v->MechPosition * DEFAULT_POLE_PAIRS, _2PI );
