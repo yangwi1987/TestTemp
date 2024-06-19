@@ -66,6 +66,7 @@ typedef struct {
 	PWM_RC_TYPE *pPwmRcStattion;
 	uint16_t BufICEnable;
 	PROTECT_POLLING_TYPE UVP_Bus;
+	PROTECT_POLLING_TYPE UVP_Bus_Warning;
 	PROTECT_POLLING_TYPE OVP_Bus;
 	PROTECT_POLLING_TYPE OCP_Iu;
 	PROTECT_POLLING_TYPE OCP_Iv;
@@ -122,6 +123,7 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v );
 	0, /* pPhaseLoss */ \
 	0, /* pPwmRcStattion */ \
 	0, /* BufICEnable */\
+	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \

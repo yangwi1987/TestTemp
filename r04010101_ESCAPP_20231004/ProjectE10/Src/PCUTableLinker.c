@@ -319,7 +319,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
 				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved364},	//P3-64 ALARMID_MOTORSTALL
-				{		0,		0,		0,		0,		0},	//P3-65
+				{		1,		THRE_MAX,		45,		0x45,		&DriveParams.PCUParams.Reserved365},	//P3-65 ALARMID_UNDER_VOLTAGE_BUS_WARNING
 				{		0,		0,		0,		0,		0},	//P3-66
 				{		0,		0,		0,		0,		0},	//P3-67
 				{		0,		0,		0,		0,		0},	//P3-68

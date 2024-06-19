@@ -1789,6 +1789,7 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
   /* Enable UVP detection */
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+  Axis[0].AlarmDetect.UVP_Bus_Warning.AlarmInfo.AlarmEnable = ALARM_ENABLE;
   /* Clear button release flags */
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
@@ -1809,6 +1810,7 @@ __STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
     individual INV control module
    */
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+  Axis[0].AlarmDetect.UVP_Bus_Warning.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 
   /* Request BMS to turn off battery */
   BatStation.PwrOffReq();
@@ -1842,6 +1844,7 @@ __STATIC_FORCEINLINE void EnterVehicleInitialState( void )
   Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
   /* Disable UVP detection */
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+  Axis[0].AlarmDetect.UVP_Bus_Warning.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Drive_VehicleStateMachine( void )
