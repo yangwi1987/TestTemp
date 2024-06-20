@@ -2482,8 +2482,8 @@ __STATIC_FORCEINLINE void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
-	pAxis->MotorStall.Enable = ALARM_ENABLE;
+//	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
+//	pAxis->MotorStall.Enable = ALARM_ENABLE;
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
