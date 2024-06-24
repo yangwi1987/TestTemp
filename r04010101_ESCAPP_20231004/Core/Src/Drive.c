@@ -2349,7 +2349,7 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 		Axis[0].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[0];
 		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iv[0];
 		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iw[0];
-		Axis[0].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+		Axis[0].MotorControl.SensorFb.Vbus = Filter_Bilinear1OrderCalc_LPF_inline(&(Axis[0].MotorControl.SensorFb.VbusFilter), AdcStation1.AdcTraOut.BatVdc);
 
 		Axis[0].MotorControl.CurrentControl.EleAngle = PSStation1.ElecPosition;
 		Axis[0].MotorControl.CurrentControl.EleSpeed = PSStation1.ElecSpeed;

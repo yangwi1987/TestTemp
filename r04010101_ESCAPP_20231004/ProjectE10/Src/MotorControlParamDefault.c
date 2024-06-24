@@ -29,7 +29,17 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 	.PwmPeriod = 1.0f / (float)(INITIAL_CURRENT_LOOP_FREQ),
 	.IdHz = 500.0f,
 	.IqHz = 500.0f,
+	.IdDCPHz = 100.0f,
+	.IqDCPHz = 100.0f,
+	.VbusHz = 60000.0f,
+	.FWHz = 20.0f,
 	.Ilimit = 517.0f,
+
+	.DeadtimeDutyP = 0.0125f,
+	.DeadtimeSlopeP = 5.0f,
+	.DeadtimeDutyN = 0.0125f,
+	.DeadtimeSlopeN = 5.0f,
+
 	.IfGain = 0.056f,
 	.IfAecel = 500.0f,
 	.IfDecel = 500.0f,

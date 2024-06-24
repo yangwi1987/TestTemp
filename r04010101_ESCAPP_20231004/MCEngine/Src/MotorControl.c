@@ -10,6 +10,7 @@
 inline void MotorControl_CurrentControlSetRegulatorParameter( CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float IdHz, float IqHz, float PwmPeriod );
 void MotorControl_FluxWeakeningSetRegulatorParameter( CURRENT_CONTROL_FLUX_WEAKENING_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float Bandwith, float PwmPeriod, float Ilimit, float IdKp, float IqKp );
 inline void MotorControl_SixWaveRegulatorParameter( SIX_WAVE_120_CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float PwmPeriod , float Hz);
+void MotorControl_CalcPMFOCDCPPID( float *Ki, float Hz, float Period, float L, float Res);
 ROTOR_TO_STATOR_TYPE IstatorCmd = ROTOR_TO_STATOR_DEFAULT;
 STATOR_TO_PHASE_TYPE IphaseCmd = STATOR_TO_PHASE_DEFAULT;
 
@@ -30,7 +31,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 	//Assign the related feedback and limitation from Sensor to Control	: 1.6us
 	COORDINATE_TRANSFER_Phase_to_Stator_Calc( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) );
 
-	DevideVbus = 1.0f / p->SensorFb.Vbus;
+	DevideVbus = p->SensorFb.Vbus > 32.0f ? 1.0f / p->SensorFb.Vbus : 0.03125f;  // Vbus value limit for PWM calculation
 	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGainForFW); // 0.577350269f line voltage to phase
 	VsSaturation = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGainForVsaturation);
 	if (( FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL ))
@@ -363,7 +364,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	p->VoltCmd.EleCompAngle = 0.0f;
 
 	//20191212 Flux Weakening
-	MotorControl_FluxWeakeningSetRegulatorParameter( &(p->CurrentControl.FluxWeakening), &(p->MotorPara), 20.0f, p->CurrentControl.PwmPeriod, pSetting->Ilimit, p->CurrentControl.IdRegulator.Kp, p->CurrentControl.IqRegulator.Kp );
+	MotorControl_FluxWeakeningSetRegulatorParameter( &(p->CurrentControl.FluxWeakening), &(p->MotorPara), pSetting->FWHz, p->CurrentControl.PwmPeriod, pSetting->Ilimit, p->CurrentControl.IdRegulator.Kp, p->CurrentControl.IqRegulator.Kp );
 	p->ControlInitStatus = p->CurrentControl.FluxWeakening.Init( &(p->CurrentControl.FluxWeakening), pSetting->Ilimit, p->CurrentControl.FluxWeakening.FluxWeakeningRegulator.LowerLimit, p->CurrentControl.PwmPeriod, p->CurrentControl.FluxWeakening.FluxWeakeningRegulator.Kp , p->CurrentControl.FluxWeakening.FluxWeakeningRegulator.Ki);
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_FLUX_WEAKENING_REGULATOR;
 
@@ -400,11 +401,22 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_SIX_WAVE;
 
 	//Decoupling
-	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IqRegulator.Kp/5, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
-	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IdRegulator.Kp/5, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
+	IdHz = pSetting->IdDCPHz;
+	IqHz = pSetting->IqDCPHz;
+	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.Decoupling.PIDWayId.Ki), IdHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Ld, p->MotorPara.PM.Res);
+	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.Decoupling.PIDWayIq.Ki), IqHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Lq, p->MotorPara.PM.Res);
+	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayId.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
+	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayId.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
 
 	//Compensation Deadtime
-	p->CompDuty.Init(&(p->CompDuty),0.0125f,5.0f,0.0125f,5.0f);
+	p->CompDuty.Init(&(p->CompDuty),pSetting->DeadtimeDutyP,pSetting->DeadtimeSlopeP,pSetting->DeadtimeDutyN,pSetting->DeadtimeSlopeN);
+
+	//Vbus filter
+	FILTER_INIT_BILINEAR_1ORDER_TYPE VbusFilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
+	VbusFilterSettingTmp.BandwithHz = pSetting->VbusHz;
+	VbusFilterSettingTmp.Period = p->CurrentControl.PwmPeriod;
+	VbusFilterSettingTmp.Type = FILTER_TYPE_LPF;
+	Filter_Bilinear1OrderInit( &(p->SensorFb.VbusFilter), &VbusFilterSettingTmp );
 
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
 
@@ -421,6 +433,14 @@ void MotorControl_CalcPMFOCPID( float *Kp, float *Ki, float Hz, float Period, fl
 	(*Ki) = ((Z1 - 1)*(Res - Res*Z2))/(Period*(expf(-Period*Res/L) - 1));
 }
 
+void MotorControl_CalcPMFOCDCPPID( float *Ki, float Hz, float Period, float L, float Res)
+{
+	float P1 = Hz * _2PI;
+	float P2 = Res/L;
+	float Z1 = expf(-P1*Period);
+	float Z2 = expf(-P2*Period);
+	(*Ki) = -(Res*expf(-Period*Res/L) - Res*Z1*Z2)/(expf(-Period*Res/L) - 1);
+}
 
 void MotorControl_CurrentControlSetRegulatorParameter( CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float PwmPeriod , float IdHz, float IqHz)
 {
