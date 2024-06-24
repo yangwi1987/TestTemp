@@ -39,15 +39,13 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
 	v->MechPosCompCoefBySpeed = (float)(MechPosCompCoefBySpeed) * 0.0001f;
 
 #if JEFF_TEST2
-	float Pole1 =  10.0f * _2PI;
-	float Pole2 =  50.0f * _2PI;
-	float Pole3 =  110.0f * _2PI;
+	float AngleObserverPole =  -20.0f * 5.0f * _2PI;
 	AngleObserverInitParm_t AngleObserverSetting = ANGLE_OBSERVER_INIT_PARAM_DEFAULT;
 	AngleObserverSetting.Period = 1.0f / (float)INITIAL_CURRENT_LOOP_FREQ;
 	AngleObserverSetting.J = 0.00697189f;
-	AngleObserverSetting.L1 = Pole1 + Pole2 + Pole3 ;
-	AngleObserverSetting.L2 = Pole1 * Pole2 + Pole2 * Pole3 + Pole3 * Pole1;
-	AngleObserverSetting.L3 = Pole1 * Pole2 * Pole3;
+	AngleObserverSetting.L1 = -3.0f * AngleObserverPole ;
+	AngleObserverSetting.L2 = 3.0f * AngleObserverPole * AngleObserverPole;
+	AngleObserverSetting.L3 = -AngleObserverSetting.J * AngleObserverPole * AngleObserverPole * AngleObserverPole;
 	AngleObserverSetting.SpeedLowerLimit = -7853.9815f;	//1500RPM/60*5*2*pi = 7853.9815 rad/s(Electrical)
 	AngleObserverSetting.SpeedUpperLimit = 7853.9815f;	//1500RPM/60*5*2*pi = 7853.9815 rad/s(Electrical)
 	AngleObserverSetting.AcelLowerLimit = -111374.6392f;
