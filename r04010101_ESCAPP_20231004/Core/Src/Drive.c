@@ -1789,6 +1789,7 @@ __STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
   Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
   /* Enable UVP detection */
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+  Axis[0].AlarmDetect.UVP_Bus_Warning.AlarmInfo.AlarmEnable = ALARM_ENABLE;
   /* Clear button release flags */
   ButtonReleasedFlags = 0;
   /* Put INV to servo-off */
@@ -1809,6 +1810,7 @@ __STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
     individual INV control module
    */
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+  Axis[0].AlarmDetect.UVP_Bus_Warning.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 
   /* Request BMS to turn off battery */
   BatStation.PwrOffReq();
@@ -1842,6 +1844,7 @@ __STATIC_FORCEINLINE void EnterVehicleInitialState( void )
   Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
   /* Disable UVP detection */
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+  Axis[0].AlarmDetect.UVP_Bus_Warning.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Drive_VehicleStateMachine( void )
@@ -2346,7 +2349,7 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 		Axis[0].MotorControl.SensorFb.Iu = AdcStation1.AdcTraOut.Iu[0];
 		Axis[0].MotorControl.SensorFb.Iw = AdcStation1.AdcTraOut.Iv[0];
 		Axis[0].MotorControl.SensorFb.Iv = AdcStation1.AdcTraOut.Iw[0];
-		Axis[0].MotorControl.SensorFb.Vbus = AdcStation1.AdcTraOut.BatVdc;
+		Axis[0].MotorControl.SensorFb.Vbus = Filter_Bilinear1OrderCalc_LPF_inline(&(Axis[0].MotorControl.SensorFb.VbusFilter), AdcStation1.AdcTraOut.BatVdc);
 
 		Axis[0].MotorControl.CurrentControl.EleAngle = PSStation1.ElecPosition;
 		Axis[0].MotorControl.CurrentControl.EleSpeed = PSStation1.ElecSpeed;
@@ -2479,8 +2482,8 @@ __STATIC_FORCEINLINE void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 	pAxis->AlarmDetect.BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
-	pAxis->MotorStall.Enable = ALARM_ENABLE;
+//	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
+//	pAxis->MotorStall.Enable = ALARM_ENABLE;
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 

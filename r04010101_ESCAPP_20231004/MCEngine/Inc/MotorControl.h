@@ -133,6 +133,7 @@ typedef struct
 	float IqHz;
 	float IdDCPHz;
 	float IqDCPHz;
+	float FWHz;
 	float Ilimit;
 	float IfGain;
 	float IfAecel;
@@ -140,6 +141,11 @@ typedef struct
 	float VfGain;
 	float VfAecel;
 	float VfDecel;
+	float VbusHz;
+	float DeadtimeDutyP;
+	float DeadtimeSlopeP;
+	float DeadtimeDutyN;
+	float DeadtimeSlopeN;
 } MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE;
 
 typedef struct
@@ -183,6 +189,7 @@ typedef struct
 	float AllowFluxRec;
 	uint16_t HallSignal;
 	uint16_t TestHallSignal;
+	FILTER_BILINEAR_1ORDER_TYPE VbusFilter;
 } SENSOR_FEEDBACK_TYPE;
 
 typedef struct
@@ -299,28 +306,36 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 
 #define MOTOR_CONTROL_PARAMETER_DEFAULT_DEFAULT		\
 {													\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	2.0f,											\
-	0.0f,											\
-	0,												\
-	0.000001f,										\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0001f,										\
-	10.0f,											\
-	10.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f,											\
-	0.0f											\
+	0.0f,											/*PmMotorFlux;    */\
+	0.0f,											/*PmMotorLd;      */\
+	0.0f,											/*PmMotorLq;      */\
+	0.0f,											/*PmMotorRes;     */\
+	2.0f,											/*PmMotorPolepair;*/\
+	0.0f,											/*PmMotorJ;       */\
+	0,												/**/\
+	0.000001f,										/*MosfetDriverDeadTime;                */\
+	0.0f,											/*MosfetDriverLowerBridgeMinTime;      */\
+	0.0f,											/*MosfetDriverPwmPeriodCnt;            */\
+	0.0f,											/*MosfetDriverShuntRisingTime;         */\
+	0.0f,											/*MosfetDriverMinTimeChangeEleSpeedAbs;*/\
+	0.0001f,										/*PwmPeriod;*/\
+	10.0f,											/*IdHz;     */\
+	10.0f,											/*IqHz;     */\
+	0.0f,											/*FWHz;     */\
+	0.0f,											/*IdDCPHz;  */\
+	0.0f,											/*IqDCPHz;  */\
+	0.0f,											/*Ilimit;   */\
+	0.0f,											/*IfGain;   */\
+	0.0f,											/*IfAecel;  */\
+	0.0f,											/*IfDecel;  */\
+	0.0f,											/*VfGain;   */\
+	0.0f,											/*VfAecel;  */\
+	0.0f,											/*VfDecel;  */\
+	0.0f,											/*VbusHz;  */\
+	0.0f,											/*DeadtimeDutyP;   */\
+	0.0f,											/*DeadtimeSlopeP;  */\
+	0.0f,											/*DeadtimeDutyN;   */\
+	0.0f											/*DeadtimeSlopeN; */\
 }
 
 #define PM_MOTOR_PARAMETER_DEAFULAT \
@@ -363,6 +378,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	0.0f,								\
 	0,									\
 	0,									\
+	FILTER_BILINEAR_1ORDER_DEFAULT			\
 }
 
 #define COMMAND_DEFAULT	\

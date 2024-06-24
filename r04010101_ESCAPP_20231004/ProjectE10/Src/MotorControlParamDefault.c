@@ -27,11 +27,19 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 	.MosfetDriverShuntRisingTime = 0.0f,
 	.MosfetDriverMinTimeChangeEleSpeedAbs = 523.5987756f, //Mech RPM = 1000->Ele Speed = 1000/60*5*2*pi
 	.PwmPeriod = 1.0f / (float)(INITIAL_CURRENT_LOOP_FREQ),
-	.IdHz = 300.0f,
-	.IqHz = 300.0f,
+	.IdHz = 500.0f,
+	.IqHz = 500.0f,
 	.IdDCPHz = 100.0f,
 	.IqDCPHz = 100.0f,
-	.Ilimit = 531.0f,
+	.VbusHz = 60000.0f,
+	.FWHz = 20.0f,
+	.Ilimit = 517.0f,
+
+	.DeadtimeDutyP = 0.0125f,
+	.DeadtimeSlopeP = 5.0f,
+	.DeadtimeDutyN = 0.0125f,
+	.DeadtimeSlopeN = 5.0f,
+
 	.IfGain = 0.056f,
 	.IfAecel = 500.0f,
 	.IfDecel = 500.0f,

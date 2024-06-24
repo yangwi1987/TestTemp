@@ -668,8 +668,9 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     // Change MinTime and calculate new VbusGain
     v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime = ( v->SpeedInfo.ElecSpeedAbs > v->MotorControl.DriverPara.Mosfet.MinTimeEleSpeedAbs ) ? 0.0f : MotorDefault.MosfetDriverLowerBridgeMinTime;
-    v->MotorControl.TorqueToIdq.VbusGainForFW = 1 - 2 * ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
-    v->MotorControl.TorqueToIdq.VbusGainForVsaturation = 1 - ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
+    //After MinTimeEleSpeedAbs(default 1000rpm),LowerBridgeMinTime is 0, original VbusGainForFW was 92%, add a 2% offset then it become 90%.
+    v->MotorControl.TorqueToIdq.VbusGainForFW = 1.0f - 0.02f - 2.0f * ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
+    v->MotorControl.TorqueToIdq.VbusGainForVsaturation = 1.0f;// - ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
 
     if( v->ServoOn )
     {
