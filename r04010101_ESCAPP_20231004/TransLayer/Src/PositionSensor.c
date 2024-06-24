@@ -39,9 +39,9 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
 	v->MechPosCompCoefBySpeed = (float)(MechPosCompCoefBySpeed) * 0.0001f;
 
 #if JEFF_TEST2
-	float Pole1 =  10.0f * _2PI * 1.5f;
-	float Pole2 =  50.0f * _2PI * 1.5f;
-	float Pole3 =  110.0f * _2PI * 1.5f;
+	float Pole1 =  10.0f * _2PI;
+	float Pole2 =  50.0f * _2PI;
+	float Pole3 =  110.0f * _2PI;
 	AngleObserverInitParm_t AngleObserverSetting = ANGLE_OBSERVER_INIT_PARAM_DEFAULT;
 	AngleObserverSetting.Period = 1.0f / (float)INITIAL_CURRENT_LOOP_FREQ;
 	AngleObserverSetting.J = 0.00697189f;
@@ -122,10 +122,23 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 //	tempABZ = v->CntFromABZ & 0x0FFF;
 //	tempMechPosition = ABZtoMechPos[tempABZ];
 
+//	static float tempPos = 0.0f;
+//	static float tempSpeed = 0.0f;
+//
+//	tempSpeed = tempSpeed + 10.0f * MR_AngleObsvr.Period;
+//	if ( tempSpeed >= 1000.0f)
+//		tempSpeed = tempSpeed - 1000.0f;
+//
+//	tempPos =  tempPos + 0.076699f;//tempSpeed * MR_AngleObsvr.Period;
+//	if ( tempPos >= _2PI)
+//		tempPos = tempPos -_2PI ;
+//
+//	v->MechPosition = tempPos;
 #if JEFF_TEST2
-	float AngleIn = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION;
-	v->MechPosition = AngleIn;
-	MR_AngleObsvr.AngleError = ( AngleIn - MR_AngleObsvr.Angle );
+	float AngleIn = (float)v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION;
+
+//	 AngleIn = tempPos;
+	MR_AngleObsvr.AngleError = ( AngleIn - ( MR_AngleObsvr.Angle + MR_AngleObsvr.Speed * MR_AngleObsvr.Period ));
 	MR_AngleObsvr.Quotient = (int16_t)( MR_AngleObsvr.AngleError * INV_2PI);
 	MR_AngleObsvr.Quotient = ( MR_AngleObsvr.Quotient >= 0 ) ? MR_AngleObsvr.Quotient : MR_AngleObsvr.Quotient - 1;
 	MR_AngleObsvr.CorrespondingAngleError = MR_AngleObsvr.AngleError - ((float)MR_AngleObsvr.Quotient) * _2PI;
@@ -150,8 +163,11 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 	MR_AngleObsvr.Angle = ( MR_AngleObsvr.Angle >= _2PI ) ? MR_AngleObsvr.Angle - _2PI : MR_AngleObsvr.Angle;
 	MR_AngleObsvr.Angle = ( MR_AngleObsvr.Angle < 0 ) ? MR_AngleObsvr.Angle + _2PI : MR_AngleObsvr.Angle;
 
-	v->MechPosition = MR_AngleObsvr.Angle - ( MR_AngleObsvr.Speed * MR_AngleObsvr.Period ) + v->MechPosZeroOffset;
+	v->MechPosition = MR_AngleObsvr.Angle + v->MechPosZeroOffset;
 	v->MechSpeed = MR_AngleObsvr.Speed;
+
+
+
 #endif
 
 	if ( v->MechPosition >= _2PI )
