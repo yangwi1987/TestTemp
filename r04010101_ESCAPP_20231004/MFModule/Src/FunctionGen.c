@@ -18,6 +18,9 @@ void FunctionGenerator_Init(FG_t* v, float Start_Freq, float End_Freq, float dur
 	v->Amplitude = Amplitude;
 	v->ExePeriod = ExePeriod;
 	v->Direction = End_Freq >= Start_Freq ? 1 : 0;
+	v->StartFreq = Start_Freq;
+	v->EndFreq = End_Freq;
+	v->Freq_Now = v->StartFreq;
 	switch ( v->Signal_Select )
 	{
 	    case FG_SIGNAL_SELECT_SINE:
@@ -74,16 +77,19 @@ float FunctionGenerator_Sin_Calc( FG_t* v )
 			    case FG_SIGNAL_PATTERN_ONCE:
 			    {
 			    	v->Start = 0;
+			    	v->Freq_Now = v->StartFreq;
 			    	break;
 			    }
 			    case FG_SIGNAL_PATTERN_REPEAT:
 			    {
 			    	v->Step_Now = 0;
+			    	v->Freq_Now = v->StartFreq;
 			    	break;
 			    }
 			    case FG_SIGNAL_PATTERN_UPDOWN:
 			    {
 			    	v->Step_Now = 0;
+			    	v->Freq_Now = v->EndFreq;
 			    	v->Direction = !v->Direction;
 			    	break;
 			    }
@@ -98,10 +104,11 @@ float FunctionGenerator_Sin_Calc( FG_t* v )
 	}
 	else
 	{
-		v->Freq_Now = 0.0f;
+		v->Freq_Now = v->StartFreq;
 		v->Step_Now = 0;
 	}
-	result = v->Offset + v->Signal_Now;
+
+	result = v->Offset + v->Signal_Now * v->Amplitude;
     return result;
 }
 

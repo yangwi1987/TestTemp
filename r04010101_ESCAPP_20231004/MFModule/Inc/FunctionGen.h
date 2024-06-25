@@ -44,6 +44,8 @@ typedef struct
     float Offset;
     float Amplitude;
     float ExePeriod;
+    float StartFreq;
+    float EndFreq;
 	functypeFunctionGenerator_Init Init;
 	functypeFunctionGenerator_Calc Calc;
 }FG_t;
@@ -61,6 +63,8 @@ typedef struct
     0.0f,/*Offset;   */\
     0.0f,/*Amplitude;*/\
     0.0f,/*ExePeriod;*/\
+	0.0f,/*StartFreq;*/\
+	0.0f,/*EndFreq;*/\
 	(functypeFunctionGenerator_Init)FunctionGenerator_Init,\
 	(functypeFunctionGenerator_Calc)FunctionGenerator_None_Calc,\
 }
