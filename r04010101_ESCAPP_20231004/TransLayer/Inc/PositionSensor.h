@@ -13,10 +13,10 @@
 #include "stm32g4xx_hal.h"
 #include "MathFunctionInclude.h"
 #include "PositionLUT.h"
+#include "AngleObserver.h"
+#include "MotorControl.h"
 
 #define DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION 4096 // resolution_pairs set as 0b0100
-#define DEFAULT_POLE_PAIRS 5 //read from param int the future
-#define DEFAULT_ABZ_RESOLUTION_PER_ELE_REVOLUSTION DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / DEFAULT_POLE_PAIRS //819.2 steps per elec revolution, which means 0.439 degrees
 #define DEFAULT_ABNORMAL_SPEED 1570.796f //15000 rpm
 
 typedef void (*functypePositionSensor_Init)(void*, uint16_t, uint16_t);
@@ -53,7 +53,8 @@ typedef struct
 	float InitMechPosition;
 	float MechPosCompCoefBySpeed;
 	float MechPosZeroOffset;
-	FILTER_BILINEAR_1ORDER_TYPE CalcMechSpeedLPF;
+	float PolePair;
+	AngleObserver_t AngleObsvr;
 	functypePositionSensor_Init Init;
 	functypePositionSesnor_DoPLCLoop DoPLCLoop;
 	functypePositionSensor_DoCurrentLoop DoCurrentLoop;
@@ -74,7 +75,8 @@ typedef struct
 	0.0f,/*	float InitMechPosition;         */\
 	0.0f,/*	float MechPosCompCoefBySpeed;   */\
 	0.0f,/*	float MechPosZeroOffset;        */\
-	FILTER_BILINEAR_1ORDER_DEFAULT,\
+	0.0f,/*	float PolePair;        */\
+	ANGLE_OBSERVER_DEFAULT,\
 	(functypePositionSensor_Init)PositionSensor_Init,\
 	(functypePositionSesnor_DoPLCLoop)PositionSesnor_DoPLCLoop,\
 	(functypePositionSensor_DoCurrentLoop)PositionSensor_ReadPosIdle,\
@@ -86,5 +88,6 @@ void PositionSensor_DummyCurrentLoop(PS_t* v);
 void PositionSensor_ReadPosViaABZ(PS_t* v);
 void PositionSensor_ReadPosIdle(PS_t* v);
 extern TIM_HandleTypeDef htim2;
+extern MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault;
 
 #endif /* INC_POSITIONSENSOR_H_ */

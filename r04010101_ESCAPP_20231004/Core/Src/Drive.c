@@ -2360,10 +2360,10 @@ __attribute__(( section(".ram_function"))) void drive_DoCurrentLoop(void)
 
 #if USE_DATA_RECORDER
 		DataRecorder_Routine(\
-				PSStation1.MechPosition, \
+				PSStation1.PreMechPosition, \
 				PSStation1.MechSpeed, \
-				MR_AngleObsvr.Angle, \
-				MR_AngleObsvr.Speed \
+				PSStation1.AngleObsvr.Angle, \
+				PSStation1.AngleObsvr.Speed \
 				);
 
 //		DataRecorder_Routine(\

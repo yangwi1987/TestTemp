@@ -11,6 +11,7 @@
 #include "ParamMgr.h"
 #include "PositionSensor.h"
 
+#define DEFAULT_POLE_PAIRS 5 //read from param int the future
 #define DEFAULT_CURRENT_CMD_FOR_POS_CALI 500  //unit 0.1A
 #define DEFAULT_CURRENT_CMD_FOR_POS_CALI_HIGH 1500  //unit 0.1A
 #define DEFAULT_DELAY_TIME_FOR_FIND_MECH_ZERO 2000 // uint: ms

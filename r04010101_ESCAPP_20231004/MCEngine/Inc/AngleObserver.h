@@ -48,6 +48,7 @@ typedef struct
 	float L1Result;
 	float L2Result;
 	float L3Result;
+	float Te;
 	float AcelTmp;
 	float Acel;
 	float AcelUpperLimit;
@@ -86,6 +87,7 @@ void AngleObserver_Calc( AngleObserver_t *p, float AngleIn );
 	0,		\
 	0,		\
 	0,		\
+	0.0f,	\
 	0.0f,	\
 	0.0f,	\
 	0.0f,	\
