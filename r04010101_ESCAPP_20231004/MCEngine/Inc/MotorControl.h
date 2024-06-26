@@ -147,6 +147,7 @@ typedef struct
 	float DeadtimeDutyN;
 	float DeadtimeSlopeN;
 	float AngleObserverHz;
+	float ABZResolution;
 } MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE;
 
 typedef struct
@@ -338,6 +339,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	0.0f,											/*DeadtimeDutyN;   */\
 	0.0f											/*DeadtimeSlopeN; */\
 	0.0f,											/*AngleObserverHz;  */\
+	0.0f,											/*ABZResolution;  */\
 }
 
 #define PM_MOTOR_PARAMETER_DEAFULAT \

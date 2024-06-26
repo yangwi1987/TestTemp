@@ -19,6 +19,7 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
 	MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorControlSetting = MotorDefault;
 
 	v->PolePair = MotorControlSetting.PmMotorPolepair;
+	v->ABZResolution = MotorControlSetting.ABZResolution;
 
 #if USE_REVERVE_MR_DIRECTION
 	v->MechPosZeroOffset = _2PI - ((float)( MechPosZeroOffset - 32768 ) * 0.0001f);
@@ -74,7 +75,7 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
 #else
 		  v->PreMechPosition = v->MechPosition;
 #endif
-          htim2.Instance->CNT = (uint32_t)(v->MechPosition * (float)DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / _2PI);
+          htim2.Instance->CNT = (uint32_t)(v->MechPosition * v->ABZResolution / _2PI);
           HAL_NVIC_DisableIRQ(TIM20_CC_IRQn);
     	  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
     	  v->DoCurrentLoop = (functypePositionSensor_DoCurrentLoop)&PositionSensor_ReadPosViaABZ;
@@ -104,7 +105,7 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 //	tempABZ = v->CntFromABZ & 0x0FFF;
 //	tempMechPosition = ABZtoMechPos[tempABZ];
 
-	v->PreMechPosition = (float)v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION;
+	v->PreMechPosition = ((float)(v->CntFromABZ)) * _2PI / v->ABZResolution;
 	v->AngleObsvr.AngleError = ( v->PreMechPosition - ( v->AngleObsvr.Angle + v->AngleObsvr.Speed * v->AngleObsvr.Period ));
 	v->AngleObsvr.Quotient = (int16_t)( v->AngleObsvr.AngleError * INV_2PI);
 	v->AngleObsvr.Quotient = ( v->AngleObsvr.Quotient >= 0 ) ? v->AngleObsvr.Quotient : v->AngleObsvr.Quotient - 1;

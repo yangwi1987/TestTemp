@@ -16,7 +16,6 @@
 #include "AngleObserver.h"
 #include "MotorControl.h"
 
-#define DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION 4096 // resolution_pairs set as 0b0100
 #define DEFAULT_ABNORMAL_SPEED 1570.796f //15000 rpm
 
 typedef void (*functypePositionSensor_Init)(void*, uint16_t, uint16_t);
@@ -54,6 +53,7 @@ typedef struct
 	float MechPosCompCoefBySpeed;
 	float MechPosZeroOffset;
 	float PolePair;
+	float ABZResolution;
 	AngleObserver_t AngleObsvr;
 	functypePositionSensor_Init Init;
 	functypePositionSesnor_DoPLCLoop DoPLCLoop;
@@ -76,6 +76,7 @@ typedef struct
 	0.0f,/*	float MechPosCompCoefBySpeed;   */\
 	0.0f,/*	float MechPosZeroOffset;        */\
 	0.0f,/*	float PolePair;        */\
+	0.0f,/*	float ABZResolution;        */\
 	ANGLE_OBSERVER_DEFAULT,\
 	(functypePositionSensor_Init)PositionSensor_Init,\
 	(functypePositionSesnor_DoPLCLoop)PositionSesnor_DoPLCLoop,\

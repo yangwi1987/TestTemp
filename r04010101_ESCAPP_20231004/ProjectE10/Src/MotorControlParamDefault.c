@@ -34,7 +34,8 @@ const MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorDefault =
 	.VbusHz = 60000.0f,
 	.FWHz = 20.0f,
 	.Ilimit = 517.0f,
-	.AngleObserverHz = 50.0f,
+	.AngleObserverHz = 25.0f,
+	.ABZResolution = 4096.0f,
 
 	.DeadtimeDutyP = 0.0125f,
 	.DeadtimeSlopeP = 5.0f,
