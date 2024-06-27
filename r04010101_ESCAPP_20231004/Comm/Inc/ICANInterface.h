@@ -69,14 +69,6 @@ typedef enum PowerStateMachine_e
 	PWR_SM_WAIT_FOR_RESET,
 } PowerStateMachine_t;
 
-/*=========================================
- * Definition of Authendata
- =========================================*/
-typedef struct
-{
-	uint8_t *pdata;
-	uint8_t Size;
-} STRUCT_Authendata;
 
 /*=========================================
  * Definition of Short Status
@@ -288,7 +280,7 @@ typedef struct
 	uint8_t ServoOnCmd;
 	uint8_t ReceivedCANID;
 	uint16_t AccCANErrorCnt;
-	BmsReportInfo_t BmsReportInfo;
+//	BmsReportInfo_t BmsReportInfo;
 } STRUCT_CANRxInterface;
 
 typedef enum TxInterfaceDbgIdx_e
@@ -367,7 +359,6 @@ typedef struct
 	uint8_t InvState;
 	uint8_t ServoOnOffState;
 	uint16_t HWID[2];
-	BmsCtrlCmd_t BmsCtrlCmd;
 	AlarmStack_t *pAlarmStack;
 } STRUCT_CANTxInterface;
 
@@ -389,7 +380,6 @@ typedef struct {
 	0,      /* ServoOnCmd */\
 	0,      /* ReceivedCANID */\
 	0,      /* AccCANErrorCnt */\
-	BMS_REPORT_INFO_DEFAULT,  /* BmsReportInfo */\
 }\
 
 #define CANTXINFO_DEFAULT { \
@@ -406,7 +396,6 @@ typedef struct {
 	0, /*InvState*/\
 	0, /*ServoOnOffState*/\
 	{0},/*HWID[2]*/\
-	{0}, /*BmsCtrlCmd*/\
 	0, /**pAlarmStack*/\
 }\
 

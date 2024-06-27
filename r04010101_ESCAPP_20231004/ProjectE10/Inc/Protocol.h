@@ -50,129 +50,50 @@
  *  Enum definition
  *  ==================================*/
 
-typedef enum BmsActiveState_e
+
+/*this value should always < 15*/
+typedef enum
 {
-  BMS_ACTIVE_STATE_STARTUP = 0x00,
-  BMS_ACTIVE_STATE_PRECHARGE,
-  BMS_ACTIVE_STATE_DISCHARGE,
-  BMS_ACTIVE_STATE_REQUPERATION,
-  BMS_ACTIVE_STATE_CHARGE,
-  BMS_ACTIVE_STATE_STANDBY,
-  BMS_ACTIVE_STATE_REVERSIBLE_ERROR,
-  BMS_ACTIVE_STATE_PERMERNENT_ERROR,
-  BMS_ACTIVE_STATE_SHUTDOWN,
-  BMS_ACTIVE_STATE_MAX,
-} BmsActiveState_t;
-
-typedef enum BmsPreChgState_e
-{
-  BMS_PRECHG_STATE_OFF = 0x00,
-  BMS_PRECHG_STATE_ACTIVE,
-  BMS_PRECHG_STATE_FAILED,
-  BMS_PRECHG_STATE_SUCCESSFUL,
-  BMS_PRECHG_STATE_MAX
-} BmsPreChgState_t;
-
-typedef enum LedCtrlCode_e
-{
-  LED_CTRL_OFF = 0,
-  LED_CTRL_GREEN,
-  LED_CTRL_BLUE,
-  LED_CTRL_RED,
-} LedCtrlCode_t;
-
-typedef union
-{
-  /* data */
-  uint8_t All;
-  struct
-  {
-    LedCtrlCode_t Led0:2;
-    LedCtrlCode_t Led1:2;
-    LedCtrlCode_t Led2:2;
-    LedCtrlCode_t Led3:2;
-  } Leds;
-} BatPackLedCtrl_t;
-
-#define BAT_LED_SHOW_BMS_ERROR 		0b11110000	/* RED, RED, OFF, OFF */
-#define BAT_LED_SHOW_INV_ERROR 		0b00001111	/* OFF, OFF, RED, RED */
-#define BAT_LED_SHOW_OTHER_ERROR	0b00111100	/* OFF, RED, RED, OFF */
-#define BAT_LED_SHOW_NO_ERROR     	0b00000000  /* OFF, OFF, OFF, OFF */
-
+	ST_INVR_OFF = 0x00,
+	ST_INVR_STARTUP,
+	ST_INVR_STANDBY,
+	ST_INVR_ENERGIZED,
+	ST_INVR_TQ_GENERATOR,
+	ST_INVR_CHARGE,
+	ST_INVR_PRE_SHUTDOWN,
+	ST_INVR_SHUTDOWN,
+	ST_INVR_ERROR,
+} StInvr_e;
 /*=========================================
- * Definition of BMS_Status_01(0x402)
+ * Definition of id512_200_INV CAN Tx Msg to SWM <need to be modified>
  =========================================*/
 typedef struct
 {
-  uint8_t DischargeCurrentLimit_h;
-  uint8_t BmsShutdownRequest      : 1;  /* A notification shows that BMS detects a turn-off command from USER (a press button action or others) */
-  uint8_t WarningFlag             : 1;  /* A flag shows that a battery warning condition is detected by BMS */
-  uint8_t AlarmFlag               : 1;  /* A flag shows that a battery alarm condition is detected by BMS */
-  uint8_t LimpFlag                : 1;  /* A flag shows limp mode output request from BMS */
-  uint8_t DischargeCurrentLimit_l : 4;  /* discharge current limitation of battery ,unit:1A, offset = 0 */
-  uint8_t Soc;                          /* Battery SOC */
-  uint8_t TerminalVoltage_h;
-  uint8_t Current_h               : 6;
-  uint8_t TerminalVoltage_l       : 2;  /* battery terminal voltage, unit=0.1V, offset = 0 */           
-  uint8_t Current_l;                 	/* current from battery, unit=0.05A, offset = 0, positive:charging, negative: discharging */
-  uint8_t MaxCellTemp;                  /* max temperature of cell, unit= 1'C, offset = -40 */
-  uint8_t Byte07;
-} CanRxMsg_BmsStatus01_t;
+	struct
+	{
+		uint8_t stLedSoc1 : 1;
+		uint8_t stLedSoc2 : 1;
+		uint8_t stLedSoc3 : 1;
+		uint8_t stLedSoc4 : 1;
+		uint8_t stLedSoc5 : 1;
+		uint8_t stLedMil  : 1;
+		uint8_t stLedBoost : 1;
+		uint8_t stLedDrivInd : 1;
+	}Bits;
+	uint8_t All;
+} id512_200_INV_Byte0_u;
 
-
-/*=========================================
- * Definition of BMS_Status_02(0x403)
- =========================================*/
 typedef struct
 {
-  uint8_t Byte00;
-  BmsActiveState_t BmsActiveState;       /* todo: confirm with BMS vender to signal definition */
-  BmsPreChgState_t PreCHGState;          /* todo: confirm with BMS vender to signal definition */
-  uint8_t BmsFrameCnt;                   /* Verify if this counter varies with time and range from 0 ~ 255 */ 
-  uint8_t Byte04;
-  uint8_t Byte05;
-  uint8_t Byte06;
-  uint8_t Byte07;
-} CanRxMsg_BmsStatus02_t;
-
-typedef enum BmsCtrlReq_e
-{
-  BMS_CTRL_NO_REQ = 0x00,
-  BMS_CTRL_REQ,
-}BmsCtrlReq_t;
-
-/*=========================================
- * Definition of VCU_BMS_Control_01(0x500)
- =========================================*/
-typedef struct
-{
-  uint8_t ConnectionRequest     : 2;  /* 0 : no request, 1 request */
-  uint8_t DisconnectionRequest  : 2;  /* 0 : no request, 1 request */
-  uint8_t ShutdownRequest       : 2;  /* 0 : no request, 1 request */
-  uint8_t Byte0Reseved          : 2;
-  uint8_t Byte01;
-  uint8_t Byte02;
-  uint8_t Byte03;
-  uint8_t Byte04;
-  uint8_t Byte05;
-  uint8_t Byte06;
-  uint8_t Byte07;
-} CanTxMsg_BmsCtrl01_t;
-
-/*=========================================
- * Definition of VCU_BMS_Control_02(0x501)
- =========================================*/
-typedef struct
-{
-  BatPackLedCtrl_t LedCtrl;
-  uint8_t InvFrameCnt;        /* this value should loop from 0~255 */
-  uint8_t Byte02;
-  uint8_t Byte03;
-  uint8_t Byte04;
-  uint8_t Byte05;
-  uint8_t Byte06;
-  uint8_t Byte07;
-} CanTxMsg_BmsCtrl02_t;
+	id512_200_INV_Byte0_u Byte0;
+	uint8_t Byte1;
+	uint8_t Byte2;
+	uint8_t Byte3;
+	uint8_t Byte4;
+	uint8_t Byte5;
+	uint8_t Byte6;
+	uint8_t Byte7;
+} CanTxMsg_id512_200_INV_t;
 
 typedef struct
 {
@@ -185,6 +106,7 @@ typedef struct
   uint8_t ThrottleRaw;      /* unit 1%, throttle command received from RC */
   uint8_t ThrottleFinal;    /* unit 1%, throttle command handled by throttle mapping strategy */
 } CanTxMsg_InvLogInfo0_t;
+
 typedef struct
 {
   uint16_t DcVoltU16;     /* unit: 0.1V */ 
@@ -293,8 +215,7 @@ typedef struct
 
 typedef union InvCanRxCmd_u
 {
-  CanRxMsg_BmsStatus01_t BmsStatus01;
-  CanRxMsg_BmsStatus02_t BmsStatus02;
+
   uint8_t DataU8[8];
   int8_t DataI8[8];
   uint16_t DataU16[4];
@@ -306,8 +227,7 @@ typedef union InvCanRxCmd_u
 
 typedef union InvCanTxCmd_u
 {
-  CanTxMsg_BmsCtrl01_t BmsCtrl01;
-  CanTxMsg_BmsCtrl02_t BmsCtrl02;
+  CanTxMsg_id512_200_INV_t id512_200_INV;
   CanTxMsg_InvLogInfo0_t InvLogInfo0;
   CanTxMsg_InvLogInfo1_t InvLogInfo1;
   CanTxMsg_InvLogInfo2_t InvLogInfo2;
@@ -332,59 +252,6 @@ typedef union InvCanTxCmd_u
 #define BMS_VERSION_CODE_NUMBER 5 
 #define BMS_SN_BYTE_NUMBER 20
 
-typedef struct 
-{
-	uint8_t ShutDownReq;
-	uint8_t ConnectReq;
-	uint8_t DisconnectReq;
-	BatPackLedCtrl_t LedCtrlCmd;
-} BmsCtrlCmd_t;
-
-#define BMS_CTRL_CMD_DEFAULT 	\
-{  				  				\
-	0,		/*ShutDownReq*/		\
-	0,		/*ConnectReq*/		\
-	0,		/*DisconnectReq*/		\
-	{0},	/*LedCtrlCmd*/		\
-}								\
-
-
-typedef struct
-{
-  uint8_t BmsFrameCnt;
-  uint8_t Soc;
-  uint8_t LimpFlag;
-  uint8_t WarningFlag;
-  uint8_t AlarmFlag;
-  uint8_t BmsShutdownRequest;
-  uint8_t BmsFwVer[BMS_VERSION_CODE_NUMBER];
-  uint8_t BmsSN[BMS_SN_BYTE_NUMBER];
-  int16_t MaxCellTemp;
-  float Current;
-  float DcVolt;
-  float DCCurrentLimit;
-  float BatInstPwr;							/* Battery instantaneous power= Vbat x Ibat */
-} BmsReportInfo_t;
-
-#define BMS_REPORT_INFO_DEFAULT \
-{                               \
-  0,                            \
-  0,  /* SOC */                 \
-  0,  /* LimpFlag */  			    \
-  0,  /* WarningFlag */   		  \
-  0,  /* AlarmFlag */			      \
-  0,  /*BmsShutdownRequest*/	  \
-  {0,0,0,0,0},	/*BmsFwVer[BMS_VERSION_CODE_NUMBER]*/	\
-  {								              \
-   0,0,0,0,0,0,0,0,0,0,			    \
-   0,0,0,0,0,0,0,0,0,0			    \
-  }, 	/*BmsSN[BMS_SN_BYTE_NUMBER]*/	\
-  0, /*MaxCellTemp*/        	  \
-  0.0f,	/*Current*/				      \
-  0.0f,	/*DcVolt*/				      \
-  0.0f,	/*DCCurrentLimit*/		  \
-  0.0f,	/*BatInstPwr*/		  \
-}                               \
 
 extern const CanIdConfig_t CanIdTableExtra[];
 

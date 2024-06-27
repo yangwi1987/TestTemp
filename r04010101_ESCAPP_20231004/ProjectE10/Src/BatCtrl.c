@@ -5,523 +5,182 @@
 #include "Protocol.h"
 
 BatStation_t BatStation = BAT_STATION_DEFAULT;
+ByteOrderMapping_e BatCommByteOrder = BYTE_ORDER_BIG_ENDIAN;
 BatCtrl_t BatCtrl = {0};
-BatInfo_t BatInfo[BAT_IDX_ALL] ={CAN_INFORM_FORM_BAT_DEFAULT, CAN_INFORM_FORM_BAT_DEFAULT};
+BatInfo_t BatInfo[BAT_IDX_NUMBER] = {CAN_INFORM_FORM_BAT_DEFAULT, CAN_INFORM_FORM_BAT_DEFAULT, CAN_INFORM_FORM_BAT_DEFAULT};
+BatCmd_t BatCmd = {0};
 
-
-
-uint8_t Bat_BroadcastReq(uint8_t BatNum, BatBdCtrl_t Cmd)
+uint8_t MsgChksmXorBuild(uint8_t *pArrayIn, uint8_t Num)
 {
-    /* request both */
-    STRUCT_CAN_DATA CANDataTemp;
-    CanIdField_u CanID;
-    uint8_t lStatus = QUEUE_OK;
+	uint8_t ret = *pArrayIn;
 
-    CanID.Bits.Device = CAN_DEVICE_TO_BAT;
-    CanID.Bits.Tod = CAN_TOD_BROADCAST_CTRL;
-    CanID.Bits.Priority = 0x10;
-    CanID.Bits.Reserved = 0;
-
-    for(uint8_t i=0; i < BatNum; i++)
-    {
-       CanID.Bits.Instance = i + 1;	/* index start from 1 */
-       CANDataTemp.ID.ExtFrame.ExtID = CanID.All;
-       CANDataTemp.ID.ExtFrame.XTD = 1;
-       CANDataTemp.Size = 1;
-       CANDataTemp.Data[0] = Cmd ;
-       lStatus = BatCtrl.pExCANStation->TxQ.EnQ(&BatCtrl.pExCANStation->TxQ, &CANDataTemp);
-    }
-
-    return lStatus;
+	for( uint8_t i = 1; i < Num; i++ )
+	{
+		ret ^= *(pArrayIn + i);
+	}
+	return ret;
 }
 
-uint8_t Bat_PowerCtrlReq( uint8_t BatNum, BatPwrCtrl_t Cmd)
+void Bat_ShutdownReq(void)
 {
-    /* request both */
-    STRUCT_CAN_DATA CANDataTemp;
-    CanIdField_u CanID;
-    uint8_t lStatus = QUEUE_OK;
-
-    CanID.Bits.Device = CAN_DEVICE_TO_BAT;
-    CanID.Bits.Tod = CAN_TOD_POWER_CTRL;
-    CanID.Bits.Priority = 0x10;
-    CanID.Bits.Reserved = 0;
-
-    for(uint8_t i=0; i < BatNum; i++)
-    {
-       CanID.Bits.Instance = i + 1;	/* index start from 1 */
-       CANDataTemp.ID.ExtFrame.ExtID = CanID.All;
-       CANDataTemp.ID.ExtFrame.XTD = 1;
-       CANDataTemp.Size = 1;
-       CANDataTemp.Data[0] = Cmd ;
-       lStatus = BatCtrl.pExCANStation->TxQ.EnQ(&BatCtrl.pExCANStation->TxQ, &CANDataTemp);
-    }
-
-    return lStatus;
+	BatCmd.shutdownReq = BAT_FLG_ON;
 }
 
+void ArrayToSmallEndian(uint8_t *pArrayIn, uint8_t Size)
+{
+	uint8_t u8Temp ;
+	uint8_t IdxStart = 0;
+	uint8_t IdxEnd = Size -1;
 
-uint8_t Bat_StayAliveReq()
+	while(IdxStart < IdxEnd)
+	{
+		u8Temp = pArrayIn[IdxStart];
+		pArrayIn[IdxStart] = pArrayIn[IdxEnd];
+		pArrayIn[IdxEnd] = u8Temp;
+		IdxStart++;
+		IdxEnd--;
+	}
+
+}
+
+void Bat_ArrayToSmallEndian(uint8_t *pArrayIn, uint8_t Size)
+{
+	// if communication
+	if(BatCommByteOrder == BYTE_ORDER_BIG_ENDIAN)
+	{
+		ArrayToSmallEndian(pArrayIn,Size);
+	}
+}
+
+BatCanMsgTx_id31E_50_INV_Rvrt_t  BatCanMsgTx_id31E_50_INV = BATCANMSGTX_IDid31E_50_INV_DEFAULT;
+
+void Bat_Id31E_50_INV_Send(void)
 {
     /* request both */
     STRUCT_CAN_DATA CANDataTemp;
     CanIdField_u CanID;
     uint8_t lStatus = QUEUE_OK;
+    BatCanMsgTx_id31E_50_INV_Rvrt_t *pTxMsg;
+    pTxMsg = (BatCanMsgTx_id31E_50_INV_Rvrt_t*)&CANDataTemp.Data;
+    static uint8_t TxCntr = 0;
 
-    CanID.Bits.Device = CAN_DEVICE_TO_BAT;
-    CanID.Bits.Tod = CAN_TOD_STAY_ALIVE;
-    CanID.Bits.Priority = 0x10;
-    CanID.Bits.Reserved = 0;
-    CanID.Bits.Instance = 0;
-    CANDataTemp.ID.ExtFrame.ExtID = CanID.All;
-    CANDataTemp.ID.ExtFrame.XTD = 1;
-    CANDataTemp.Size = 0;
+    CanID.All = 0x31E;
+    memset(pTxMsg,0,8);
+    pTxMsg->Byte0.Bit.stInvr = 0;     // Todo: load inverter state from Inveter station
+    pTxMsg->Byte0.Bit.flgInvrShdwnRdy = BatCmd.shutdownReq;
+    pTxMsg->Byte6.Bit.cntrMsg15 = TxCntr;
+    pTxMsg->nrMsgChksXor06 = MsgChksmXorBuild((uint8_t*)pTxMsg + 1, 7);
+    Bat_ArrayToSmallEndian((uint8_t*)pTxMsg, 8);
+    CANDataTemp.ID.StdFrame.StdID = CanID.All;
+    CANDataTemp.ID.StdFrame.XTD = 0;
+    CANDataTemp.Size = 8;
     lStatus = BatCtrl.pExCANStation->TxQ.EnQ(&BatCtrl.pExCANStation->TxQ, &CANDataTemp);
-    return lStatus;
+
+    if(TxCntr < 15)
+    {
+    	TxCntr++;
+    }
+    else
+    {
+    	TxCntr = 0;
+    }
 }
-
-
 
 void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData)
 {
-	CanIdField_t CanId;
-	BatCanMsgs_u *BatCanMsg;
+	BatCanMsgRx_u *pBatCanMsgRx;
 
-	BatCanMsg = (BatCanMsgs_u*)pData;
-	memcpy((uint8_t*)&CanId, &Id, 4);
+	pBatCanMsgRx = (BatCanMsgRx_u*)pData;
+	Bat_ArrayToSmallEndian(pData, 8);
+	uint8_t BattIdx = 0;
 
-	if ((CanId.Device == CAN_DEVICE_FROM_BAT) &&
-		(CanId.Instance >= BAT_INSTANCE_MAIN && CanId.Instance <= BAT_INSTANCE_SEC) &&
-	    (CanId.Priority == 0x08))
+	if(MsgChksmXorBuild(pData,8) == 0)
+//	if(1)
 	{
-		switch (CanId.Tod)
+		switch (Id)
 		{
-			case CAN_TOD_MEASUREMENT:
-
-				BatInfo[CanId.Instance - 1].DCVolt = (float)BatCanMsg->Tod0x20.DCVolt * 0.01; 	/* The instance starts from 1 to 2 */
-				BatInfo[CanId.Instance - 1].DcCurrent = (float)BatCanMsg->Tod0x20.DCCurrent;
-				BatInfo[CanId.Instance - 1].Soc = (uint8_t)(BatCanMsg->Tod0x20.Soc & 0x00FF);
-				BatInfo[CanId.Instance - 1].CapRemain = (float)BatCanMsg->Tod0x20.CapRemain * 0.01;
-				BatInfo[CanId.Instance - 1].TodsRcved |= BMS_TOD_RXED_MSK_0X20;
-				break;
-			case CAN_TOD_STATUS:
-				BatInfo[CanId.Instance - 1].FetStatus.All = BatCanMsg->Tod0x21.FetStatus.All;
-				BatInfo[CanId.Instance - 1].Soh = BatCanMsg->Tod0x21.Soh;
-				BatInfo[CanId.Instance - 1].ErrorFlags = BatCanMsg->Tod0x21.ErrorFlags;
-				BatInfo[CanId.Instance - 1].TodsRcved |= BMS_TOD_RXED_MSK_0X21;
+			case 0x30C: // From Master battery
+			case 0x30D: // From slave battery
+				BattIdx = Id - 0x30C;
+				BatInfo[BattIdx].MainSM = pBatCanMsgRx->id30C.Byte0.Bit.StBatt;
+				BatInfo[BattIdx].Flags.Bit.Alarm = pBatCanMsgRx->id30C.Byte1.bits.flgBattAlarm;
+				BatInfo[BattIdx].Flags.Bit.Warn = pBatCanMsgRx->id30C.Byte1.bits.flgBattWarn;
+				BatInfo[BattIdx].Flags.Bit.ChrgBsy = pBatCanMsgRx->id30C.Byte0.Bit.flgChrgBsy;
+				BatInfo[BattIdx].Flags.Bit.BalBsy = pBatCanMsgRx->id30C.Byte1.bits.flgBalBsy;
+				BatInfo[BattIdx].PrchSM = pBatCanMsgRx->id30C.stBattPreChrgSt;
+				BatInfo[BattIdx].Flags.Bit.ShutdownReq = pBatCanMsgRx->id30C.Byte1.bits.flgBattShutdownReq;
 				break;
 
-			case CAN_TOD_BAT_CELL_VOLT01:
-			case CAN_TOD_BAT_CELL_VOLT02:
-			case CAN_TOD_BAT_CELL_VOLT03:
-			case CAN_TOD_BAT_CELL_VOLT04:
-			/* do nothing to cell volt for P0 */
+			case 0x30F: //From Master battery
+			case 0x318:	//From Slave battery
+			case 0x31A:	//From Summarized info from Master battery
+				BattIdx = (Id==0x30F) ? BAT_IDX_MASTER : (Id == 0x318)? BAT_IDX_SLAVE:BAT_IDX_SUMMERY;
+				BatInfo[BattIdx].DchrgLimit = (float)pBatCanMsgRx->id30F.iDchaLimn;
+				BatInfo[BattIdx].RgnLimit = (float)pBatCanMsgRx->id30F.iRgnLimn;
+				BatInfo[BattIdx].DcCurrent = (float)pBatCanMsgRx->id30F.iBattCurr;
+				BatInfo[BattIdx].ChrgLimit = (float)pBatCanMsgRx->id30F.iChrgLimn;
+				break;
+
+			case 0x31B: //From Master battery
+			case 0x31C: //From Slave battery
+				BattIdx = Id - 0x31B;
+				BatInfo[BattIdx].DCVolt = (float)pBatCanMsgRx->id31B.uBattTerminal * 0.1;
+				break;
+
+			case 0x507:	//From Slave (WHYYYYYYYYYY?????)
+			case 0x508:	//From Master
+			case 0x509: //Summarized info from Master
+				BattIdx = (Id==0x508) ? BAT_IDX_MASTER : (Id==0x507) ? BAT_IDX_SLAVE : BAT_IDX_SUMMERY;
+				BatInfo[BattIdx].Soc = pBatCanMsgRx->id507.ratBattSoc;
+				BatInfo[BattIdx].CapRemain = (float)pBatCanMsgRx->id507.qBattSoc * 0.001;
 				break;
 
 			default :
 				break;
+
 		}
 	}
 }
 
-void Bat_CanTxCmDHandle()
-{
-	if(BatCtrl.MainSm > BAT_MAIN_SM_IDLE)
-	{
-		if( BatCtrl.TimerPrescaler++ >= 9)
-		{
-			Bat_PowerCtrlReq(2, BatCtrl.PwrCtrlCmd);
-			Bat_BroadcastReq(2, BatCtrl.BdCtrlCmd);
-			Bat_StayAliveReq();
-			BatCtrl.TimerPrescaler = 0;
-		}
-	}
-	else
-	{
-		BatCtrl.TimerPrescaler = 0;
-	}
-}
 
-void Bat_InvDcVoltSet(float VdcIn)
-{
-	BatCtrl.DcBusVoldNow = VdcIn;
-}
-
-void Bat_RcvedTodClear(void)
-{
-	for(uint8_t i =0; i<2; i++)
-	{
-		BatInfo[i].TodsRcved = 0;
-		BatInfo[i].DCVolt = 0;
-		BatInfo[i].ErrorFlags = 0;
-		BatInfo[i].FetStatus.All = 0;
-	}
-}
-
-void Bat_PwrOnReq(void)
-{
-	switch (BatCtrl.MainSm)
-	{
-		case BAT_MAIN_SM_IDLE:
-		case BAT_MAIN_PWR_OFF:
-			BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_IDLE;
-			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_START;
-			BatCtrl.MainSm = BAT_MAIN_PWR_ON;
-			break;
-
-		case BAT_MAIN_PWR_ON:		/*power on sequence is processing, do nothing*/
-		case BAT_MAIN_SM_INIT:		/*not a valid entrance of power on sequence, do nothing*/
-		case BAT_MAIN_ALARM:		/*not a valid entrance of power on sequence, do nothing*/
-		case BAT_MAIN_ACTIVATED:	/*not a valid entrance of power on sequence, do nothing*/
-		default:
-			break;
-	}
-}
-
-void Bat_PwrOffReq(void)
-{
-	switch (BatCtrl.MainSm)
-	{
-		case BAT_MAIN_SM_IDLE:
-		case BAT_MAIN_ALARM:
-		case BAT_MAIN_PWR_ON:
-		case BAT_MAIN_ACTIVATED:
-			BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_START;
-			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_IDLE;
-			BatCtrl.MainSm = BAT_MAIN_PWR_OFF;
-			break;
-
-		case BAT_MAIN_PWR_OFF:		/* power off sequence is processing, do nothing */
-		case BAT_MAIN_SM_INIT:		/*not a valid entrance of power on sequence, do nothing*/
-		default:
-			break;
-	}
-}
-
-void Bat_PwrOnCtrl(void)
-{
-	uint8_t i = 0;
-	BatPwrOnErr_t statusTemp = BAT_PWR_ON_ERR_UNDEFINED_STATE;
-
-  switch (BatCtrl.PwrOnSM)
-  {
-    case BAT_PWR_ON_SM_IDLE:
-    /* DO nothing */
-      break;
-
-    case BAT_PWR_ON_SM_START:
-		Bat_RcvedTodClear();
-		BatCtrl.PwrOnSM = BAT_PWR_ON_SM_WAIT_FOR_VOLT;
-		BatCtrl.PwrOnToCnt = 0;
-		BatCtrl.PwrOnErr = BAT_PWR_ON_ERR_OK;
-		BatCtrl.PwrCtrlCmd = BAT_PWR_CTRL_OFF;
-		BatCtrl.BdCtrlCmd = BAT_BD_CTRL_ON;
-		break;
-
-    case BAT_PWR_ON_SM_WAIT_FOR_VOLT:
-      /* Send broadcast ctrl on command */
-    	BatCtrl.BdCtrlCmd = BAT_BD_CTRL_ON;
-
-      /* Check if CAN MSGs from both battery are received */
-		for (i = 0; i< BAT_IDX_ALL; i++)
-		{
-			if(BatInfo[i].ErrorFlags != 0)
-			{
-				statusTemp = BAT_PWR_ON_ERR_BMS_ERROR_REPORTED;
-				break;
-			}
-
-			if(BatInfo[i].TodsRcved != BMS_TOD_RXED_MSK_ALL)
-			{
-				statusTemp = BAT_PWR_ON_ERR_BAT_INFO_NOT_ENOUGH;
-				break;
-			}
-
-			/* check if voltage difference of both battery and VDC is acceptable
-			* if acceptable, transfer to next state */
-			if((BatCtrl.DcBusVoldNow > BAT_INV_DCBUS_VOLT_THRESHOLD_V) && (ABS(BatInfo[i].DCVolt -BatCtrl.DcBusVoldNow) < BAT_VDIFF_BAT_INV_THRESHOLD_V))
-			{
-				statusTemp = BAT_PWR_ON_ERR_OK;
-			}
-			else
-			{
-				statusTemp = (BatCtrl.DcBusVoldNow > BAT_INV_DCBUS_VOLT_THRESHOLD_V) ? BAT_PWR_ON_ERR_VDIFF_TOO_HIGH : BAT_PWR_ON_ERR_DCV_TOO_LOW;
-				break;
-			}
-		}
-
-		if(statusTemp != BAT_PWR_ON_ERR_OK)
-		{
-			if((BatCtrl.PwrOnToCnt++ > BAT_WAIT_FOR_VOLT_TIME_THRESHOLD_MS) ||
-			   (statusTemp == BAT_PWR_ON_ERR_BMS_ERROR_REPORTED))
-			{
-				BatCtrl.PwrOnSM = BAT_PWR_ON_SM_FAIL;
-			}
-		}
-		else
-		{
-			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_WAIT_FOR_MOSFET_STATUS;
-			BatCtrl.PwrOnToCnt = 0;
-		}
-
-		BatCtrl.PwrOnErr = statusTemp;
-
-      break;
-
-    case BAT_PWR_ON_SM_WAIT_FOR_MOSFET_STATUS:
-      /* Send power on command */
-    	BatCtrl.PwrCtrlCmd = BAT_PWR_CTRL_ON;
-      /* check if can msg from both battery are received */
-      /* check if both battery turn on the dicharge MosFet*/
-      /* if so, change state to complete*/
-    	for (i = 0; i< BAT_IDX_ALL; i++)
-		{
-			if(BatInfo[i].ErrorFlags != 0)
-			{
-				statusTemp = BAT_PWR_ON_ERR_BMS_ERROR_REPORTED;
-				break;
-			}
-
-    		if(BatInfo[i].TodsRcved != BMS_TOD_RXED_MSK_ALL)
-			{
-    			statusTemp = BAT_PWR_ON_ERR_BAT_INFO_NOT_ENOUGH;
-				break;
-			}
-
-			/* Check if all MOSFET of both batteries are turned on */
-			if((BatInfo[i].FetStatus.All & 0x0F) != 0x03)
-			{
-				statusTemp = BAT_PWR_ON_ERR_MOSFET_CTRL_FAIL;
-				break;
-			}
-			else
-			{
-				statusTemp = BAT_PWR_ON_ERR_OK;
-			}
-		}
-
-		if(statusTemp != BAT_PWR_ON_ERR_OK)
-		{
-			if((BatCtrl.PwrOnToCnt++ > BAT_WAIT_FOR_MOSFET_TIME_THRESHOLD_MS) ||
-			   (statusTemp == BAT_PWR_ON_ERR_BMS_ERROR_REPORTED))
-			{
-				BatCtrl.PwrOnSM = BAT_PWR_ON_SM_FAIL;
-			}
-		}
-		else
-		{
-			/* MOSFET is on, switch to next state */
-			BatCtrl.PwrOnSM = BAT_PWR_ON_SM_COMPLETE;
-			BatCtrl.PwrOnToCnt = 0;
-		}
-
-		BatCtrl.PwrOnErr = statusTemp;
-
-		break;
-
-    case BAT_PWR_ON_SM_COMPLETE:
-    	/*do nothing */
-    	break;
-
-    case BAT_PWR_ON_SM_FAIL:
-    	/*todo :report alarm*/
-
-    	break;
-
-    default:
-    	BatCtrl.PwrOnSM = BAT_PWR_ON_SM_FAIL;
-    	statusTemp = BAT_PWR_ON_ERR_UNDEFINED_STATE;
-		BatCtrl.PwrOnErr = statusTemp;
-    	break;
-  }
-
-}
-
-
-void Bat_PwrOffCtrl(void)
-{
-	uint8_t i = 0;
-	BatPwrOffErr_t statusTemp = BAT_PWR_OFF_ERR_UNDEFINED_STATE;
-
-	switch(BatCtrl.PwrOffSM)
-	{
-		case BAT_PWR_OFF_SM_IDLE:
-			break;
-
-		case BAT_PWR_OFF_SM_START:
-			Bat_RcvedTodClear();
-			BatCtrl.PwrOffErr = BAT_PWR_OFF_ERR_OK;
-			BatCtrl.PwrOffToCnt = 0;
-			BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_WAIT_FOR_MOSFET_OFF;
-			break;
-
-		case BAT_PWR_OFF_SM_WAIT_FOR_MOSFET_OFF:
-			BatCtrl.PwrCtrlCmd = BAT_PWR_CTRL_OFF;
-
-			for (i = 0; i< BAT_IDX_ALL; i++)
-			{
-
-				if((BatInfo[i].TodsRcved & BMS_TOD_RXED_MSK_0X21) == 0)
-				{
-					statusTemp = BAT_PWR_OFF_ERR_BAT_INFO_NOT_ENOUGH;
-					break;
-				}
-
-				/* Check if all MOSFET of both batteries are turned off */
-				if((BatInfo[i].FetStatus.All & 0x03) == 0)
-				{
-					statusTemp = BAT_PWR_OFF_ERR_OK;
-				}
-				else
-				{
-					statusTemp = BAT_PWR_OFF_ERR_MOSFET_CTRL_FAIL;
-					break;
-
-				}
-			}
-
-			if(statusTemp != BAT_PWR_OFF_ERR_OK)
-			{
-				if(BatCtrl.PwrOffToCnt ++ > BAT_WAIT_FOR_MOSFET_TIME_THRESHOLD_MS)
-				{
-					BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_FAIL;
-				}
-			}
-			else
-			{
-				/* MOSFET are all off, switch to next state */
-				BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_STOP_BROADCAST;
-				BatCtrl.PwrOffToCnt = 0;
-				/* stop broadcasting */
-
-			}
-
-			BatCtrl.PwrOffErr = statusTemp;
-
-			break;
-
-		case BAT_PWR_OFF_SM_STOP_BROADCAST:
-			BatCtrl.BdCtrlCmd = BAT_BD_CTRL_OFF;
-
-			if(BatCtrl.PwrOffToCnt++ > BAT_WAIT_FOR_STOP_BROADCAST_TIME_THRESHOLD_MS)
-			{
-				BatCtrl.PwrOffToCnt = 0;
-				BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_COMPLETE;
-			}
-
-			break;
-
-		case BAT_PWR_OFF_SM_COMPLETE:
-	    	/* Do nothing */
-			break;
-
-		case BAT_PWR_OFF_SM_FAIL:
-			/* Todo: report error */
-			break;
-
-		default:
-			break;
-	}
-
-}
-
-
-void Bat_SMCtrl(void)
-{
-	switch (BatCtrl.MainSm)
-	{
-  	  case BAT_MAIN_SM_INIT:
-  		BatCtrl.PwrOnToCnt = 0;
-  		BatCtrl.MainSm = BAT_MAIN_SM_INIT;
-  		BatCtrl.PwrOnSM = BAT_PWR_ON_SM_IDLE;
-  		BatCtrl.PwrOnErr = BAT_PWR_ON_ERR_OK;
-  		BatCtrl.PwrOffSM = BAT_PWR_OFF_SM_IDLE;
-  		BatCtrl.PwrOffErr = BAT_PWR_OFF_ERR_OK;
-  		BatCtrl.TimerPrescaler = 0;
-  		BatCtrl.MainSm = BAT_MAIN_SM_IDLE;
-  		break;
-
-  	  case BAT_MAIN_SM_IDLE:
-  		  /* do nothing*/
-  		  break;
-
-		case BAT_MAIN_PWR_ON:
-
-			Bat_PwrOnCtrl();
-
-			if(BatCtrl.PwrOnSM == BAT_PWR_ON_SM_COMPLETE)
-			{
-				BatCtrl.MainSm = BAT_MAIN_ACTIVATED;
-			}
-			else if(BatCtrl.PwrOnSM == BAT_PWR_ON_SM_FAIL)
-			{
-				BatCtrl.MainSm = BAT_MAIN_ALARM;
-			}
-		  break;
-
-		case BAT_MAIN_ACTIVATED:
-			/* Vehicle is able to drain current form batteries under this state*/
-			/* todo: keep monitoring error flags reported from both BMS */
-			for(uint8_t i=0; i<BAT_IDX_ALL; i++)
-			{
-				if(BatInfo[i].ErrorFlags != 0)
-				{
-					BatCtrl.MainSm = BAT_MAIN_ALARM;
-					break;
-				}
-			}
-		  break;
-
-		case BAT_MAIN_PWR_OFF:
-
-			Bat_PwrOffCtrl();
-
-			if(BatCtrl.PwrOffSM == BAT_PWR_OFF_SM_COMPLETE)
-			{
-				BatCtrl.MainSm = BAT_MAIN_SM_IDLE;
-			}
-			else if(BatCtrl.PwrOffSM == BAT_PWR_OFF_SM_FAIL)
-			{
-				BatCtrl.MainSm = BAT_MAIN_ALARM;
-				/*report alarm here*/
-			}
-		  break;
-
-		case BAT_MAIN_ALARM:
-			/*todo: report error */
-
-		  break;
-
-		default:
-		  break;
-	}
-}
 
 
 void Bat_Do100HzLoop (void)
 {
-	Bat_SMCtrl();
-	Bat_CanTxCmDHandle();
+	static uint32_t TimeCntPrescalor = 0;
+
+
+	if((TimeCntPrescalor % 5) == 0)
+	{
+		Bat_Id31E_50_INV_Send();
+	}
+
+	TimeCntPrescalor++;
+
+	if(TimeCntPrescalor >= 100)
+	{
+		TimeCntPrescalor = 0;
+	}
 }
 
-BatMainSM_t Bat_MainSMGet (void)
+BatMainSM_e Bat_MainSMGet (Bat_Idx Idx)
 {
-	return BatCtrl.MainSm;
+	return BatInfo[Idx].MainSM;
 }
 
-BatPwrOnSM_t Bat_PwrOnSMGet (void)
+Bat_stBattPreChrgSt_e Bat_PrchSMGet (Bat_Idx Idx)
 {
-	return BatCtrl.PwrOnSM;
+	return BatInfo[Idx].PrchSM;
 }
 
-BatPwrOffSM_t Bat_PwrOffSMGet (void)
+uint8_t Bat_SocGet (Bat_Idx Idx)
 {
-	return BatCtrl.PwrOffSM;
+	return BatInfo[Idx].Soc;
 }
 
-uint8_t Bat_SocGet (uint32_t Instance)
+float Bat_DchrgCurrentLimitGet (Bat_Idx Idx)
 {
-	return BatInfo[Instance - 1].Soc;
+	return BatInfo[Idx].DchrgLimit;
 }
 
 void Bat_CanHandleLoad(ExtranetCANStation_t *pIn)

@@ -1470,7 +1470,6 @@ void Drive_INVStateMachine( void )
 			if( IsPcuInitReady == PcuInitState_Ready )
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				INVMainState = INV_OP_STANDBY;
 			}
 			break;
@@ -1481,25 +1480,21 @@ void Drive_INVStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 1 ) // normal transitions
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				INVMainState = INV_OP_NORMAL;
 			}
 			else
@@ -1515,25 +1510,21 @@ void Drive_INVStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_LIMPHOME;
 			}
 			else if( Axis[0].HasWarning == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_WARNING;
 			}
 			else if( Axis[0].ServoOn == 0 ) // normal transitions
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				INVMainState = INV_OP_STANDBY;
 			}
 			else
@@ -1549,13 +1540,11 @@ void Drive_INVStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_ALARM;
 			}
 			else if( Axis[0].HasNonCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_LIMPHOME;
 			}
 
@@ -1563,7 +1552,6 @@ void Drive_INVStateMachine( void )
 			else if( Axis[0].HasWarning == 0 )
 			{
 				// clear error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_NO_ERROR;
 				if( Axis[0].ServoOn == 1 )
 				{
 					INVMainState = INV_OP_NORMAL;
@@ -1586,7 +1574,6 @@ void Drive_INVStateMachine( void )
 			if( Axis[0].HasCriAlarm == 1 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_ALARM;
 			}
 			else
@@ -1608,7 +1595,6 @@ void Drive_INVStateMachine( void )
 			if( Axis[0].HasCriAlarm == 0 )
 			{
 				// set error BMS LED
-				Axis[0].pCANTxInterface->BmsCtrlCmd.LedCtrlCmd.All = BAT_LED_SHOW_INV_ERROR;
 				INVMainState = INV_OP_LIMPHOME;
 			}
 			else
@@ -1706,7 +1692,6 @@ __STATIC_FORCEINLINE void EnterVehicleStartupState( void )
 {
   /* Enable global alarm detection */
   AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
-  BatStation.PwrOnReq();
   Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
   VehicleMainState = VEHICLE_STATE_STARTUP;
 }
@@ -1743,7 +1728,7 @@ __STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
   Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 
   /* Request BMS to turn off battery */
-  BatStation.PwrOffReq();
+  // Todo : put shutdown request command
   Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
 
 
@@ -1795,7 +1780,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_IDLE:
     
       /* waiting for killing switch to transfer to startup state */
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_SM_ERROR))
       {
         EnterVehicleAlarmState();
       }
@@ -1808,7 +1793,7 @@ void Drive_VehicleStateMachine( void )
 
     case VEHICLE_STATE_STARTUP:
 
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_SM_ERROR))
       {
         EnterVehicleAlarmState();
       }
@@ -1820,7 +1805,7 @@ void Drive_VehicleStateMachine( void )
       {
         switch (BatStation.MainSMGet())
         {
-          case BAT_MAIN_ACTIVATED:
+          case BAT_MAIN_SM_ENERGIZE:
             EnterVehicleStandbyState();
             break;
 
@@ -1834,7 +1819,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_STANDBY:
 
       // error situation
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_ALARM))
+      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_SM_ERROR))
       {
         EnterVehicleAlarmState();
       }
@@ -1880,7 +1865,7 @@ void Drive_VehicleStateMachine( void )
     case VEHICLE_STATE_DRIVE:
 
       // error situation
-      if( INVMainState == INV_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM )
+      if( INVMainState == INV_OP_ALARM || Bat_MainSMGet(BAT_IDX_MASTER) == BAT_MAIN_SM_ERROR )
       {
         EnterVehicleAlarmState();
       }
@@ -1936,7 +1921,7 @@ void Drive_VehicleStateMachine( void )
       break;
 
     case VEHICLE_STATE_WARNING:
-      if( INVMainState == INV_OP_ALARM || Bat_MainSMGet() == BAT_MAIN_ALARM)	// error situation
+      if( INVMainState == INV_OP_ALARM || Bat_MainSMGet(BAT_IDX_MASTER) == BAT_MAIN_SM_ERROR)	// error situation
       {
         EnterVehicleAlarmState();
       }
@@ -2008,7 +1993,7 @@ void Drive_VehicleStateMachine( void )
       {
     	  EnterVehicleStartupState();
       }
-      else if((Bat_MainSMGet() == BAT_MAIN_SM_IDLE) || (Bat_MainSMGet() == BAT_MAIN_ALARM))
+      else if((Bat_MainSMGet(BAT_IDX_MASTER) == BAT_MAIN_SM_ERROR))
       {
         EnterVehicleInitialState();
       }
@@ -2526,9 +2511,9 @@ void drive_Do100HzLoop(void)
 	Btn_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_INVStateMachine();
-	BatStation.InvDcVoltSet(Axis[0].pAdcStation->AdcTraOut.BatVdc);
 	BatStation.Do100HzLoop();
-	SocValueSet(Bat_SocGet(BAT_INSTANCE_MAIN));
+	//Todo : set SOC value
+	SocValueSet(0);
 	Led_Do100HzLoop();
 
 	/*LED output*/
@@ -2642,16 +2627,7 @@ void drive_Do1HzLoop(void)
 {
 	// do remaining time calculation
 	uint16_t FCC = 2419;   //default set do designed capacity    Uint: Wh
-	uint8_t Related_SoC = Axis[0].pCANRxInterface->BmsReportInfo.Soc;    // Uint: %
 	uint16_t Insta_Power = 0;
-	float temp_Insta_Power = Axis[0].pCANRxInterface->BmsReportInfo.DcVolt * Axis[0].pCANRxInterface->BmsReportInfo.Current;
-
-	Insta_Power = ( temp_Insta_Power >= 0 ) ? (uint16_t)temp_Insta_Power : 0;
-
-	RemainingTime1.Do1secLoop ( &RemainingTime1, FCC, Related_SoC, Insta_Power, Axis[0].TriggerLimpHome );
-
-	Axis[0].pCANTxInterface->Debugf[IDX_REMAIN_TIME] = (float)RemainingTime1.Remaining_Time_Min;
-
 }
 
 // old function definition before 3.1.1.11, not necessary now

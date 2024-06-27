@@ -41,8 +41,8 @@ const CANProtocol ExtranetInformInSystemTableExample =
 const CanIdConfig_t CanIdTableExtra[CAN_ID_CONFIG_ARRAY_SIZE] =
 {
   //	Id1,	Id2,	{FilterType,IdType, ConfigUsage,Reserved}
-  {CAN_ID_BMS_FILTER,	CAN_ID_BMS_MASK,	{{(uint8_t)FDCAN_FILTER_MASK,CAN_ID_CONIFG_TYPE_EXTENDED,CAN_ID_CONFIG_USED,0,0}}},
-  {CAN_ID_DEV_CMD_START,	CAN_ID_DEV_CMD_END,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_EXTENDED,CAN_ID_CONFIG_USED,0,0}}},
+  {BAT_CANID_FILTER_START_01,	BAT_CANID_FILTER_END_01,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
+  {BAT_CANID_FILTER_START_02,	BAT_CANID_FILTER_END_02,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_USED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
   {0x000,	0x000,	{{(uint8_t)FDCAN_FILTER_RANGE,CAN_ID_CONIFG_TYPE_STANDARD,CAN_ID_CONFIG_RESERVED,0,0}}},
@@ -267,11 +267,10 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     {
       if (v->DebugU8[TX_INTERFACE_DBG_IDX_LOG_ENABLE_FLAG] == 1)
       {
-    	  p->InvLogInfo7.MainBatSoc = BatStation.SocGet(BAT_INSTANCE_MAIN);
+    	  //Todo: input SOC value
+    	  p->InvLogInfo7.MainBatSoc = 0;
     	  p->InvLogInfo7.ServoOnOffState = v->ServoOnOffState;
     	  p->InvLogInfo7.BatMainSm = BatStation.MainSMGet();
-    	  p->InvLogInfo7.BatPwrOffState = BatStation.PwrOffSMGet();
-    	  p->InvLogInfo7.BatPwrOnState = BatStation.PwrOnSMGet();
     	  p->InvLogInfo7.E5V = (uint8_t)( 40.0f * v->Debugf[IDX_E5V] );
     	  p->InvLogInfo7.ES5V = (uint8_t)( 40.0f * v->Debugf[IDX_ES5V] );
     	  p->InvLogInfo7.HWID_ID1First8bits = (uint8_t)( v->HWID[0] >> 4 );
@@ -315,7 +314,8 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
       {
     	p->InvLogInfo9.AccPedal2Volt = (uint8_t)( 50.0f * v->Debugf[IDX_ACC_PEDAL2_VOLT] );
     	p->InvLogInfo9.S13V8 = (uint8_t)( 10.0f * v->Debugf[IDX_S13V8] );
-    	p->InvLogInfo9.SecBatSoc = BatStation.SocGet(BAT_INSTANCE_SEC);
+    	//Todo: input slave SOC value
+    	p->InvLogInfo9.SecBatSoc = 0;
 #if MEASURE_CPU_LOAD
     	p->InvLogInfo9.Max10kHzLoopLoad = (uint8_t)( 2.0f * Max_CurrentLoop_Load_pct );
     	p->InvLogInfo9.AveCurrentLoopLoad = (uint8_t)( 2.0f * Ave_CurrentLoop_Load_pct );
