@@ -13,8 +13,21 @@ static void PositionSensor_ReadPosViaPWM(PS_t* v);
 //uint16_t tempABZ = 0;
 //float tempMechPosition = 0.0f;
 
+#define JeffTest 1
+#if JeffTest
+FILTER_BILINEAR_1ORDER_TYPE CalcMechSpeedLPF = FILTER_BILINEAR_1ORDER_DEFAULT;
+#endif
+
 void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCompCoefBySpeed)
 {
+#if JeffTest
+	FILTER_INIT_BILINEAR_1ORDER_TYPE FilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
+	FilterSettingTmp.BandwithHz = 400.0f;
+	FilterSettingTmp.Period =  1.0f / (float)INITIAL_CURRENT_LOOP_FREQ;
+	FilterSettingTmp.Type = FILTER_TYPE_LPF;
+	CalcMechSpeedLPF.Init(&(CalcMechSpeedLPF),&FilterSettingTmp);
+
+#endif
 
 	MOTOR_CONTROL_PARAMETER_DEFAULT_TYPE MotorControlSetting = MotorDefault;
 
@@ -129,8 +142,48 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 	v->AngleObsvr.Angle = ( v->AngleObsvr.Angle >= _2PI ) ? v->AngleObsvr.Angle - _2PI : v->AngleObsvr.Angle;
 	v->AngleObsvr.Angle = ( v->AngleObsvr.Angle < 0 ) ? v->AngleObsvr.Angle + _2PI : v->AngleObsvr.Angle;
 
+#if JeffTest
+	static float MechPosition = 0.0f;
+	static float PreMechPosition = 0.0f;
+	static float oldMechSpeedRaw = 0.0f;
+
+	MechPosition = (float)v->CntFromABZ * _2PI / v->ABZResolution;
+
+	if ( v->Direction == PS_DIRECTION_UPCOUNTER )
+	{
+		v->MechSpeedRaw = ( MechPosition >= PreMechPosition ) ? \
+				                                ( MechPosition - PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
+												( MechPosition - PreMechPosition + _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
+
+	}
+	else
+	{
+		v->MechSpeedRaw = ( MechPosition <= PreMechPosition ) ? \
+				                                ( MechPosition - PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
+												( MechPosition - PreMechPosition - _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
+	}
+
+
+
+	v->MechSpeedRaw = ABS(v->MechSpeedRaw) > DEFAULT_ABNORMAL_SPEED ? oldMechSpeedRaw : v->MechSpeedRaw;
+	oldMechSpeedRaw = v->MechSpeedRaw;
+
+	PreMechPosition = MechPosition;
+
+	if ((uint8_t)( 0xFF & DriveParams.PCUParams.DebugParam2 ) == 1)
+	{
+		v->MechPosition = MechPosition + v->MechPosZeroOffset;
+		v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(CalcMechSpeedLPF), v->MechSpeedRaw);;
+	}
+	else
+	{
+	    v->MechPosition = v->AngleObsvr.Angle + v->MechPosZeroOffset;
+	    v->MechSpeed = v->AngleObsvr.Speed;
+	}
+#else
 	v->MechPosition = v->AngleObsvr.Angle + v->MechPosZeroOffset;
 	v->MechSpeed = v->AngleObsvr.Speed;
+#endif
 
 	if ( v->MechPosition >= _2PI )
 	{
