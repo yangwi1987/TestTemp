@@ -406,7 +406,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.Decoupling.PIDWayId.Ki), IdHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Lq, p->MotorPara.PM.Res);
 	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.Decoupling.PIDWayIq.Ki), IqHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Ld, p->MotorPara.PM.Res);
 	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayId.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
-	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayId.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
+	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayIq.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
 
 	//Compensation Deadtime
 	p->CompDuty.Init(&(p->CompDuty),pSetting->DeadtimeDutyP,pSetting->DeadtimeSlopeP,pSetting->DeadtimeDutyN,pSetting->DeadtimeSlopeN);
