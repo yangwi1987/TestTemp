@@ -46,11 +46,11 @@ void drive_DoPLCLoop(void)
 
 	ExtranetCANStation.DoPlcLoop ( &ExtranetCANStation );
 
-	testfloat[testi] = AdcStation1.AdcRawData.Inj[ISE_W_A0].RawAdcValue;
-    if ( testi++ >= 999 )
-    {
-    	testi = 0;
-    }
+//	testfloat[testi] = AdcStation1.AdcRawData.Inj[ISE_W_A0].RawAdcValue;
+//    if ( testi++ >= 999 )
+//    {
+//    	testi = 0;
+//    }
 
 }
 
