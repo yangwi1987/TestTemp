@@ -149,6 +149,19 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->ServoOnOffState = v->ServoOnOffState;
 //        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
 #if USE_MOTOR_CTRL_DEBUG
+#if USE_COMPLEX_VECTOR_DCP
+        v->pCANTxInterface->Debugf[IDX_ID_CMD_ORI] = v->MotorControl.Cmd.IdCmd;
+        v->pCANTxInterface->Debugf[IDX_IQ_CMD_ORI] = v->MotorControl.Cmd.IqCmd;
+        v->pCANTxInterface->Debugf[IDX_VD_ORI] = v->MotorControl.CurrentControl.IdRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_VQ_ORI] = v->MotorControl.CurrentControl.IqRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_DCP_D] = v->MotorControl.CurrentControl.IdRegulator.Output_Raw;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q] = v->MotorControl.CurrentControl.IqRegulator.Output_Raw;
+        v->pCANTxInterface->Debugf[IDX_VS] = v->MotorControl.VoltCmd.VcmdAmp;
+        v->pCANTxInterface->Debugf[IDX_ID_ERR] = v->MotorControl.CurrentControl.IdRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_IQ_ERR] = v->MotorControl.CurrentControl.IqRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_DCP_D_ERR] = v->MotorControl.CurrentControl.IdRegulator.Uij;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q_ERR] = v->MotorControl.CurrentControl.IqRegulator.Uij;
+#else
         v->pCANTxInterface->Debugf[IDX_ID_CMD_ORI] = v->MotorControl.Cmd.IdCmd;
         v->pCANTxInterface->Debugf[IDX_IQ_CMD_ORI] = v->MotorControl.Cmd.IqCmd;
         v->pCANTxInterface->Debugf[IDX_VD_ORI] = v->MotorControl.CurrentControl.IdRegulator.Output;
@@ -161,6 +174,9 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_DCP_D_ERR] = v->MotorControl.CurrentControl.Decoupling.PIDWayId.Error;
         v->pCANTxInterface->Debugf[IDX_DCP_Q_ERR] = v->MotorControl.CurrentControl.Decoupling.PIDWayIq.Error;
 #endif
+#endif
+
+
     }
 
 }

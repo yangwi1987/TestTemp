@@ -219,6 +219,41 @@ typedef struct
 	PI_TYPE PIDWayIq;
 } FOC_DECOUPLING_TYPE;
 
+#if USE_COMPLEX_VECTOR_DCP
+
+typedef struct
+{
+	uint16_t EnableDirectIdqCmd:1;
+	uint16_t EnableFunctionReserved2:1;
+	uint16_t EnableFunctionReserved3:1;
+	uint16_t EnableFunctionReserved4:1;
+	uint16_t EnableFunctionReserved5:1;
+	uint16_t EnableFunctionReserved6:1;
+	uint16_t EnableFunctionReserved7:1;
+	uint16_t EnableFunctionReserved8:1;
+	uint16_t EnableFunctionReserved9:1;
+	uint16_t EnableFunctionReserved10:1;
+	uint16_t EnableFunctionReserved11:1;
+	uint16_t EnableFunctionReserved12:1;
+	uint16_t EnableFunctionReserved13:1;
+	uint16_t EnableFunctionReserved14:1;
+	uint16_t EnableFunctionReserved15:1;
+	uint16_t EnableFunctionReserved16:1;
+	float IdCmd;
+	float IqCmd;
+	float EleAngle;
+	float EleSpeed;
+	float PwmPeriod;
+	float PwmHz;
+	PHASE_TO_STATOR_TYPE StatorCurrFb;
+	STATOR_TO_ROTOR_TYPE RotorCurrFb;
+	PI_COMPLEX_VECTOR_TYPE IdRegulator;
+	PI_COMPLEX_VECTOR_TYPE IqRegulator;
+	CURRENT_CONTROL_FLUX_WEAKENING_TYPE FluxWeakening;
+} CURRENT_CONTROL_TYPE;
+
+#else
+
 typedef struct
 {
 	uint16_t EnableDirectIdqCmd:1;
@@ -250,6 +285,8 @@ typedef struct
 	FOC_DECOUPLING_TYPE Decoupling;
 	CURRENT_CONTROL_FLUX_WEAKENING_TYPE FluxWeakening;
 } CURRENT_CONTROL_TYPE;
+
+#endif
 
 typedef struct
 {
@@ -408,6 +445,41 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	PI_DEFAULT,	\
 }
 
+#if USE_COMPLEX_VECTOR_DCP
+
+#define CURRENT_CONTROL_DEFAULT				\
+{											\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	FUNCTION_DISABLE, 						\
+	0.0f,									\
+	0.0f,									\
+	0.0f,									\
+	0.0f,									\
+	0.0001f,								\
+	10000.0f,								\
+	PHASE_TO_STATOR_DEFAULT,				\
+	STATOR_TO_ROTOR_DEFAULT,				\
+	PI_COMPLEX_VECTOR_DEFAULT,								\
+	PI_COMPLEX_VECTOR_DEFAULT,								\
+	CURRENT_CONTROL_FLUX_WEAKENING_DEFAULT	\
+}
+
+#else
+
 #define CURRENT_CONTROL_DEFAULT				\
 {											\
 	FUNCTION_DISABLE, 						\
@@ -440,6 +512,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	CURRENT_CONTROL_FLUX_WEAKENING_DEFAULT	\
 }
 
+#endif
 
 #define MOTOR_CONTROL_DEFAULT			\
 {										\
