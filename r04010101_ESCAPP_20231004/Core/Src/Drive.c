@@ -58,7 +58,7 @@ NetWorkService_t IntranetCANStation = NetWorkService_t_Default;
 MFStation MFStation1 = MF_STATION_DEFAULT;
 UdsSecurityAccessCtrl_t PcuAuthorityCtrl = UDS_SECURITY_ACCESS_CTRL_DEFAULT;
 uint16_t IsPcuInitReady = PcuInitState_Inital;
-uint16_t IsUseDigitalFoilSensor = 0;
+
 IntFlashCtrl_t IntFlashCtrl = INT_FLASH_CTRL_DEFAULT;
 // Declare total time
 TotalTime_t TotalTime1 = TOTAL_TIME_DEFAULT;
@@ -2056,9 +2056,6 @@ void drive_Init(void)
 	// TODO when add motor2 parameters, check if the check sum mechanism is still OK?
 	ParamMgr1.Init( &ParamMgr1, &ExtFlash1 );
 
-	// set flag after DriveParam has been updated. and before AlarmDetect init.
-	IsUseDigitalFoilSensor = DriveParams.PCUParams.DebugParam1;
-
 	// notice that: parameters in each axis have to be independent.
 	for( AxisIndex = 0; AxisIndex < ACTIVE_AXIS_NUM; AxisIndex++ )
 	{
@@ -2523,6 +2520,7 @@ void drive_Do100HzLoop(void)
 	Btn_SignalWrite(BTN_IDX_KILL_SW, HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port, Kill_Switch_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
+	Btn_SignalWrite(BTN_IDX_BRK_BTN, Axis[0].BrakeTorqueCalc.PickSignal(&Axis[0].BrakeTorqueCalc, AdcStation1.AdcTraOut.Pedal_V2, HAL_GPIO_ReadPin(Brake_DI_GPIO_Port,Brake_DI_Pin)));
 	Btn_Do100HzLoop();
 	Drive_VehicleStateMachine();
 	Drive_INVStateMachine();

@@ -33,6 +33,7 @@
 #include "E10App.h"
 #include "HiResoMotorTable.h"
 #include "GearMode.h"
+#include "BrakeTorqueCal.h"
 #endif
 
 typedef void (*functypeAxis_Init)(void*,uint16_t);
@@ -275,6 +276,7 @@ typedef struct {
 	PHASE_LOSS_TYPE	PhaseLoss;
 	SpeedInfo_t SpeedInfo;
 	GearMode_Var_t GearModeVar;
+	BrakeTorqueCalc_t BrakeTorqueCalc;
 	functypeAxis_Init Init;
 	functypeAxis_DoCurrentLoop DoCurrentLoop;
 	functypeAxis_DoPLCLoop DoPLCLoop;
@@ -323,6 +325,7 @@ typedef struct {
 	PHASE_LOSS_DEFAULT,	\
 	SPEED_INFO_DEFAULT,	\
 	GEAR_MODE_VAR_DEFALUT, \
+	BREAK_TORQUE_CALC_DEFAULT,  \
 	(functypeAxis_Init)AxisFactory_Init, \
 	(functypeAxis_DoCurrentLoop)AxisFactory_DoCurrentLoop, \
 	(functypeAxis_DoPLCLoop)AxisFactory_DoPLCLoop, \

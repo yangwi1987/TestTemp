@@ -67,6 +67,7 @@ typedef enum
     BTN_IDX_KILL_SW = 0,	/* killing switch */
 		BTN_IDX_BST_BTN,			/* Boost button */
 		BTN_IDX_REV_BTN,			/* Reverse button */	
+		BTN_IDX_BRK_BTN,
     BTN_IDX_MAX,
 } BtnIdx_e;
 

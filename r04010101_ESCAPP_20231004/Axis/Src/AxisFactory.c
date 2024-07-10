@@ -130,8 +130,8 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->Debugf[IDX_VQ_CMD] = v->MotorControl.VoltCmd.VqCmd;
         v->pCANTxInterface->Debugf[IDX_MOTOR_RPM] = v->SpeedInfo.MotorMechSpeedRPM;
         v->pCANTxInterface->Debugf[IDX_DC_VOLT] = v->pAdcStation->AdcTraOut.BatVdc;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] = v->pAdcStation->ThrotADCRawRatio;
-        v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL] = v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_RAW] = v->ThrotMapping.PercentageTarget;
+        v->pCANTxInterface->Debugf[IDX_THROTTLE_FINAL] = v->ThrotMapping.PercentageOut;
         v->pCANTxInterface->Debugf[IDX_ACC_PEDAL1_VOLT] = v->pAdcStation->AdcTraOut.Pedal_V1;
         v->pCANTxInterface->Debugf[IDX_EA5V] = v->pAdcStation->AdcTraOut.EA5V;
         v->pCANTxInterface->Debugf[IDX_INSTANT_AC_POWER]= AcPwrInfo.InstPower;
@@ -398,6 +398,7 @@ void AxisFactory_GetScooterThrottle( Axis_t *v )
 
     v->ThrotMapping.ChangeTime = v->FourQuadCtrl.DriveChangeTime;
     v->ThrotMapping.Calc( &v->ThrotMapping );
+    v->BrakeTorqueCalc.ThrottleCalc( &v->BrakeTorqueCalc, &(v->ThrotMapping.PercentageTarget ), Btn_StateRead(BTN_IDX_BRK_BTN));
     v->ThrotMapping.Ramp( &v->ThrotMapping );
     v->ThrotMapping.TnSelectDelay = v->ThrotMapping.TnSelect;
 }
@@ -531,6 +532,7 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
             &v->MotorControl, &v->SpeedInfo, &v->PwmRc );
     v->AlarmDetect.RegisterAxisAlarm = (functypeAlarmDetect_RegisterAxisAlarm)RegisterAxisAlarm;
     v->ThrotMapping.Init( &v->ThrotMapping, &DriveParams );
+    v->BrakeTorqueCalc.Init( &v->BrakeTorqueCalc, &DriveParams );
     AxisSync_SyncFourQuadParams(v);
     v->TorqCommandGenerator.AcCurrLimitLut.Init(&(v->TorqCommandGenerator.AcCurrLimitLut), MotorDefault.pMotorTableHeader->AcCurrLimitHeader.Para);
     v->TorqCommandGenerator.DcCurrLimitLut.Init(&(v->TorqCommandGenerator.DcCurrLimitLut), MotorDefault.pMotorTableHeader->DcCurrLimitHeader.Para);

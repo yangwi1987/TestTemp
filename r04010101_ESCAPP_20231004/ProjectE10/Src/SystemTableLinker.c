@@ -308,9 +308,9 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		32768,		62768,		62768,		0x84A,		&DriveParams.SystemParams.DriveRisingRamp},	//P0-85
 				{		2768,		32768,		2768,		0x84A,		&DriveParams.SystemParams.DriveFallingRamp},	//P0-86
 				{		30,			100,		30,		    0x4A,		&DriveParams.SystemParams.LimpTransitSec},	//P0-87
-				{		0,			0,			0,			0,		0},	//P0-88
-				{		0,			0,			0,			0,		0},	//P0-89
-				{		0,			0,			0,			0,		0},	//P0-90
+				{	    0,	  	    1,		    1,		    0x45,		&DriveParams.SystemParams.BrkAccCncl},	//P0-88
+				{	    0,	  	    1,		    0,		    0x45,		&DriveParams.SystemParams.IsUseAnalogBrk},	//P0-89
+				{	    3,	  	   51,		  25,		 0x4A,		&DriveParams.SystemParams.AnalogBrkThreshold},	//P0-90
 				{		0,			0,			0,			0,		0},	//P0-91
 				{		0,			0,			0,			0,		0},	//P0-92
 				{		0,			0,			0,			0,		0},	//P0-93
