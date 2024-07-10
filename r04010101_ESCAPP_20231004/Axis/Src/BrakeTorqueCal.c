@@ -11,7 +11,7 @@ void BrakeTorqueCalc_Init( BrakeTorqueCalc_t *v, DriveParams_t *a )
 {
 	v->Enable = a->SystemParams.BrkAccCncl;
 	v->IsUseAnalogInput = a->SystemParams.IsUseAnalogBrk;
-	v->AnalogThreshold = (float)(a->SystemParams.AnalogBrkThreshold) * 0.1f;
+	v->AnalogThreshold = (float)(a->SystemParams.BrkSnsrThd) * 0.1f;
 
 }
 

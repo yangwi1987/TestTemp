@@ -122,7 +122,7 @@ typedef struct {
 	uint16_t LimpTransitSec;	//P0-87
 	uint16_t BrkAccCncl ;//P0-88
 	uint16_t IsUseAnalogBrk;//P0-89
-	uint16_t AnalogBrkThreshold;	//P0-90
+	uint16_t BrkSnsrThd;	//P0-90
 	uint16_t Reserved091;	//P0-91
 	uint16_t Reserved092;	//P0-92
 	uint16_t Reserved093;	//P0-93

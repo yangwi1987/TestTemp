@@ -310,7 +310,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		30,			100,		30,		    0x4A,		&DriveParams.SystemParams.LimpTransitSec},	//P0-87
 				{	    0,	  	    1,		    1,		    0x45,		&DriveParams.SystemParams.BrkAccCncl},	//P0-88
 				{	    0,	  	    1,		    0,		    0x45,		&DriveParams.SystemParams.IsUseAnalogBrk},	//P0-89
-				{	    3,	  	   51,		  25,		 0x4A,		&DriveParams.SystemParams.AnalogBrkThreshold},	//P0-90
+				{	    3,	  	   51,		  25,		 0x4A,		&DriveParams.SystemParams.BrkSnsrThd},	//P0-90
 				{		0,			0,			0,			0,		0},	//P0-91
 				{		0,			0,			0,			0,		0},	//P0-92
 				{		0,			0,			0,			0,		0},	//P0-93
