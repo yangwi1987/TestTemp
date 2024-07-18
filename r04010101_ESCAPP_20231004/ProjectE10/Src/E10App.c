@@ -158,6 +158,7 @@ void Btn_Init()
 /*=============== LED Indication control start ===============*/
 LedCtrl_t LedCtrlArray[LED_IDX_MAX];
 SocLightCtrl_t SocLightCtrl;
+KS_PWM_t KillSwitch_PWM;
 
 
 void Led_CtrlReq(LedIdx_e Idx, LedMode_e ModeIn, uint16_t NbrToBlink, LedBlinkConfig_t BlinkConfig)

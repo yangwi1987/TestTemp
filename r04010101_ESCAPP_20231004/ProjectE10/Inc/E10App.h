@@ -216,4 +216,42 @@ extern void SocLightCtrl_Do100HzLoop(void);
 
 /*=============== LED Indication control End ===============*/
 
+/*=============== Kill Switch PWM start ===============*/
+/*
+ * The enum KS_State describe the pin state of Kill switch input and Kill switch output;
+ * The enum KS Status describe the Kill switch signal is valid or invalid
+ *
+ *
+ *
+ * */
+typedef enum
+{
+	KS_STATE_LOW = 0U,
+	KS_STATE_HIGH
+}KS_State_e;
+
+typedef enum
+{
+	KS_STATUS_VALID = 0U,
+	KS_STATUS_INVALID
+}KS_Status_e;
+
+typedef struct
+{
+	KS_State_e KS_In_State;
+	KS_State_e KS_Out_State;
+	KS_Status_e KS_Status;
+
+}KS_PWM_t;
+
+
+#define KS_PWM_DEFAULT { \
+	KS_STATE_LOW,\
+	KS_STATE_LOW,\
+	KS_STATUS_INVALID\
+}\
+
+/*=============== Kill Switch PWM start ===============*/
+
+
 #endif /* INC_BMEAPP_H_ */

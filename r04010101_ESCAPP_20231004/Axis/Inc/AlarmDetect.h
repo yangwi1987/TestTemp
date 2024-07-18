@@ -65,6 +65,7 @@ typedef struct {
 	PHASE_LOSS_TYPE *pPhaseLoss;
 	PWM_RC_TYPE *pPwmRcStattion;
 	uint16_t BufICEnable;
+	uint8_t KillSwitchStatus;
 	PROTECT_POLLING_TYPE UVP_Bus;
 	PROTECT_POLLING_TYPE OVP_Bus;
 	PROTECT_POLLING_TYPE OCP_Iu;
@@ -99,6 +100,7 @@ typedef struct {
 	PROTECT_POLLING_TYPE THROT_ERROR_BREAK;
 	PROTECT_POLLING_TYPE ACC_PEDAL_SENSOR_BREAK;
 	PROTECT_POLLING_TYPE ACC_PEDAL_SENSOR_SHORT;
+	PROTECT_POLLING_TYPE KILL_SWITCH_INVALID;
 	functypeAlarmDetect_Init Init;
 	functypeAlarmDetect_RegisterAxisAlarm RegisterAxisAlarm;
 	functypeAlarmDetect_DoCurrentLoop DoCurrentLoop;
@@ -122,6 +124,8 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v );
 	0, /* pPhaseLoss */ \
 	0, /* pPwmRcStattion */ \
 	0, /* BufICEnable */\
+	0, /*KillSwitchStatus*/\
+	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \
 	PROTECT_POLLING_TYPE_DEFAULT, \

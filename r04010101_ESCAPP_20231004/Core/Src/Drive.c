@@ -71,6 +71,8 @@ INV_OP_STATE_e INVMainState = INV_OP_INITIALIZING;
 VEHICLE_STATE_e VehicleMainState = VEHICLE_STATE_INITIALIZING;
 uint16_t DualBtnTimeCnt = 0;
 uint8_t ButtonReleasedFlags = 0;
+
+KS_PWM_t KS_PWM = KS_PWM_DEFAULT;
 /*For BRP UDS implementation*/
 
 EnumUdsBRPNRC drive_RDBI_Function (UdsDIDParameter_e DID, LinkLayerCtrlUnit_t *pRx, LinkLayerCtrlUnit_t *pTx);
@@ -2386,6 +2388,7 @@ void EnableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_ENABLE;
 	pAxis->MotorStall.Enable = ALARM_ENABLE;
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_ENABLE;
+	pAxis->AlarmDetect.KILL_SWITCH_INVALID.AlarmInfo.AlarmEnable = ALARM_ENABLE;
 }
 
 void DisableAlarmWhenSessionChange(Axis_t *pAxis)
@@ -2397,6 +2400,7 @@ void DisableAlarmWhenSessionChange(Axis_t *pAxis)
 	pAxis->AlarmDetect.pPhaseLoss->Enable = ALARM_DISABLE;
 	pAxis->MotorStall.Enable = ALARM_DISABLE;
 	pAxis->AlarmDetect.ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = ALARM_DISABLE;
+	pAxis->AlarmDetect.KILL_SWITCH_INVALID.AlarmInfo.AlarmEnable = ALARM_DISABLE;
 }
 
 void Session_DoWhileSessionChange(void)
@@ -2520,7 +2524,13 @@ void drive_Do100HzLoop(void)
 	    IsNotFirstLoop = 1;
 	}
 
-	Btn_SignalWrite(BTN_IDX_KILL_SW, HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port, Kill_Switch_DI_Pin));
+	KS_PWM.KS_In_State = HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port,Kill_Switch_DI_Pin);
+	KS_PWM.KS_Status = !(KS_PWM.KS_In_State ^ KS_PWM.KS_Out_State);
+	KS_PWM.KS_Out_State = !KS_PWM.KS_Out_State;
+	HAL_GPIO_WritePin( Debug_DO1_GPIO_Port, Debug_DO1_Pin, KS_PWM.KS_Out_State );
+	Axis[0].AlarmDetect.KillSwitchStatus = KS_PWM.KS_Status;
+
+//	Btn_SignalWrite(BTN_IDX_KILL_SW, HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port, Kill_Switch_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
 	Btn_Do100HzLoop();
@@ -2716,7 +2726,7 @@ void drive_DoHouseKeeping(void)
 			ExtFlash1.ParamBackupRequest = 0;
 			DriveFnRegs[FN_PARAM_BACKUP_EMEMORY - FN_BASE] = 0;
 		}
-		else if( DriveFnRegs[FN_ORIGIN_PARAM_BACKUP - FN_BASE] )
+ 		else if( DriveFnRegs[FN_ORIGIN_PARAM_BACKUP - FN_BASE] )
 		{
 			// Param Backup
 			ExtFlash1.ParamBackup( &ExtFlash1, &DriveParams );

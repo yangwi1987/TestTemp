@@ -177,6 +177,8 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	v->ACC_PEDAL_SENSOR_BREAK.Counter = 0;
 	v->ACC_PEDAL_SENSOR_SHORT.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_ACC_PEDAL_SHORT];
 	v->ACC_PEDAL_SENSOR_SHORT.Counter = 0;
+	v->KILL_SWITCH_INVALID.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_KILL_SWITCH_INVALID];
+	v->KILL_SWITCH_INVALID.Counter = 0;
 
 	// set threshold from external flash (P3-00~P3-99) for alarm detected by AlarmDetect_Accumulation
 	// This function sholud be executed after ParamMgr1.Init, P3-00 is index 0. Max P3-99 is index 0x63
@@ -312,7 +314,7 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 	// Axis alarm detect
 
 	AlarmDetect_Accumulation( v, &v->OSP, (int16_t) v->pSpeedInfo->MotorMechSpeedRPM );
-
+	AlarmDetect_Accumulation( v, &v->KILL_SWITCH_INVALID, v->KillSwitchStatus );
 
 }
 
