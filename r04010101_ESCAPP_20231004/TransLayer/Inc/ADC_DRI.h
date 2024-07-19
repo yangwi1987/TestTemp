@@ -126,6 +126,7 @@ typedef struct{
 	float  MOTOR_NTC_1;
 	float  MOTOR_NTC_2;
 	float  Throttle;
+	float  VrefInt;
 } ADC_TRA_DATA;
 
 typedef union{
@@ -159,7 +160,8 @@ typedef union{
 	0.0f,               /*MOTOR_NTC;  */\
     0.0f,               /*MOTOR_NTC_1;*/\
     0.0f,               /*MOTOR_NTC_2;*/\
-	0.0f                /*Throttle;   */\
+	0.0f,                /*Throttle;   */\
+	0.0f                /*VrefInt;   */\
 	}
 
 typedef struct {

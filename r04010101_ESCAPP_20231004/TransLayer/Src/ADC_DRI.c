@@ -11,6 +11,8 @@
 #include "ConstantParamAndUseFunction.h"
 
 #define RING(X, XMax)		( (X > XMax) ? 0 : X )
+#define V2A_GAIN 462.42424242 // (1526/3.3); current sensor gain from sensor voltage to current amplitude
+uint16_t VrefInt_CAL = 0;
 
 ADC_HandleTypeDef *AdcAddress[ ADC_ADDRESS_SIZE ] =
 {
@@ -169,6 +171,9 @@ void AdcStation_Init( AdcStation *v )
 	FilterSettingTmp.Period = 0.0001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	Filter_Bilinear1OrderInit( &(v->ThrotAdcFilter), &FilterSettingTmp );
+
+	// read the internal calibration VrefInt ADV value from the internal flash
+	VrefInt_CAL = *((uint16_t*)(0x1FFF75AA));
 }
 
 void AdcStation_ZeroCalibInjectionGroup( AdcStation *v )
@@ -250,9 +255,27 @@ void AdcStation_ReadInjectionGroupValue( AdcStation *v, ADC_HandleTypeDef* hadc 
 
 void AdcStation_DoCurrentLoop( AdcStation *v )
 {
+	float FixVrefGain = 0.0f;
+	float VrefPlus = 0.0f; // real Vref+ measured by the MCU
+	uint16_t IwADC; // current sensor ADC in W phase
+	float OriWI,NewWI;
+
+
+	// use the last one VrefInt read from ADC1 pin18, but it may not update in time each current loop.
+	v->AdcTraOut.VrefInt    = (float)v->RegCh[VrefInt].GainValue  * (v->AdcDmaData[v->RegCh[VrefInt].AdcGroupIndex][v->RegCh[VrefInt].AdcRankIndex]);
+	VrefPlus = 3.0f * VrefInt_CAL / v->AdcTraOut.VrefInt;
+	FixVrefGain = (VrefPlus/4096.0f);
+
 	v->AdcTraOut.Iu[0] = (float)( v->AdcExeGain[ISE_U_A0].FDta * ( v->AdcRawData.Inj[ISE_U_A0].RawAdcValue - v->AdcExeZeroP[ISE_U_A0] ));
 	v->AdcTraOut.Iv[0] = (float)( v->AdcExeGain[ISE_V_A0].FDta * ( v->AdcRawData.Inj[ISE_V_A0].RawAdcValue - v->AdcExeZeroP[ISE_V_A0] ));
-	v->AdcTraOut.Iw[0] = (float)( v->AdcExeGain[ISE_W_A0].FDta * ( v->AdcRawData.Inj[ISE_W_A0].RawAdcValue - v->AdcExeZeroP[ISE_W_A0] ));
+//	v->AdcTraOut.Iw[0] = (float)( v->AdcExeGain[ISE_W_A0].FDta * ( v->AdcRawData.Inj[ISE_W_A0].RawAdcValue - v->AdcExeZeroP[ISE_W_A0] ));
+	IwADC = v->AdcRawData.Inj[ISE_W_A0].RawAdcValue;
+	v->AdcTraOut.Iw[0] = (float)( v->AdcExeGain[ISE_W_A0].FDta * ( IwADC - v->AdcExeZeroP[ISE_W_A0] ));
+	OriWI = v->AdcTraOut.Iw[0];
+	v->AdcTraOut.Iw[0] = (float)( FixVrefGain * V2A_GAIN       * ( IwADC - v->AdcExeZeroP[ISE_W_A0] ));
+	NewWI = v->AdcTraOut.Iw[0];
+
+
 #if USE_VOLTAGE_CALIBRATION == USE_FUNCTION
 	v->AdcTraOut.BatVdc = (float)( v->AdcExeGain[BAT_VDC].FDta  * ( v->AdcRawData.Inj[BAT_VDC].RawAdcValue - v->AdcExeZeroP[BAT_VDC] )) +0.5f;
 #else

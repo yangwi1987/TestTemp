@@ -44,7 +44,7 @@ enum AdcRegGroupEnum {
 	S13V8,
 	ACC_FB2,
 	ACC_FB1,
-	REG_REVD_9,
+	VrefInt,
 	REG_REVD_10,
 	REG_REVD_11,
 	REG_REVD_12
