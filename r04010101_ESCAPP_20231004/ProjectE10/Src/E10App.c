@@ -344,3 +344,15 @@ void SocLightCtrl_Do100HzLoop(void)
 }
 
 /*=============== LED Indication control End ===============*/
+
+/*=============== Kill Switch PWM start ===============*/
+
+void KS_PWM_Do100HzLoop( KS_PWM_t *v )
+{
+	v->KS_In_States_2Tick = (( v->KS_In_States_2Tick << 1 ) | v->KS_In_State ) & 0b11;
+	v->KS_Status = ( v->KS_In_States_2Tick == v->KS_Out_States_2Tick ) ? KS_STATUS_VALID : KS_STATUS_INVALID;
+	v->KS_Out_State = !v->KS_Out_State;
+	v->KS_Out_States_2Tick = (( v->KS_Out_States_2Tick << 1 ) | v->KS_Out_State ) & 0b11;
+}
+
+/*=============== Kill Switch PWM start ===============*/

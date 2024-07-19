@@ -241,14 +241,17 @@ typedef struct
 	KS_State_e KS_In_State;
 	KS_State_e KS_Out_State;
 	KS_Status_e KS_Status;
-
+    uint8_t KS_In_States_2Tick;
+    uint8_t KS_Out_States_2Tick;
 }KS_PWM_t;
 
 
 #define KS_PWM_DEFAULT { \
 	KS_STATE_LOW,\
 	KS_STATE_LOW,\
-	KS_STATUS_INVALID\
+	KS_STATUS_INVALID,\
+	0,\
+	0,\
 }\
 
 /*=============== Kill Switch PWM start ===============*/
