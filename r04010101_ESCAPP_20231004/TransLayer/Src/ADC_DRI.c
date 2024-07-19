@@ -9,10 +9,12 @@
 #include "ADC_DRI.h"
 #include "math.h"
 #include "ConstantParamAndUseFunction.h"
+#include "RingBuffer.h"
 
 #define RING(X, XMax)		( (X > XMax) ? 0 : X )
 #define V2A_GAIN 462.42424242 // (1526/3.3); current sensor gain from sensor voltage to current amplitude
 uint16_t VrefInt_CAL = 0;
+RingBuffer rb; // ring buffer for the data record
 
 ADC_HandleTypeDef *AdcAddress[ ADC_ADDRESS_SIZE ] =
 {
@@ -123,17 +125,6 @@ void AdcStation_Init( AdcStation *v )
 			HAL_ADCEx_Calibration_Start( ( ADC_HandleTypeDef * )AdcAddress[PCUTable.AdcSetupTab[i].Group], ADC_SINGLE_ENDED );
 		}
 
-		if( PCUTable.AdcSetupTab[i].GroupEna && PCUTable.AdcSetupTab[i].InjectedMode )
-		{
-			HAL_ADCEx_InjectedStart_IT( ( ADC_HandleTypeDef * )AdcAddress[PCUTable.AdcSetupTab[i].Group] );
-			v->AdcInjGroupFlag |= 0x01 << i;
-		}
-
-		if( PCUTable.AdcSetupTab[i].GroupEna && PCUTable.AdcSetupTab[i].DmaEnable )
-		{
-			HAL_ADC_Start_DMA( ( ADC_HandleTypeDef * )AdcAddress[PCUTable.AdcSetupTab[i].Group], ( uint32_t * )&v->AdcDmaData[ PCUTable.AdcSetupTab[i].Group-1 ][ 0 ], ( uint32_t )v->AdcDmaChCnt[i] );
-			v->AdcRegGroupFlag |= 0x01 << i;
-		}
 	}
 
 	// Init NTC Curve
@@ -174,6 +165,25 @@ void AdcStation_Init( AdcStation *v )
 
 	// read the internal calibration VrefInt ADV value from the internal flash
 	VrefInt_CAL = *((uint16_t*)(0x1FFF75AA));
+
+
+	initBuffer(&rb, BUFFER_SIZE);
+
+	for( i = 0; i < ADC_GROUP_CNT; i++ )
+	{
+
+		if( PCUTable.AdcSetupTab[i].GroupEna && PCUTable.AdcSetupTab[i].InjectedMode )
+		{
+			HAL_ADCEx_InjectedStart_IT( ( ADC_HandleTypeDef * )AdcAddress[PCUTable.AdcSetupTab[i].Group] );
+			v->AdcInjGroupFlag |= 0x01 << i;
+		}
+
+		if( PCUTable.AdcSetupTab[i].GroupEna && PCUTable.AdcSetupTab[i].DmaEnable )
+		{
+			HAL_ADC_Start_DMA( ( ADC_HandleTypeDef * )AdcAddress[PCUTable.AdcSetupTab[i].Group], ( uint32_t * )&v->AdcDmaData[ PCUTable.AdcSetupTab[i].Group-1 ][ 0 ], ( uint32_t )v->AdcDmaChCnt[i] );
+			v->AdcRegGroupFlag |= 0x01 << i;
+		}
+	}
 }
 
 void AdcStation_ZeroCalibInjectionGroup( AdcStation *v )
@@ -281,6 +291,8 @@ void AdcStation_DoCurrentLoop( AdcStation *v )
 #else
 	v->AdcTraOut.BatVdc = (float)( v->AdcExeGain[BAT_VDC].FDta  * ( v->AdcRawData.Inj[BAT_VDC].RawAdcValue - v->AdcExeZeroP[BAT_VDC] ));
 #endif
+
+	addToBuffer(&rb, VrefPlus);
 }
 
 float AdcStation_DoThermoTransition( AdcStation *v )
