@@ -254,6 +254,8 @@ typedef struct
 	0,\
 }\
 
+extern void KS_PWM_Do100HzLoop( KS_PWM_t *v );
+
 /*=============== Kill Switch PWM start ===============*/
 
 
