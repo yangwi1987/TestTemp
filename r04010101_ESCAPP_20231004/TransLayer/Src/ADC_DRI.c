@@ -15,6 +15,7 @@
 #define V2A_GAIN 462.42424242 // (1526/3.3); current sensor gain from sensor voltage to current amplitude
 uint16_t VrefInt_CAL = 0;
 RingBuffer rb; // ring buffer for the data record
+RingBuffer rb_ADC; // ring buffer for the data record
 
 ADC_HandleTypeDef *AdcAddress[ ADC_ADDRESS_SIZE ] =
 {
@@ -168,6 +169,7 @@ void AdcStation_Init( AdcStation *v )
 
 
 	initBuffer(&rb, BUFFER_SIZE);
+	initBuffer(&rb_ADC, BUFFER_SIZE);
 
 	for( i = 0; i < ADC_GROUP_CNT; i++ )
 	{
@@ -268,6 +270,7 @@ void AdcStation_DoCurrentLoop( AdcStation *v )
 	float FixVrefGain = 0.0f;
 	float VrefPlus = 0.0f; // real Vref+ measured by the MCU
 	uint16_t IwADC; // current sensor ADC in W phase
+	uint16_t IvADC; // current sensor ADC in W phase
 	float OriWI,NewWI;
 
 
@@ -280,6 +283,7 @@ void AdcStation_DoCurrentLoop( AdcStation *v )
 	v->AdcTraOut.Iv[0] = (float)( v->AdcExeGain[ISE_V_A0].FDta * ( v->AdcRawData.Inj[ISE_V_A0].RawAdcValue - v->AdcExeZeroP[ISE_V_A0] ));
 //	v->AdcTraOut.Iw[0] = (float)( v->AdcExeGain[ISE_W_A0].FDta * ( v->AdcRawData.Inj[ISE_W_A0].RawAdcValue - v->AdcExeZeroP[ISE_W_A0] ));
 	IwADC = v->AdcRawData.Inj[ISE_W_A0].RawAdcValue;
+	IvADC = v->AdcRawData.Inj[ISE_V_A0].RawAdcValue;
 	v->AdcTraOut.Iw[0] = (float)( v->AdcExeGain[ISE_W_A0].FDta * ( IwADC - v->AdcExeZeroP[ISE_W_A0] ));
 	OriWI = v->AdcTraOut.Iw[0];
 	v->AdcTraOut.Iw[0] = (float)( FixVrefGain * V2A_GAIN       * ( IwADC - v->AdcExeZeroP[ISE_W_A0] ));
@@ -293,6 +297,7 @@ void AdcStation_DoCurrentLoop( AdcStation *v )
 #endif
 
 	addToBuffer(&rb, VrefPlus);
+	addToBuffer(&rb_ADC, (float)IvADC);
 }
 
 float AdcStation_DoThermoTransition( AdcStation *v )
