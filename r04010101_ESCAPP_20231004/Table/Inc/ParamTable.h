@@ -90,7 +90,7 @@ typedef struct {
 	uint16_t DriveRisingRamp;	//P0-85
 	uint16_t DriveFallingRamp;	//P0-86
 	uint16_t LimpTransitSec;	//P0-87
-	uint16_t Reserved088;	//P0-88
+	uint16_t DriveRampReverse;	//P0-88
 	uint16_t MaxMotorRPMToEnRev;	//P0-89
 	uint16_t Reserved090;	//P0-90
 	uint16_t Reserved091;	//P0-91

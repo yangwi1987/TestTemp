@@ -75,8 +75,13 @@ static void FourQuadControl_DriveTableInit( FourQuadControl *v )
 	v->DriveRisingRamp = Para * TimeBase;
 
 	Para = ((float)DriveParams.SystemParams.DriveFallingRamp);
+	Para -= CURVE_PARA_VALUE_SHIFT;
 	Para *= 0.1f;
 	v->DriveFallingRamp = -Para * TimeBase; //Ramp Function Use Absolute Ramp Value
+
+	Para = ((float)DriveParams.SystemParams.DriveRampReverse);
+	Para *= 0.1f;
+	v->DriveRampReverse = Para * TimeBase; //Ramp Function Use Absolute Ramp Valu
 
 	// Load Limp Transit variable
 	float LimpTransitSec = 1.0f;
@@ -234,7 +239,7 @@ void FourQuadControl_Switch( FourQuadControl *v )
 void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 {
 	float CalcTorque = 0.0;
-
+    static float ReverseTorque = 0.0f;
 	//Calculate Four-Quad ScooterPropulsion
 	switch (v->FourQuadState)
 	{
@@ -254,13 +259,14 @@ void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 			}
 			CalcTorque = FourQuadControl_CalcDriveTable(v);
 			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
+			ReverseTorque = CalcTorque;
 			break;
 		}
 		case FourQuadState_BackRoll_II:
 		{
 			v->Driving_TNIndex = DRIVE_TABLE_NORMAL_NOW;
-			CalcTorque = 0.0f;
-			CalcTorque = v->DrivePropulsion * DRIVE_PROPULSION_TOLERANCE;
+			ReverseTorque = Ramp(ReverseTorque, 0.0f, v->DriveRampReverse);
+			CalcTorque = ReverseTorque * DRIVE_PROPULSION_TOLERANCE;
 			break;
 		}
 		case FourQuadState_Reverse_III:
@@ -268,13 +274,14 @@ void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 			v->Driving_TNIndex = DRIVE_TABLE_REVERSE_NOW;
 			CalcTorque = -FourQuadControl_CalcDriveTable(v);
 			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
+			ReverseTorque = CalcTorque;
 			break;
 		}
 		case FourQuadState_Regen_IV:
 		{
 			v->Driving_TNIndex = DRIVE_TABLE_REVERSE_NOW;
-			CalcTorque = 0.0f;
-			CalcTorque = v->DrivePropulsion * DRIVE_PROPULSION_TOLERANCE;
+			ReverseTorque = Ramp(ReverseTorque, 0.0f, v->DriveRampReverse);
+			CalcTorque = ReverseTorque * DRIVE_PROPULSION_TOLERANCE;
 			break;
 		}
 		default:

@@ -50,6 +50,7 @@ typedef struct {
 	float LimpTransitRamp;
 	float DriveRisingRamp;
 	float DriveFallingRamp;
+	float DriveRampReverse;
 	float DriveChangeTime;
 	float DCDrainLimit;
 	float DrainRisingRamp;
@@ -89,6 +90,7 @@ float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCu
     0.0f,      /* LimpTransitSec;                                   */\
     0.0f,      /* DriveRisingRamp;                                  */\
     0.0f,      /* DriveFallingRamp;                                 */\
+    0.0f,      /* DriveRampReverse;                                 */\
     0.0f,      /* DriveChangeTime;                                  */\
     0.0f,      /* DCDrainLimit;                                     */\
     0.0f,      /* DrainRisingRamp;                                  */\

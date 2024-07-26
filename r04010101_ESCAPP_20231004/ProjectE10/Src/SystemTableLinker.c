@@ -46,7 +46,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 #if IS_MF_CODE_BIN_FILE
 				{ALARMID_PHASE_LOSS, 	 	  	ALARM_DISABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 #elif E10
-				{ALARMID_PHASE_LOSS, 	 	  	ALARM_DISABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
+				{ALARMID_PHASE_LOSS, 	 	  	ALARM_ENABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 #endif
 				{ALARMID_MOTOR_OVER_SPEED, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 10000, 100, ALARM_COUNTER_MAX},
 				{ALARMID_OVER_VOLTAGE_BUS, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 62,   10, ALARM_COUNTER_MAX},
@@ -308,7 +308,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		32768,		62768,		62768,		0x84A,		&DriveParams.SystemParams.DriveRisingRamp},	//P0-85
 				{		2768,		32768,		2768,		0x84A,		&DriveParams.SystemParams.DriveFallingRamp},	//P0-86
 				{		30,			100,		30,		    0x4A,		&DriveParams.SystemParams.LimpTransitSec},	//P0-87
-				{		0,			0,			0,			0,		0},	//P0-88
+				{		0,		    65535,		100,		 0x52,		&DriveParams.SystemParams.DriveRampReverse},	//P0-88
 				{		32768,		47768,		33768,		0x842,		&DriveParams.SystemParams.MaxMotorRPMToEnRev},	//P0-89
 				{		0,			0,			0,			0,		0},	//P0-90
 				{		0,			0,			0,			0,		0},	//P0-91
