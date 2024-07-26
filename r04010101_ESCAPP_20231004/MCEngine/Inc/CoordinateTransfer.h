@@ -90,14 +90,25 @@ __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Phase_to_Stator_Calc( float U, flo
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Stator_to_Rotor_Calc( float Alpha, float Beta, float SinValue, float CosValue, STATOR_TO_ROTOR_TYPE* p)
 {
+#if USE_UVW_AS_FORWARD_DIRECTION
 	p->D = Alpha * CosValue + Beta * SinValue;
 	p->Q = -Alpha * SinValue + Beta * CosValue;
+#else
+	p->D = Alpha * CosValue - Beta * SinValue;
+	p->Q = -Alpha * SinValue - Beta * CosValue;
+#endif
 }
 
 __STATIC_FORCEINLINE void COORDINATE_TRANSFER_Rotor_to_Stator_Calc( float D, float Q, float SinValue, float CosValue, ROTOR_TO_STATOR_TYPE* p)
 {
+#if USE_UVW_AS_FORWARD_DIRECTION
 	p->Alpha = D * CosValue - Q * SinValue;
 	p->Beta = D * SinValue + Q * CosValue;
+#else
+	p->Alpha = D * CosValue - Q * SinValue;
+	p->Beta = -(D * SinValue + Q * CosValue);
+#endif
+
 }
 
 
