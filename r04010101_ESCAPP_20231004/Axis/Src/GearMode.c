@@ -12,11 +12,9 @@
 static uint8_t EnableBoostGearMode = FUNCTION_DISABLE;
 static uint8_t EnableReverseGearMode = FUNCTION_DISABLE;
 
-void GearMode_Init ( GearMode_Var_t* v )
+void GearMode_Init ( GearMode_Var_t* v, int16_t MaxMotorRPMToEnRev )
 {
-/*
- *  Load setup in the future
- */
+	v->MaxMotorRPMToEnRev = MaxMotorRPMToEnRev;
 }
 
 void GearMode_DoPLCLoop ( GearMode_Var_t* v )
@@ -29,43 +27,52 @@ void GearMode_DoPLCLoop ( GearMode_Var_t* v )
     	    v->BoostState = BOOST_READY;
     	}
 	}
-    switch ( v->GearModeSelect )
+	else if ( v->BoostState == BOOST_MODE_ENABLE )
+	{
+		if (( v->BoostCnt++ >= BOOST_CONTINUE_TIME ) || ( EnableBoostGearMode == FUNCTION_DISABLE ))
+		{
+    		v->BoostCnt = 0;
+    	    v->BoostState = BOOST_COOLDOWN;
+		}
+	}
+
+    switch ( v->GearPositionState )
     {
-        case NORMAL_MODE:
+        case VIRTUAL_GEAR_N:
         {
-    		if (( v->IsReverseBtnPressed  == BTN_REVERSE_PRESS ) && ( EnableReverseGearMode == FUNCTION_ENABLE ))
+        	if ( v->ServoOnCommand == 1 )
         	{
-    			v->GearModeSelect  = REVERSE_MODE;
+        		v->GearPositionState = VIRTUAL_GEAR_D;
+        	}
+        	break;
+        }
+        case VIRTUAL_GEAR_D:
+        {
+        	if ( v->ServoOnCommand == 0 )
+        	{
+        		v->GearPositionState = VIRTUAL_GEAR_N;
+        	}
+        	else if (( v->IsReverseBtnPressed  == BTN_REVERSE_PRESS ) && ( EnableReverseGearMode == FUNCTION_ENABLE ) \
+        			&& ( v->MotorRPM <= v->MaxMotorRPMToEnRev) && ( v->APPReleaseFlag == 1 ))
+        	{
+    			v->GearPositionState  = VIRTUAL_GEAR_R;
         	}
     		else if (( v->IsBoostBtnPressed == BTN_BOOST_PRESS ) && ( EnableBoostGearMode == FUNCTION_ENABLE ) && ( v->BoostState == BOOST_READY ))
     		{
-            	v->GearModeSelect  = BOOST_MODE;
+    			v->BoostState  = BOOST_MODE_ENABLE;
     		}
         	break;
         }
-        case BOOST_MODE:
+        case VIRTUAL_GEAR_R:
         {
-        	if (( v->BoostCnt++ >= BOOST_CONTINUE_TIME ) || ( EnableBoostGearMode == FUNCTION_DISABLE ))
+        	if ( v->ServoOnCommand == 0 )
         	{
-        		v->BoostCnt = 0;
-        	    v->BoostState = BOOST_COOLDOWN;
-        	    v->GearModeSelect  = NORMAL_MODE;
+        		v->GearPositionState = VIRTUAL_GEAR_N;
         	}
-        	else if (( v->IsReverseBtnPressed  == BTN_REVERSE_PRESS ) && ( EnableReverseGearMode == FUNCTION_ENABLE ))
+        	else if ( v->IsReverseBtnPressed  == BTN_REVERSE_RELEASE )
         	{
-        		v->BoostCnt = 0;
-        	    v->BoostState = BOOST_COOLDOWN;
-        	    v->GearModeSelect  = REVERSE_MODE;
+        	    v->GearPositionState  = VIRTUAL_GEAR_D;
         	}
-        	break;
-        }
-        case REVERSE_MODE:
-        {
-        	if ( v->IsReverseBtnPressed  == BTN_REVERSE_RELEASE )
-        	{
-        	    v->GearModeSelect  = NORMAL_MODE;
-        	}
-
         	break;
         }
         default:

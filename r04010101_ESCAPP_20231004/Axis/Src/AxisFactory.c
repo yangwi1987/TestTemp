@@ -60,8 +60,8 @@ void AxisFactory_OnParamValueChanged( Axis_t *v, uint16_t ParamNumber )
 void AxisFactory_UpdateCANRxInterface( Axis_t *v )
 {
     v->pCANRxInterface->BatCurrentDrainLimit = DEFAULT_DC_LIMIT;
-
-    v->ThrotMapping.TnSelect = v->pCANRxInterface->OutputModeCmd;
+    v->pCANRxInterface->OutputModeCmd = v->FourQuadCtrl.Driving_TNIndex;
+    v->ThrotMapping.TnSelect =  0;//= v->pCANRxInterface->OutputModeCmd;
     if( ( v->pCANRxInterface->ReceivedCANID & RECEIVED_BAT_ID_1 ) == RECEIVED_BAT_ID_1)
     {
         v->AlarmDetect.CAN1Timeout.Counter = 0;
@@ -162,14 +162,14 @@ static void AxisFactory_ConfigAlarmSystemInPLCLoop( Axis_t *v )
 void AxisFactory_RunMotorStateMachine( Axis_t *v )
 {
     // invalid condition
-    if( v->VCUServoOnCommand == 1 && v->CtrlUiEnable == 1 )
+    if( v->ServoOnCommand == 1 && v->CtrlUiEnable == 1 )
     {
         v->ServoOn = 0;
         return;
     }
 
     int ServoOnEnable = (v->HasCriAlarm == 0) &&
-    					((v->VCUServoOnCommand == 1) || (v->CtrlUiEnable == 1)) &&
+    					((v->ServoOnCommand == 1) || (v->CtrlUiEnable == 1)) &&
 						(v->pParamMgr->ECUSoftResetEnable == 0);
 
     switch( v->ServoOnOffState )
@@ -412,19 +412,9 @@ void AxisFactory_GetUiStatus( Axis_t *v )
         case FN_MF_FUNC_SEL_IF:
         case FN_MF_FUNC_SEL_IDQ:
         case FN_MF_FUNC_SEL_ISTHETA:
-        {
-            AxisFactory_GetScooterThrottle( v );
-            v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
-            v->FourQuadCtrl.Switch( &v->FourQuadCtrl );
-            v->VCUServoOnCommand = v->FourQuadCtrl.ServoCmdOut;
-            break;
-        }
         default:
         {
             AxisFactory_GetScooterThrottle( v );
-            v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
-            v->FourQuadCtrl.Switch( &v->FourQuadCtrl );
-            v->VCUServoOnCommand = 0;
             break;
         }
     }
@@ -446,9 +436,8 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 			v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
 			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
 
-			// Decide the Torque Output( TO DO: Negative Torque )
-			TempTorqueCommandOut = ((float)( DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768 )) * 0.1f;
-			TempTorqueCommandOut = ( TempTorqueCommandOut >= 0.0f ) ? TempTorqueCommandOut : 0.0f;
+			// Decide the Torque Output
+			TempTorqueCommandOut = (( (float)DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768.0f )) * 0.1f;
 			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
 			v->ThrotMapping.PercentageOut = 1.0f;
 
@@ -460,7 +449,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 				v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, v->pCANRxInterface->BatCurrentDrainLimit, \
 				v->MotorControl.TorqueToIdq.VbusReal, v->MotorControl.TorqueToIdq.VbusUsed );
 
-			v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl, v->ThrotMapping.PercentageOut );
+			v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl );
 			v->MotorControl.TorqueToIdq.GetIdqCmd( &(v->MotorControl.TorqueToIdq), v->TorqCommandGenerator.Out, v->MotorControl.SensorFb.AllowFluxRec);
 			v->MotorControl.Cmd.SixWaveCurrCmd = v->MotorControl.TorqueToIdq.IqCmd;
 			break;
@@ -541,6 +530,8 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 
     v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
 
+    GearMode_Init(&v->GearModeVar, ( v->pDriveParams->SystemParams.MaxMotorRPMToEnRev - 32768 ));
+
 #if USE_HIGH_RESO_MOTOR_TABLE
     HiResoMotorTable_Init();
 #endif
@@ -595,26 +586,14 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     v->AlarmDetect.DoPLCLoop( &v->AlarmDetect );
 
     //GearMode
+    v->GearModeVar.APPReleaseFlag = v->ThrotMapping.ThrottleReleaseFlag;
+    v->GearModeVar.MotorRPM = (int16_t)v->SpeedInfo.MotorMechSpeedRPM;
+    v->GearModeVar.ServoOnCommand = v->ServoOnCommand;
     v->GearModeVar.IsBoostBtnPressed = Btn_StateRead(BTN_IDX_BST_BTN);
     v->GearModeVar.IsReverseBtnPressed = Btn_StateRead(BTN_IDX_REV_BTN);
     GearMode_DoPLCLoop( &v->GearModeVar );
-    v->FourQuadCtrl.DriveGearModeSelect = v->GearModeVar.GearModeSelect;
-    v->pCANRxInterface->OutputModeCmd = ( v->GearModeVar.GearModeSelect == NORMAL_MODE ) ? 1 : ( v->GearModeVar.GearModeSelect == BOOST_MODE ) ? 2 : 0;
-
-    // Because RCCommCtrl.MsgDecoder(&RCCommCtrl) execute in DoHouseKeeping loop and DoPLCLoop has higher priority.
-    // Rewrite TN to limp home mode (TN0) and power level = 10 before AxisFactory_UpdateCANRxInterface here.
-    // It makes sure that the rewrite take effect.
-    if( v->TriggerLimpHome == 1)
-    {
-        v->pCANRxInterface->OutputModeCmd = 0;
-    }
-    else
-    {
-    	// In other states, use the original power level and output mode command.
-    }
 
     // Update scooter speed for report
-    v->FourQuadCtrl.MotorSpeedRadps = v->SpeedInfo.MotorMechSpeedRad;
     v->FourQuadCtrl.MotorRPM = v->SpeedInfo.MotorMechSpeedRPM;
 
     AxisFactory_UpdateCANRxInterface( v );
@@ -636,9 +615,8 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
     {
         //Throttle detect code
         AxisFactory_GetScooterThrottle( v );
-        v->FourQuadCtrl.ThrottleReleaseFlg = v->ThrotMapping.ThrottleReleaseFlag;
+        v->FourQuadCtrl.GearPositionState = v->GearModeVar.GearPositionState;
         v->FourQuadCtrl.Switch( &v->FourQuadCtrl );
-        v->VCUServoOnCommand = v->FourQuadCtrl.ServoCmdOut;
     }
     else
     {
@@ -677,15 +655,15 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
         }
         if ( v->MfOrRDFunctionDisable )	//Normal Mode
         {
-            v->FourQuadCtrl.Driving_TNIndex = v->pCANRxInterface->OutputModeCmd;
             // Input throttle command, and calculate torque command for FOC.
             v->MotorControl.TorqueToIdq.GetAllowFluxRec( &(v->MotorControl.TorqueToIdq), v->MotorControl.SensorFb.EleSpeed, \
                     v->MotorControl.SensorFb.Vbus, v->MotorControl.PwmDutyCmd.MaxDuty, &(v->MotorControl.SensorFb.AllowFluxRec), &(v->TorqCommandGenerator.AllowFluxRec) );
 
             v->TorqCommandGenerator.VbusUsed = v->MotorControl.TorqueToIdq.VbusUsed;
             v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
-            v->FourQuadCtrl.Throttle = v->ThrotMapping.PercentageOut;
-            v->FourQuadCtrl.Calc( &v->FourQuadCtrl );
+            v->FourQuadCtrl.ratAPP = v->ThrotMapping.PercentageOut;
+            v->FourQuadCtrl.BoostState = v->GearModeVar.BoostState;
+            v->FourQuadCtrl.Calc( &v->FourQuadCtrl, v->TriggerLimpHome );
 
             v->TorqCommandGenerator.AcCurrLimit = v->ThermoStrategy.ACCurrentLimitOut;
 
@@ -695,7 +673,7 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
                 v->FourQuadCtrl.DCCurrLimitComparator( &v->FourQuadCtrl, v->pCANRxInterface->BatCurrentDrainLimit, \
                 v->MotorControl.TorqueToIdq.VbusReal, v->MotorControl.TorqueToIdq.VbusUsed );
 
-            v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl, v->ThrotMapping.PercentageOut );
+            v->TorqCommandGenerator.Calc( &v->TorqCommandGenerator, &v->FourQuadCtrl );
 
             v->MotorControl.TorqueToIdq.GetIdqCmd( &(v->MotorControl.TorqueToIdq), v->TorqCommandGenerator.Out, v->MotorControl.SensorFb.AllowFluxRec );
             v->MotorControl.Cmd.SixWaveCurrCmd = v->MotorControl.TorqueToIdq.IqCmd;

@@ -27,9 +27,10 @@ typedef enum {
 } RECEIVED_CAN_ID_ENUM;
 
 typedef enum {
-	PCU_SHIFT_P = 0,
-	PCU_SHIFT_D,
-} ENUM_SHIFT;
+	VIRTUAL_GEAR_N = 0,
+	VIRTUAL_GEAR_D,
+	VIRTUAL_GEAR_R
+} ENUM_VIRTUAL_GEAR;
 
 typedef enum {
 	FourQ_Drive = 1,

@@ -12,7 +12,7 @@
 #include "Constant.h"
 #include "FourQuadControl.h"
 
-typedef void (*functypeTorqCommandGenerator_Calc)(void *, void * , float );
+typedef void (*functypeTorqCommandGenerator_Calc)(void *, void * );
 
 typedef struct {
 	float DCLimitedTorqueCommand;
@@ -51,7 +51,7 @@ typedef struct {
 	0.0f, 					\
 	(functypeTorqCommandGenerator_Calc)TorqCommandGenerator_Calc }
 
-void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p, float ThrottleCmd );
+void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p );
 float TorqCommandGenerator_DCLimitation( TorqCommandGenerator_t *v );
 float TorqCommandGenerator_ACLimitation( TorqCommandGenerator_t *v );
 

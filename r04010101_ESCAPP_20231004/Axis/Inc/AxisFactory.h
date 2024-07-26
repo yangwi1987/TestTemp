@@ -249,7 +249,7 @@ typedef struct {
 	int16_t BoostrapTimeMs;
 	int16_t MotorCtrlMode;
 	int16_t	CtrlUiEnable;
-	int16_t VCUServoOnCommand;
+	uint8_t ServoOnCommand;
 	float ThrottleGain;
 	uint16_t ThrottleGainState;
 	uint16_t DcBusGainState;
@@ -297,7 +297,7 @@ typedef struct {
 	10,     /*BoostrapTimeMs;     */ \
 	1,      /*MotorCtrlMode;      */ \
 	0,      /*CtrlUiEnable;       */ \
-	0,      /*VCUServoOnCommand;  */ \
+	0,      /*ServoOnCommand;  */ \
 	0.0f,   /*ThrottleGain*/ \
 	0,      /*ThrottleGainState;*/ \
 	0,      /*DcBusGainState;   */ \

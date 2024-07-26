@@ -244,9 +244,9 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 	case DN_STATUS_WORD1:
 		//			Variable,										/*bit*/
 		RetValue = 	Axis[AxisIndex].ServoOn							<< 0 |
-					Axis[AxisIndex].VCUServoOnCommand				<< 1 |
+//					Axis[AxisIndex].VCUServoOnCommand				<< 1 |
 					Axis[AxisIndex].CtrlUiEnable					<< 2 |
-					Axis[AxisIndex].FourQuadCtrl.ServoCmdIn			<< 3 |
+//					Axis[AxisIndex].FourQuadCtrl.ServoCmdIn			<< 3 |
 					Axis[AxisIndex].HasCriAlarm						<< 4 |
 					Axis[AxisIndex].pAdcStation->ZeroCalibInjDone	<< 5 |
 					Axis[AxisIndex].PhaseLoss.Enable				<< 6 |
@@ -1629,18 +1629,15 @@ void Drive_INVStateMachine( void )
 
 void Inv_ServoOnReq()
 {
-  Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
-  Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
-
+  Axis[0].ServoOnCommand = ENABLE;
   /* Enable boost mode function */
   GearMode_EnableBoostMode();
+  GearMode_EnableReverseMode();
 }
 
 void Inv_ServoOffReq()
 {
-  Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
-  Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
-
+  Axis[0].ServoOnCommand = DISABLE;
   /* Disable boost mode function */
   GearMode_DisableBoostMode();
 

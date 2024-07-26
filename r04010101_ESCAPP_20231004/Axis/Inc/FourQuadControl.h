@@ -32,7 +32,7 @@ enum FOUR_QUAD_STATE {
 
 typedef void ( *functypeFourQuadControl_Init )( void * );
 typedef void ( *functypeFourQuadControl_Switch )( void * );
-typedef void ( *functypeFourQuadControl_Calc )( void * );
+typedef void ( *functypeFourQuadControl_Calc )( void * , uint8_t );
 typedef void ( *functypeFourQuadControl_Reset )( void *, float );
 typedef float ( *functypeFourQuadControl_DCCurrLimitComparator )( void *, float, float, float );
 
@@ -40,16 +40,10 @@ typedef struct {
 	uint16_t InitFailure;
 	uint8_t Driving_TNIndex;		// Setting parameter
 	uint8_t Driving_TNIndexPrevious;// Setting parameter
-	float MotorSpeedRadps;			// input
+	uint8_t DriveTableSelect;
 	float MotorRPM;
-	float TmaxSpeed; 				// internal parameter
 	float MaxDcLimitRecord;			// internal parameter
-	uint16_t FirstEntryFlg;         // internal parameter
-	uint16_t ThrottleReleaseFlg;    // input
-	int16_t  GearPositionState;	    // input
-	int16_t  GearPositionCmd;	    // input
-	uint16_t ServoCmdIn;            // input
-	uint16_t ServoCmdOut;           // Output
+	ENUM_VIRTUAL_GEAR  GearPositionState;	    // input
 	uint16_t FourQuadState;			// Output
 	float DrivePropulsion;			// Output
 	float TorqueCommandOut;			// Output
@@ -61,10 +55,13 @@ typedef struct {
 	float DrainRisingRamp;
 	float DrainFallingRamp;
 	float DrivePowerCmd;
-	float Throttle;
-	BACK_ROLL_TABLE_TYPE BackRollTable;
+	float ratAPP;
+	float facPnlty;
+	float SpdPnlty;
+	uint8_t spdPnltyOvrd;
+	uint8_t BoostState;
 	DRIVE_TABLE_TYPE DriveCurve[DRIVE_TABLE_LENGTH];
-	GearModeSel_e DriveGearModeSelect;
+	DRIVE_TABLE_TYPE DriveCurveNow[DRIVE_TABLE_LENGTH_NOW];
 	functypeFourQuadControl_Init Init;
 	functypeFourQuadControl_Switch Switch;
 	functypeFourQuadControl_Calc Calc;
@@ -74,7 +71,7 @@ typedef struct {
 
 void FourQuadControl_Init( FourQuadControl *v );
 void FourQuadControl_Switch( FourQuadControl *v );
-void FourQuadControl_Calc( FourQuadControl *v );
+void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome );
 void FourQuadControl_Reset( FourQuadControl *v, float DCDrainLimit );
 float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCurr, float VbusReal, float VbusUsed );
 
@@ -82,16 +79,10 @@ float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCu
     0,         /* InitFailure;                                      */\
     0,         /* Driving_TNIndex;		// Setting parameter        */\
     0,         /* Driving_TNIndexPrevious;// Setting parameter      */\
-    0.0f,      /* MotorSpeedRadps;			// input                */\
+	0,         /* uint8_t DriveTableSelect;        */\
     0.0f,      /* MotorRPM;                                         */\
-    0.0f,      /* TmaxSpeed; 				// internal parameter   */\
     0.0f,      /* MaxDcLimitRecord;			// internal parameter   */\
-    1,         /* FirstEntryFlg;         // internal parameter      */\
-    0,         /* ThrottleReleaseFlg;    // input                   */\
-    PCU_SHIFT_P, /* GearPositionState;	    // input                */\
-    PCU_SHIFT_P, /* GearPositionCmd;	    // input                    */\
-    0,         /* ServoCmdIn;            // input                   */\
-    0,         /* ServoCmdOut;           // Output                  */\
+	VIRTUAL_GEAR_N, /* GearPositionState;	    // input                */\
     0,         /* FourQuadState;			// Output               */\
     0.0f,      /* DrivePropulsion;			// Output               */\
     0.0f,      /* TorqueCommandOut;			// Output               */\
@@ -103,10 +94,13 @@ float FourQuadControl_DCCurrLimitComparator( FourQuadControl *v, float DCDrainCu
     0.0f,      /* DrainRisingRamp;                                  */\
     0.0f,      /* DrainFallingRamp;                                 */\
     0.0f,      /* DrivePowerCmd;                                    */\
-    0.0f,      /* Throttle;                                         */\
-	BACK_ROLL_TABLE_DEFAULT, \
+    0.0f,      /* ratAPP;                                         */\
+	1.0f,      /*facPnlty*/\
+	10000.0f,      /*SpdPnlty*/\
+	0,           /*spdPnltyOvrd*/\
+	0,             /*BoostState*/\
 	{DRIVE_TABLE_DEFAULT}, \
-	NORMAL_MODE,\
+	{DRIVE_TABLE_DEFAULT}, \
 	(functypeFourQuadControl_Init)FourQuadControl_Init, \
 	(functypeFourQuadControl_Switch)FourQuadControl_Switch, \
 	(functypeFourQuadControl_Calc)FourQuadControl_Calc, \

@@ -65,71 +65,17 @@ static void FourQuadControl_DriveTableInit( FourQuadControl *v )
 			v->DriveCurve[n].Para[DRIVE_PROPULSION_MAX] = 0.0;
 			v->DriveCurve[n].Para[DRIVE_SPEED_MAX] = 0.0;
 			v->DriveCurve[n].Para[DRIVE_POWER_MAX] = 0.0;
-			v->TmaxSpeed = 0.0;
 			v->InitFailure = FourQuadState_Driving_I;
 		}
 	}
 
 	float Para = ((float)DriveParams.SystemParams.DriveRisingRamp);
 	Para -= CURVE_PARA_VALUE_SHIFT;
-	uint16_t Offset = DRIVE_CURVE_ID_START + DRIVE_ALL_PARA_NUM * DRIVE_TABLE_LENGTH;
-	uint16_t Property = SystemTable.SysParamTableInfoArray[Offset].Property;
-	uint16_t Decimal = ( Property & PPD_DECIMAL_MASK ) >> PPD_DECIMAL_SHIFT;
-	if ( Decimal > 0 )
-	{
-		uint16_t i = 0;
-		for( i = 0 ; i < Decimal ; i++ )
-		{
-			Para *= 0.1f;
-		}
-	}
-	else
-	{
-		uint16_t Power10 = ( Property & PPD_POWER10_MASK ) >> PPD_POWER10_SHIFT;
-		if( Power10 == 0 )
-		{
-			//do nothing
-		}
-		else
-		{
-			uint16_t i = 0;
-			for( i = 0 ; i < Power10 ; i++ )
-			{
-				Para *= 10.0f;
-			}
-		}
-	}
+	Para *= 0.1f;
 	v->DriveRisingRamp = Para * TimeBase;
 
 	Para = ((float)DriveParams.SystemParams.DriveFallingRamp);
-	Para -= CURVE_PARA_VALUE_SHIFT;
-	Offset = DRIVE_CURVE_ID_START + DRIVE_ALL_PARA_NUM * DRIVE_TABLE_LENGTH + 1;
-	Property = SystemTable.SysParamTableInfoArray[Offset].Property;
-	Decimal = ( Property & PPD_DECIMAL_MASK ) >> PPD_DECIMAL_SHIFT;
-	if ( Decimal > 0 )
-	{
-		uint16_t i = 0;
-		for( i = 0 ; i < Decimal ; i++ )
-		{
-			Para *= 0.1f;
-		}
-	}
-	else
-	{
-		uint16_t Power10 = ( Property & PPD_POWER10_MASK ) >> PPD_POWER10_SHIFT;
-		if( Power10 == 0 )
-		{
-			//do nothing
-		}
-		else
-		{
-			uint16_t i = 0;
-			for( i = 0 ; i < Power10 ; i++ )
-			{
-				Para *= 10.0f;
-			}
-		}
-	}
+	Para *= 0.1f;
 	v->DriveFallingRamp = -Para * TimeBase; //Ramp Function Use Absolute Ramp Value
 
 	// Load Limp Transit variable
@@ -144,21 +90,6 @@ static void FourQuadControl_DriveTableInit( FourQuadControl *v )
 
 }
 
-static void FourQuadControl_BackRollTableInit( FourQuadControl *v )
-{
-	BACK_ROLL_TABLE_TYPE *pTable = &v->BackRollTable;
-	// Invalid parameter
-	if( pTable->SpeedMax > 0.0 || pTable->PropulsionMax < 0.0 )
-	{
-		pTable->PropulsionMax = 0.0;
-		pTable->SpeedMax = 0.0;
-		v->InitFailure = FourQuadState_BackRoll_II;
-	}
-
-	// To ensure the torque command smoothness around zero speed
-	v->BackRollTable.PropulsionMax = 1415.6; //v->FourQuadTable.PerformanceTable.Para[DRIVE_PROPULSION_START];
-}
-
 static void FourQuadControl_DCCurrLimitComparatorInit( FourQuadControl *v )
 {
 	float TimeBase = 0.001f;
@@ -168,24 +99,34 @@ static void FourQuadControl_DCCurrLimitComparatorInit( FourQuadControl *v )
 
 static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 {
-	DRIVE_TABLE_TYPE *pTable = &(v->DriveCurve[v->Driving_TNIndex]);
+	DRIVE_TABLE_TYPE *pTable = &(v->DriveCurveNow[v->Driving_TNIndex]);
 	float PropulseOut = 0.0f;
 	float PropulseMin = 0.0f;
-	float Smax = pTable->Para[DRIVE_SPEED_MAX] ;
+	float Smax = 0.0f;
+	float ABSMotorRPM = ABS(v->MotorRPM);
 
-	if ( v->Driving_TNIndex == 0 )
+	if ( v->spdPnltyOvrd == 1 )
+	{
+		Smax = MIN2(pTable->Para[DRIVE_SPEED_MAX], v->SpdPnlty);
+	}
+	else
+	{
+		Smax = pTable->Para[DRIVE_SPEED_MAX];
+	}
+
+	if ( v->Driving_TNIndex == DRIVE_TABLE_LIMP_NOW )
 	{
 		v->DrivePowerCmd = Ramp( v->DrivePowerCmd, pTable->Para[DRIVE_POWER_MAX], v->LimpTransitRamp );
 	}
 	else
 	{
-		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX];
+		v->DrivePowerCmd =  pTable->Para[DRIVE_POWER_MAX] * v->facPnlty;
 	}
 
-	float F1 = v->MotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
-	float F2 = pTable->Para[DRIVE_PROPULSION_MAX];
-	float F3 = ( v->MotorRPM > 1.0f ) ? v->DrivePowerCmd / ( v->MotorRPM * RPM_TO_SPEED ): v->DrivePowerCmd;
-	float F4 = ( v->MotorRPM - Smax ) * pTable->Para[DRIVE_SLOPE_END];
+	float F1 = ABSMotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
+	float F2 = pTable->Para[DRIVE_PROPULSION_MAX] * v->facPnlty;
+	float F3 = ( ABSMotorRPM > 1.0f ) ? v->DrivePowerCmd / ( ABSMotorRPM * RPM_TO_SPEED ): v->DrivePowerCmd;
+	float F4 = ( ABSMotorRPM - Smax ) * pTable->Para[DRIVE_SLOPE_END];
 	PropulseOut = ( F1 < F2 ) ? F1 : F2;
 	PropulseOut = ( PropulseOut < F3 ) ? PropulseOut : F3;
 	PropulseOut = ( PropulseOut < F4 ) ? PropulseOut : F4;
@@ -220,34 +161,15 @@ static float FourQuadControl_CalcDriveTable( FourQuadControl *v )
 	return v->DrivePropulsion;
 }
 
-static float FourQuadControl_CalcBackRollTable( FourQuadControl *v )
-{
-	BACK_ROLL_TABLE_TYPE *pTable = &v->BackRollTable;
-	float PropulseOut = 0.0;
-
-	if( v->MotorRPM < pTable->SpeedMax )
-	{
-		PropulseOut = 0.0;
-	}
-	else
-	{
-		PropulseOut = v->DriveCurve[v->Driving_TNIndexPrevious].Para[DRIVE_PROPULSION_START] * DRIVE_PROPULSION_TOLERANCE;
-	}
-	return PropulseOut;
-}
-
 /*================================================================================================================
  * Public Functions Begin
  ================================================================================================================*/
 
 void FourQuadControl_Init( FourQuadControl *v )
 {
-	// Assign Tables
-	v->BackRollTable = SystemTable.BackRollTable;
 
 	// Calc characteristic points of table, avoid discontinuous points
 	FourQuadControl_DriveTableInit(v);
-	FourQuadControl_BackRollTableInit(v);
 	FourQuadControl_ResetDrive(v);
 	FourQuadControl_DCCurrLimitComparatorInit(v);
 }
@@ -257,53 +179,59 @@ void FourQuadControl_Switch( FourQuadControl *v )
 	int16_t MotorRPMTmp = (int16_t)( v->MotorRPM );
 
 	//Switch Control
-	if( v->GearPositionState == PCU_SHIFT_P )
+	if( v->GearPositionState == VIRTUAL_GEAR_N )
 	{
-		v->ServoCmdOut = DISABLE;
+		uint8_t DRIVE_TABLE_OFFSET = 0;
 		v->FourQuadState = FourQuadState_None;
 
-		if( v->GearPositionCmd == PCU_SHIFT_D && v->ThrottleReleaseFlg == 1 )
+		switch ( v->DriveTableSelect )
 		{
-			v->GearPositionState = PCU_SHIFT_D;
+		case 0:
+		{
+			DRIVE_TABLE_OFFSET = DRIVE_TABLE_MINI_NORMAL;
+			break;
+		}
+		default:
+		{
+			DRIVE_TABLE_OFFSET = 0;
+			break;
+		}
+		}
+
+		for( uint8_t m = 0 ; m < DRIVE_ALL_PARA_NUM ; m++)
+		{
+		    v->DriveCurveNow[DRIVE_TABLE_LIMP_NOW].Para[m] = v->DriveCurve[DRIVE_TABLE_LIMP].Para[m];
+		    v->DriveCurveNow[DRIVE_TABLE_REVERSE_NOW].Para[m] = v->DriveCurve[DRIVE_TABLE_REVERSE].Para[m];
+		    v->DriveCurveNow[DRIVE_TABLE_NORMAL_NOW].Para[m] = v->DriveCurve[DRIVE_TABLE_OFFSET].Para[m];
+		    v->DriveCurveNow[DRIVE_TABLE_BOOST_NOW].Para[m] = v->DriveCurve[DRIVE_TABLE_OFFSET + 1].Para[m];
 		}
 	}
-	else if( v->GearPositionState == PCU_SHIFT_D )
+	else if( v->GearPositionState == VIRTUAL_GEAR_D )
 	{
-		v->ServoCmdOut = ENABLE;
-
-		if( v->FirstEntryFlg == 1 && v->ThrottleReleaseFlg == 0 )
+		if( MotorRPMTmp >= 0 )
 		{
-			v->FourQuadState = FourQuadState_None;
-		}
-		else if( MotorRPMTmp < 0 )
-		{
-			v->FourQuadState = FourQuadState_BackRoll_II;
-			v->FirstEntryFlg = 0;
+			v->FourQuadState = FourQuadState_Driving_I;
 		}
 		else
 		{
-			if ( v->DriveGearModeSelect != REVERSE_MODE )
-			{
-				v->FourQuadState = FourQuadState_Driving_I;
-			}
-			else
-			{
-				v->FourQuadState = FourQuadState_Reverse_III;
-			}
-			v->FirstEntryFlg = 0;
+			v->FourQuadState = FourQuadState_BackRoll_II;
 		}
-
-		if( v->GearPositionCmd == PCU_SHIFT_P )
+	}
+	else if ( v->GearPositionState == VIRTUAL_GEAR_R )
+	{
+		if( MotorRPMTmp <= 0 )
 		{
-			v->GearPositionState = PCU_SHIFT_P;
-			v->FirstEntryFlg = 1;
+			v->FourQuadState = FourQuadState_Reverse_III;
+		}
+		else
+		{
+			v->FourQuadState = FourQuadState_Regen_IV;
 		}
 	}
 
-	v->ServoCmdOut = ( v->ServoCmdIn == DISABLE )? DISABLE : v->ServoCmdOut;
 }
 
-void FourQuadControl_Calc( FourQuadControl *v )
+void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 {
 	float CalcTorque = 0.0;
 
@@ -312,14 +240,41 @@ void FourQuadControl_Calc( FourQuadControl *v )
 	{
 		case FourQuadState_Driving_I:
 		{
+			if ( TriggerLimpHome == 1)
+			{
+				v->Driving_TNIndex = DRIVE_TABLE_LIMP_NOW;
+			}
+			else if( v->BoostState == BOOST_MODE_ENABLE )
+			{
+				v->Driving_TNIndex = DRIVE_TABLE_BOOST_NOW;
+			}
+			else
+			{
+				v->Driving_TNIndex = DRIVE_TABLE_NORMAL_NOW;
+			}
 			CalcTorque = FourQuadControl_CalcDriveTable(v);
 			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
 			break;
 		}
 		case FourQuadState_BackRoll_II:
 		{
-			CalcTorque = FourQuadControl_CalcBackRollTable(v);
-			FourQuadControl_ResetDrive(v);
+			v->Driving_TNIndex = DRIVE_TABLE_NORMAL_NOW;
+			CalcTorque = 0.0f;
+			CalcTorque = v->DrivePropulsion * DRIVE_PROPULSION_TOLERANCE;
+			break;
+		}
+		case FourQuadState_Reverse_III:
+		{
+			v->Driving_TNIndex = DRIVE_TABLE_REVERSE_NOW;
+			CalcTorque = -FourQuadControl_CalcDriveTable(v);
+			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
+			break;
+		}
+		case FourQuadState_Regen_IV:
+		{
+			v->Driving_TNIndex = DRIVE_TABLE_REVERSE_NOW;
+			CalcTorque = 0.0f;
+			CalcTorque = v->DrivePropulsion * DRIVE_PROPULSION_TOLERANCE;
 			break;
 		}
 		default:
@@ -330,7 +285,7 @@ void FourQuadControl_Calc( FourQuadControl *v )
 		}
 	}
 
-	v->TorqueCommandOut = CalcTorque;
+	v->TorqueCommandOut = v->ratAPP * CalcTorque;
 }
 
 void FourQuadControl_Reset( FourQuadControl *v, float DCDrainLimit )

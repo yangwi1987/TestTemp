@@ -46,7 +46,7 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 #if IS_MF_CODE_BIN_FILE
 				{ALARMID_PHASE_LOSS, 	 	  	ALARM_DISABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 #elif E10
-				{ALARMID_PHASE_LOSS, 	 	  	ALARM_ENABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
+				{ALARMID_PHASE_LOSS, 	 	  	ALARM_DISABLE, ALARM_TYPE_CRITICAL,    TRIG_MODE_HIGH, ALARM_THRESHOLD_MAX, ALARM_COUNTER_MAX, ALARM_COUNTER_MAX},
 #endif
 				{ALARMID_MOTOR_OVER_SPEED, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 10000, 100, ALARM_COUNTER_MAX},
 				{ALARMID_OVER_VOLTAGE_BUS, 	  ALARM_ENABLE, ALARM_TYPE_CRITICAL, 	 TRIG_MODE_HIGH, 62,   10, ALARM_COUNTER_MAX},
@@ -245,71 +245,71 @@ __attribute__((__section__(".SystemBin"),used)) const System_Table_t_Linker Syst
 				{		0,			0,			0,			0,		0},	//P0-22
 				{		0,			0,			0,			0,		0},	//P0-23
 				{		0,			0,			0,			0,		0},	//P0-24
-				{		0,			0,			0,			0,		0},	//P0-25
-				{		0,			0,			0,			0,		0},	//P0-26
-				{		0,			0,			0,			0,		0},	//P0-27
-				{		0,			0,			0,			0,		0},	//P0-28
-				{		0,			0,			0,			0,		0},	//P0-29
-				{		0,			0,			0,			0,		0},	//P0-30
-				{		0,			0,			0,			0,		0},	//P0-31
-				{		0,			0,			0,			0,		0},	//P0-32
-				{		0,			0,			0,			0,		0},	//P0-33
-				{		0,			0,			0,			0,		0},	//P0-34
-				{		0,			0,			0,			0,		0},	//P0-35
-				{		0,			0,			0,			0,		0},	//P0-36
-				{		0,			0,			0,			0,		0},	//P0-37
-				{		0,			0,			0,			0,		0},	//P0-38
-				{		0,			0,			0,			0,		0},	//P0-39
-				{		0,			0,			0,			0,		0},	//P0-40
-				{		0,			0,			0,			0,		0},	//P0-41
-				{		0,			0,			0,			0,		0},	//P0-42
-				{		0,			0,			0,			0,		0},	//P0-43
-				{		0,			0,			0,			0,		0},	//P0-44
-				{		0,			0,			0,			0,		0},	//P0-45
-				{		0,			0,			0,			0,		0},	//P0-46
-				{		0,			0,			0,			0,		0},	//P0-47
-				{		0,			0,			0,			0,		0},	//P0-48
-				{		0,			0,			0,			0,		0},	//P0-49
-				{		0,			0,			0,			0,		0},	//P0-50
-				{		0,			0,			0,			0,		0},	//P0-51
-				{		0,			0,			0,			0,		0},	//P0-52
-				{		0,			0,			0,			0,		0},	//P0-53
-				{		0,			0,			0,			0,		0},	//P0-54
-				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][0]},	//P0-55
-				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][1]},	//P0-56
-				{		32768,		35268,		34804,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][2]},	//P0-57
-				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][3]},	//P0-58
-				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][4]},	//P0-59
-				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][0]},	//P0-60
-				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][1]},	//P0-61
-				{		32768,		35268,		34804,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][2]},	//P0-62
-				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][3]},	//P0-63
-				{		32768,		35268,		32768,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][4]},	//P0-64
-				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][0]},	//P0-65
-				{		32768,		33768,		32871,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][1]},	//P0-66
-				{		32768,		33768,		32926,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][2]},	//P0-67
-				{		32768,		33768,		32768,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][3]},	//P0-68
-				{		32768,		33768,		32768,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][4]},	//P0-69
-				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][0]},	//P0-70
-				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][1]},	//P0-71
-				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][2]},	//P0-72
-				{		32768,		47768,		32768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][3]},	//P0-73
-				{		32768,		47768,		32768,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][4]},	//P0-74
-				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][0]},	//P0-75
-				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][1]},	//P0-76
-				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][2]},	//P0-77
-				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][3]},	//P0-78
-				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][4]},	//P0-79
-				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][0]},	//P0-80
-				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][1]},	//P0-81
-				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][2]},	//P0-82
-				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][3]},	//P0-83
-				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][4]},	//P0-84
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][0]},	//P0-25
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][1]},	//P0-26
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][2]},	//P0-27
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][3]},	//P0-28
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][4]},	//P0-29
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][5]},	//P0-30
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][6]},	//P0-31
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][7]},	//P0-32
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][8]},	//P0-33
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_START][9]},	//P0-34
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][0]},	//P0-35
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][1]},	//P0-36
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][2]},	//P0-37
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][3]},	//P0-38
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][4]},	//P0-39
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][5]},	//P0-40
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][6]},	//P0-41
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][7]},	//P0-42
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][8]},	//P0-43
+				{		32768,		35268,		34273,		0x852,		&DriveParams.SystemParams.DriveCurve[DRIVE_PROPULSION_MAX][9]},	//P0-44
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][0]},	//P0-45
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][1]},	//P0-46
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][2]},	//P0-47
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][3]},	//P0-48
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][4]},	//P0-49
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][5]},	//P0-50
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][6]},	//P0-51
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][7]},	//P0-52
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][8]},	//P0-53
+				{		32768,		33768,		32776,		0xA42,		&DriveParams.SystemParams.DriveCurve[DRIVE_POWER_MAX][9]},	//P0-54
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][0]},	//P0-55
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][1]},	//P0-56
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][2]},	//P0-57
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][3]},	//P0-58
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][4]},	//P0-59
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][5]},	//P0-60
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][6]},	//P0-61
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][7]},	//P0-62
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][8]},	//P0-63
+				{		32768,		47768,		42268,		0x842,		&DriveParams.SystemParams.DriveCurve[DRIVE_SPEED_MAX][9]},	//P0-64
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][0]},	//P0-65
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][1]},	//P0-66
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][2]},	//P0-67
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][3]},	//P0-68
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][4]},	//P0-69
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][5]},	//P0-70
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][6]},	//P0-71
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][7]},	//P0-72
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][8]},	//P0-73
+				{		32768,		62768,		32775,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_START][9]},	//P0-74
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][0]},	//P0-75
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][1]},	//P0-76
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][2]},	//P0-77
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][3]},	//P0-78
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][4]},	//P0-79
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][5]},	//P0-80
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][6]},	//P0-81
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][7]},	//P0-82
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][8]},	//P0-83
+				{		2768,		32768,		32761,		0x85A,		&DriveParams.SystemParams.DriveCurve[DRIVE_SLOPE_END][9]},	//P0-84
 				{		32768,		62768,		62768,		0x84A,		&DriveParams.SystemParams.DriveRisingRamp},	//P0-85
 				{		2768,		32768,		2768,		0x84A,		&DriveParams.SystemParams.DriveFallingRamp},	//P0-86
 				{		30,			100,		30,		    0x4A,		&DriveParams.SystemParams.LimpTransitSec},	//P0-87
 				{		0,			0,			0,			0,		0},	//P0-88
-				{		0,			0,			0,			0,		0},	//P0-89
+				{		32768,		47768,		33768,		0x842,		&DriveParams.SystemParams.MaxMotorRPMToEnRev},	//P0-89
 				{		0,			0,			0,			0,		0},	//P0-90
 				{		0,			0,			0,			0,		0},	//P0-91
 				{		0,			0,			0,			0,		0},	//P0-92

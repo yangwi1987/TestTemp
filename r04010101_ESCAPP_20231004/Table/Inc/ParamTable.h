@@ -86,42 +86,12 @@ typedef struct {
 	uint16_t Reserved022;	//P0-22
 	uint16_t Reserved023;	//P0-23
 	uint16_t Reserved024;	//P0-24
-	uint16_t Reserved025;	//P0-25
-	uint16_t Reserved026;	//P0-26
-	uint16_t Reserved027;	//P0-27
-	uint16_t Reserved028;	//P0-28
-	uint16_t Reserved029;	//P0-29
-	uint16_t Reserved030;	//P0-30
-	uint16_t Reserved031;	//P0-31
-	uint16_t Reserved032;	//P0-32
-	uint16_t Reserved033;	//P0-33
-	uint16_t Reserved034;	//P0-34
-	uint16_t Reserved035;	//P0-35
-	uint16_t Reserved036;	//P0-36
-	uint16_t Reserved037;	//P0-37
-	uint16_t Reserved038;	//P0-38
-	uint16_t Reserved039;	//P0-39
-	uint16_t Reserved040;	//P0-40
-	uint16_t Reserved041;	//P0-41
-	uint16_t Reserved042;	//P0-42
-	uint16_t Reserved043;	//P0-43
-	uint16_t Reserved044;	//P0-44
-	uint16_t Reserved045;	//P0-45
-	uint16_t Reserved046;	//P0-46
-	uint16_t Reserved047;	//P0-47
-	uint16_t Reserved048;	//P0-48
-	uint16_t Reserved049;	//P0-49
-	uint16_t Reserved050;	//P0-50
-	uint16_t Reserved051;	//P0-51
-	uint16_t Reserved052;	//P0-52
-	uint16_t Reserved053;	//P0-53
-	uint16_t Reserved054;	//P0-54
 	uint16_t DriveCurve[DRIVE_ALL_PARA_NUM][DRIVE_TABLE_LENGTH];
 	uint16_t DriveRisingRamp;	//P0-85
 	uint16_t DriveFallingRamp;	//P0-86
 	uint16_t LimpTransitSec;	//P0-87
 	uint16_t Reserved088;	//P0-88
-	uint16_t Reserved089;	//P0-89
+	uint16_t MaxMotorRPMToEnRev;	//P0-89
 	uint16_t Reserved090;	//P0-90
 	uint16_t Reserved091;	//P0-91
 	uint16_t Reserved092;	//P0-92

@@ -28,9 +28,10 @@ float TorqCommandGenerator_ACLimitation( TorqCommandGenerator_t *v )
 	return Torque;
 }
 
-void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p, float ThrottleCmd )
+void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p )
 {
 	float TorqueOut = 0.0f;
+	float ToequeDirection = 1.0f;
 	float FourQuadTorqueCommandAbs = 0.0f;
 	float DCLimitedTorqueCommandAbs = 0.0f;
 	float ACLimitedTorqueCommandAbs = 0.0f;
@@ -40,7 +41,16 @@ void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p, f
 	v->ACLimitedTorqueCommand = TorqCommandGenerator_ACLimitation(v);
 
 	// step 2: find minimum torque command
-	FourQuadTorqueCommandAbs = p->TorqueCommandOut;
+	if ( p->TorqueCommandOut >= 0.0f )
+	{
+		FourQuadTorqueCommandAbs = p->TorqueCommandOut;
+	}
+	else
+	{
+		FourQuadTorqueCommandAbs = - p->TorqueCommandOut;
+		ToequeDirection = -1.0f;
+	}
+
 	DCLimitedTorqueCommandAbs = v->DCLimitedTorqueCommand;
 	ACLimitedTorqueCommandAbs = v->ACLimitedTorqueCommand;
 	TorqueOut = MIN3(FourQuadTorqueCommandAbs, DCLimitedTorqueCommandAbs, ACLimitedTorqueCommandAbs);
@@ -50,11 +60,7 @@ void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p, f
 	v->ACTorqueAbs = ACLimitedTorqueCommandAbs;
 	v->DCTorqueAbs = DCLimitedTorqueCommandAbs;
 
-	// step 3: ThrottleCmdPercentage
-	TorqueOut = TorqueOut * ThrottleCmd;
-
-
-	// step 4: Clamp Torque Command
+	// step 3: Clamp Torque Command
 	if( TorqueOut > v->TorqueCommandMax )
 	{
 		TorqueOut = v->TorqueCommandMax;
@@ -64,6 +70,6 @@ void TorqCommandGenerator_Calc( TorqCommandGenerator_t *v, FourQuadControl *p, f
 		TorqueOut = v->TorqueCommandmin;
 	}
 
-	// step 5: TorqueOut
-	v->Out = TorqueOut;
+	// step 4: TorqueOut
+	v->Out = TorqueOut * ToequeDirection;
 }
