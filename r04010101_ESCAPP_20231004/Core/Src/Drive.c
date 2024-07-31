@@ -8,6 +8,7 @@
 #include "UtilityBase.h"
 #include "UiApp.h"
 #include "Drive.h"
+#include "VehicleCtrl.h"
 
 /*
  * Header Information
@@ -139,6 +140,10 @@ int32_t drive_GetStatus(uint16_t AxisID, uint16_t no)
 
 	case DN_OUTPUT_TORQ_CMD:
 		RetValue = (int32_t)(Axis[AxisIndex].TorqCommandGenerator.Out * 10.0f);
+		break;
+
+	case DN_INV_MAIN_STATE:
+		RetValue = (int32_t)INVMainState;
 		break;
 
 	case DN_SERVO_ON_STATE:
@@ -1454,10 +1459,6 @@ __STATIC_FORCEINLINE void drive_DTC_Pickup_Freeze_Frame_data( DTCStation_t *v, u
 }
 
 
-void Drive_PcuPowerStateMachine( void )
-{
-
-}
 
 // Change INV operating state according Axis alarm status and servo on status.
 void Drive_INVStateMachine( void )
@@ -1612,6 +1613,10 @@ void Drive_INVStateMachine( void )
 	  Axis[0].pCANTxInterface->InvState = INVMainState;
 }
 
+INV_OP_STATE_e Inv_MainSMGet()
+{
+	return INVMainState;
+}
 
 void Inv_ServoOnReq()
 {
@@ -1632,381 +1637,40 @@ void Inv_ServoOffReq()
 
 }
 
-__STATIC_FORCEINLINE void EnterVehicleAlarmState( void )
-{
-	// todo set RC alarm flag
-	// todo clear RC warning/limp flag
 
-	/* put INV to servo off */
-  Inv_ServoOffReq();
-  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_4HZ);
-  VehicleMainState = VEHICLE_STATE_ALARM;
-}
-
-__STATIC_FORCEINLINE void EnterVehicleLimpHomeState( void )
+void drive_ServoCtrlReq(drive_ServoCtrl_e CmdIn)
 {
-	// set Axis trigger limp home flag
-	Axis[0].TriggerLimpHome = 1;
-	// todo set RC limp home flag;
-	// todo clear RC warning
-	// todo set DC ramp?
-  VehicleMainState = VEHICLE_STATE_LIMPHOME;  
-}
-
-__STATIC_FORCEINLINE void EnterVehicleWarningState( void )
-{
-	/* Disable boost mode function */
-	GearMode_DisableBoostMode();
-	Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_1HZ);
-  VehicleMainState = VEHICLE_STATE_WARNING;
-}
-
-__STATIC_FORCEINLINE void EnterVehicleDriveState( void )
-{
-	// set Axis trigger limp home flag
-	Axis[0].TriggerLimpHome = 0;
-  
-	if(VehicleMainState == VEHICLE_STATE_STANDBY)
+	if(CmdIn == DRIVE_SERVO_CTRL_OFF)
 	{
-		ButtonReleasedFlags = 0;
+		Axis[0].FourQuadCtrl.ServoCmdIn = DISABLE;
+		Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_P;
+		/* Disable boost mode function */
+		GearMode_DisableBoostMode();
 	}
-
-	DualBtnTimeCnt = 0;
-	Led_TurnOnReq(LED_IDX_FRONT);
-
-	Led_TurnOnReq(LED_IDX_FRONT);
-	Led_TurnOnReq(LED_IDX_REAR);
-
-	VehicleMainState = VEHICLE_STATE_DRIVE;
+	else
+	{
+		Axis[0].FourQuadCtrl.ServoCmdIn = ENABLE;
+		Axis[0].FourQuadCtrl.GearPositionCmd = PCU_SHIFT_D;
+		/* Enable boost mode function */
+		GearMode_EnableBoostMode();
+	}
 }
 
-__STATIC_FORCEINLINE void EnterVehicleIdleState( void )
+void drive_AlarmEnableReq(uint8_t AlarmId, FunctionalState Enable)
 {
-	SocLightModeSet(SOC_DISPLAY_MODE_DIRECTLY_ACCESS);
-	Led_TurnOffReq(LED_IDX_REAR);
-	Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
-  VehicleMainState = VEHICLE_STATE_IDLE;
+	Axis[0].AlarmDetect.EnableReq(&Axis[0].AlarmDetect, AlarmId, Enable);
 }
 
-__STATIC_FORCEINLINE void EnterVehicleStartupState( void )
+void drive_GlobalAlarmEnableReq(FunctionalState Enable)
 {
-  /* Enable global alarm detection */
-  AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
-  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
-  VehicleMainState = VEHICLE_STATE_STARTUP;
-}
-
-__STATIC_FORCEINLINE void EnterVehicleStandbyState( void )
-{
-  // set Axis trigger limp home flag
-  Axis[0].TriggerLimpHome = 0;
-  DualBtnTimeCnt = 0;
-  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
-  SocLightModeSet(SOC_DISPLAY_MODE_SOC_SINGLE_LED);
-  /* Enable CAN1 timeout detection */
-  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-  /* Enable UVP detection */
-  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_ENABLE;
-  /* Clear button release flags */
-  ButtonReleasedFlags = 0;
-  /* Put INV to servo-off */
-  Inv_ServoOffReq();
-  VehicleMainState = VEHICLE_STATE_STANDBY;
-}
-
-__STATIC_FORCEINLINE void EnterVehicleShutdownState( void )
-{
-
-  /* Disable CAN1 timeout detection */
-  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-
-  /* Disable UVP detection */
-  /* Note : the INV level Alarm detection control should be applied by INV station
-    but not in vehicle station, this is a short-term solution before we have a 
-    individual INV control module
-   */
-  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-
-  /* Request BMS to turn off battery */
-  // Todo : put shutdown request command
-  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
-
-
-  VehicleMainState = VEHICLE_STATE_SHUTDOWN;
-}
-
-__STATIC_FORCEINLINE void EnterVehiclePowerOffState( void )
-{
-  /* Disable global alarm detection */
-  AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
-  
-  VehicleMainState = VEHICLE_STATE_POWER_OFF;
-}
-
-__STATIC_FORCEINLINE void EnterVehicleInitialState( void )
-{
-  /* Disable global alarm detection */
-  AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
-  BootAppTrig = BOOT_ENA;
-  INVMainState = INV_OP_INITIALIZING;
-  Led_CtrlReq(LED_IDX_FRONT, LED_MODE_BLINK, 5, LED_BLINK_CONFIG_5HZ);
-  SocLightModeSet(SOC_DISPLAY_MODE_DIRECTLY_ACCESS);
-  Led_TurnOffReq(LED_IDX_REAR);
-
-  VehicleMainState = VEHICLE_STATE_INITIALIZING;
-
-  /* Disable CAN1 timeout detection */
-  Axis[0].AlarmDetect.CAN1Timeout.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-  /* Disable UVP detection */
-  Axis[0].AlarmDetect.UVP_Bus.AlarmInfo.AlarmEnable = ALARM_DISABLE;
-}
-
-void Drive_VehicleStateMachine( void )
-{
-  switch( VehicleMainState )
-  {
-    case VEHICLE_STATE_INITIALIZING:
-
-      // normal transition
-      if( INVMainState == INV_OP_STANDBY )
-      {
-        EnterVehicleIdleState();
-      }
-
-      // action
-
-      break;
-
-    case VEHICLE_STATE_IDLE:
-    
-      /* waiting for killing switch to transfer to startup state */
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_SM_ERROR))
-      {
-        EnterVehicleAlarmState();
-      }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
-      {
-        EnterVehicleStartupState();
-      }
-
-      break;
-
-    case VEHICLE_STATE_STARTUP:
-
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_SM_ERROR))
-      {
-        EnterVehicleAlarmState();
-      }
-      else if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS) /* Kill SW pressed*/
-      {
-          EnterVehicleShutdownState();
-      }
-      else
-      {
-        switch (BatStation.MainSMGet())
-        {
-          case BAT_MAIN_SM_ENERGIZE:
-            EnterVehicleStandbyState();
-            break;
-
-          default:
-            break;
-        }
-      }
-
-      break;
-
-    case VEHICLE_STATE_STANDBY:
-
-      // error situation
-      if ((INVMainState == INV_OP_ALARM) || (BatStation.MainSMGet() == BAT_MAIN_SM_ERROR))
-      {
-        EnterVehicleAlarmState();
-      }
-      else if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS) /* Kill SW pressed*/
-      { 
-        EnterVehicleShutdownState();
-      }
-      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
-      {
-        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_RELEASE)
-        {
-          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
-        }
-
-        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_RELEASE)
-        {
-          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
-        }
-
-      }
-      else
-      {
-        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_PRESS) &&
-            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_PRESS) &&
-            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ))
-        {
-          DualBtnTimeCnt ++;
-
-          if(DualBtnTimeCnt > 100)
-          {
-          	EnterVehicleDriveState();
-          }
-        }
-        else
-        {
-          DualBtnTimeCnt = 0;
-        }
-
-      }
-
-      break;
-
-    case VEHICLE_STATE_DRIVE:
-
-      // error situation
-      if( INVMainState == INV_OP_ALARM || Bat_MainSMGet(BAT_IDX_MASTER) == BAT_MAIN_SM_ERROR )
-      {
-        EnterVehicleAlarmState();
-      }
-	  else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS)
-      {
-        EnterVehicleStandbyState();
-      }
-			else if( INVMainState == INV_OP_WARNING)
-      {
-        EnterVehicleWarningState();
-      }
-      else if( INVMainState == INV_OP_LIMPHOME)
-      {
-        EnterVehicleLimpHomeState();
-      }
-      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
-      {
-        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_RELEASE)
-        {
-          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
-        }
-
-        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_RELEASE)
-        {
-          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
-        }
-
-        if(ButtonReleasedFlags == VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)
-        {
-      		/* Put INV to servo on */
-      		Inv_ServoOnReq();
-        }
-      }
-      else
-      { 
-        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_PRESS) &&
-            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_PRESS) &&
-            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
-            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
-        {
-          DualBtnTimeCnt ++;
-
-          if(DualBtnTimeCnt > 300)
-          {
-            EnterVehicleStandbyState();
-          }
-        }
-        else
-        {
-        	DualBtnTimeCnt = 0;
-        }
-      }
-      break;
-
-    case VEHICLE_STATE_WARNING:
-      if( INVMainState == INV_OP_ALARM || Bat_MainSMGet(BAT_IDX_MASTER) == BAT_MAIN_SM_ERROR)	// error situation
-      {
-        EnterVehicleAlarmState();
-      }
-	    else if( Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS)
-      {
-        EnterVehicleStandbyState();
-      }
-      else if( INVMainState == INV_OP_NORMAL )
-      {
-        EnterVehicleDriveState();
-      }
-      else if (ButtonReleasedFlags != VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)  /* hold until user release both buttons*/
-      {
-        if(Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_RELEASE)
-        {
-          ButtonReleasedFlags |= VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG;
-        }
-
-        if(Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_RELEASE)
-        {
-          ButtonReleasedFlags |= VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG;
-        }
-
-        if(ButtonReleasedFlags == VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG)
-        {
-      		/* Put INV to servo on */
-      		Inv_ServoOnReq();
-        }
-      }
-      else
-      { 
-        if ((Btn_StateRead(BTN_IDX_BST_BTN)== BTN_BOOST_PRESS) &&
-            (Btn_StateRead(BTN_IDX_REV_BTN)== BTN_REVERSE_PRESS) &&
-            (Axis[0].ThrotMapping.PercentageTarget < 0.01 ) &&
-            (Axis[0].SpeedInfo.MotorMechSpeedRPMAbs < 100.0))
-        {
-          DualBtnTimeCnt ++;
-
-          if(DualBtnTimeCnt > 300)
-          {
-            EnterVehicleStandbyState();
-          }
-        }
-        else
-        {
-        	DualBtnTimeCnt = 0;
-        }
-      }
-      break;
-
-    case VEHICLE_STATE_LIMPHOME:
-      /* for E10-P0, Transfer to warning state directly */
-      EnterVehicleWarningState();
-      break;
-
-    case VEHICLE_STATE_ALARM:
-
-      // error situation
-      if (Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_PRESS)
-      {
-          EnterVehicleShutdownState();
-      }
-      break;
-
-    case VEHICLE_STATE_SHUTDOWN:
-      
-      /* check if shutdown process is completed*/
-      if(Btn_StateRead(BTN_IDX_KILL_SW) == BTN_KILL_SW_RELEASE)
-      {
-    	  EnterVehicleStartupState();
-      }
-      else if((Bat_MainSMGet(BAT_IDX_MASTER) == BAT_MAIN_SM_ERROR))
-      {
-        EnterVehicleInitialState();
-      }
-
-      break; 
-
-    case VEHICLE_STATE_POWER_OFF:
-    default:
-      break;
-
-  }
-
-  Axis[0].pCANTxInterface->VehicleState = VehicleMainState;
+	if(Enable)
+	{
+		AlarmMgr1.State = ALARM_MGR_STATE_ENABLE;
+	}
+	else
+	{
+		AlarmMgr1.State = ALARM_MGR_STATE_DISABLE;
+	}
 }
 
 void HAL_TIM_Base_Start_TOTAL_TIME( TIM_HandleTypeDef *htim )
@@ -2132,10 +1796,10 @@ void drive_Init(void)
 	GlobalAlarmDetect_init();
 
 	/* Button control init */
-	Btn_Init();
+	DIO_Init();
 	
 	/*Init BAT control unit*/
-	BatStation.CanHandleLoad(&ExtranetCANStation);
+	Bat_CanHandleLoad(&ExtranetCANStation);
   
 	// Register ready in the end of Drive_init.
 	IsPcuInitReady = PcuInitState_Ready;
@@ -2451,8 +2115,6 @@ void drive_DoPLCLoop(void)
 	    drive_DTC_Pickup_Data_to_Store( &AlarmStack[0], &DTCStation1 );
 	}
 
-	Drive_PcuPowerStateMachine(); // note: Tx response will delay one PLCLoop(1ms)
-
 }
 
 void drive_Do100HzLoop(void)
@@ -2508,17 +2170,20 @@ void drive_Do100HzLoop(void)
 	Btn_SignalWrite(BTN_IDX_KILL_SW, HAL_GPIO_ReadPin(Kill_Switch_DI_GPIO_Port, Kill_Switch_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_BST_BTN, HAL_GPIO_ReadPin(Boost_DI_GPIO_Port,Boost_DI_Pin));
 	Btn_SignalWrite(BTN_IDX_REV_BTN, HAL_GPIO_ReadPin(Reverse_DI_GPIO_Port,Reverse_DI_Pin));
-	Btn_Do100HzLoop();
-	Drive_VehicleStateMachine();
-	Drive_INVStateMachine();
-	BatStation.Do100HzLoop();
-	//Todo : set SOC value
-	SocValueSet(0);
-	Led_Do100HzLoop();
 
-	/*LED output*/
-	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, Led_CmdGet(LED_IDX_FRONT));
-	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, Led_CmdGet(LED_IDX_REAR));
+	Drive_INVStateMachine();
+	Bat_Do100HzLoop();
+
+	/* perform vehicle state machine control */
+	Vehicle_Do100HzLoop();
+	//Todo : update SOC value
+	SocValueSet(0);
+
+	/* perform Digital input and output routine tasks */
+	DIO_Do100HzLoop();
+	/* LED output */
+	HAL_GPIO_WritePin(Front_sig_DO_GPIO_Port, Front_sig_DO_Pin, DO_CmdGet(DO_IDX_FRONT));
+	HAL_GPIO_WritePin(Rear_sig_DO_GPIO_Port, Rear_sig_DO_Pin, DO_CmdGet(DO_IDX_REAR));
 }
 
 // Check if "any" component's temperature is higher then minimum temperature in relative derating table.

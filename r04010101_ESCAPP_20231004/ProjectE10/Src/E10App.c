@@ -155,86 +155,86 @@ void Btn_Init()
 
 /*=============== Button handle End ===============*/
 
-/*=============== LED Indication control start ===============*/
-LedCtrl_t LedCtrlArray[LED_IDX_MAX];
+/*=============== DO Indication control start ===============*/
+DOCtrl_t DOCtrlArray[DO_IDX_MAX];
 SocLightCtrl_t SocLightCtrl;
 
 
-void Led_CtrlReq(LedIdx_e Idx, LedMode_e ModeIn, uint16_t NbrToBlink, LedBlinkConfig_t BlinkConfig)
+void DO_CtrlReq(DOIdx_e Idx, DOMode_e ModeIn, uint16_t NbrToBlink, DOBlinkConfig_t BlinkConfig)
 {
-  LedCtrlArray[Idx].Mode = ModeIn;
-  LedCtrlArray[Idx].TimeCnt = 0;
-  LedCtrlArray[Idx].NbrCnt = 0;
-  LedCtrlArray[Idx].NbrToBlink = NbrToBlink;
-  LedCtrlArray[Idx].BlinkConfig = BlinkConfig;
+  DOCtrlArray[Idx].Mode = ModeIn;
+  DOCtrlArray[Idx].TimeCnt = 0;
+  DOCtrlArray[Idx].NbrCnt = 0;
+  DOCtrlArray[Idx].NbrToBlink = NbrToBlink;
+  DOCtrlArray[Idx].BlinkConfig = BlinkConfig;
 }
 
-void Led_TurnOnReq(LedIdx_e Idx)
+void DO_TurnOnReq(DOIdx_e Idx)
 {
-	Led_CtrlReq(Idx, LED_MODE_ON, 0, LED_BLINK_CONFIG_STEADY);
+	DO_CtrlReq(Idx, DO_MODE_ON, 0, DO_BLINK_CONFIG_STEADY);
 }
 
-void Led_TurnOffReq(LedIdx_e Idx)
+void DO_TurnOffReq(DOIdx_e Idx)
 {
-	Led_CtrlReq(Idx, LED_MODE_OFF, 0, LED_BLINK_CONFIG_STEADY);
+	DO_CtrlReq(Idx, DO_MODE_OFF, 0, DO_BLINK_CONFIG_STEADY);
 }
 
-void Led_Do100HzLoop(void)
+
+
+void DO_Do100HzLoop(void)
 {
 
-  SocLightCtrl_Do100HzLoop();
-
-  for (uint8_t i = 0; i < LED_IDX_MAX; i++)
+  for (uint8_t i = 0; i < DO_IDX_MAX; i++)
   {
-    switch (LedCtrlArray[i].Mode)
+    switch (DOCtrlArray[i].Mode)
     {
-      case LED_MODE_OFF:
+      case DO_MODE_OFF:
       default:
-        LedCtrlArray[i].Cmd = LED_CMD_OFF;
+        DOCtrlArray[i].Cmd = DO_CMD_OFF;
         break;
       
-      case LED_MODE_ON:
-        LedCtrlArray[i].Cmd = LED_CMD_ON;
+      case DO_MODE_ON:
+        DOCtrlArray[i].Cmd = DO_CMD_ON;
         break;
 
-      case LED_MODE_BLINK:
+      case DO_MODE_BLINK:
 
-        if(LedCtrlArray[i].TimeCnt < LedCtrlArray[i].BlinkConfig.OnTime)
+        if(DOCtrlArray[i].TimeCnt < DOCtrlArray[i].BlinkConfig.OnTime)
         {
-          /* Turn on LED*/  
-          LedCtrlArray[i].Cmd = LED_CMD_ON;
+          /* Turn on DO*/
+          DOCtrlArray[i].Cmd = DO_CMD_ON;
         }
-        else if(LedCtrlArray[i].TimeCnt < LedCtrlArray[i].BlinkConfig.Period)
+        else if(DOCtrlArray[i].TimeCnt < DOCtrlArray[i].BlinkConfig.Period)
         {
-          /* Turn off LED*/
-          LedCtrlArray[i].Cmd = LED_CMD_OFF;
+          /* Turn off DO*/
+          DOCtrlArray[i].Cmd = DO_CMD_OFF;
         }
         else
         {
-          LedCtrlArray[i].TimeCnt = 0;  
+          DOCtrlArray[i].TimeCnt = 0;
 
-          /* increase the blink conter if nbr to blink is greater than "LED_NBR_TO_BLINK_FOREVER" */
-          if(LedCtrlArray[i].NbrToBlink > LED_NBR_TO_BLINK_FOREVER)
+          /* increase the blink conter if nbr to blink is greater than "DO_NBR_TO_BLINK_FOREVER" */
+          if(DOCtrlArray[i].NbrToBlink > DO_NBR_TO_BLINK_FOREVER)
           {
-        	  LedCtrlArray[i].NbrCnt++;
+        	  DOCtrlArray[i].NbrCnt++;
 
-        	  if(LedCtrlArray[i].NbrCnt >= LedCtrlArray[i].NbrToBlink)
+        	  if(DOCtrlArray[i].NbrCnt >= DOCtrlArray[i].NbrToBlink)
         	  {
-        		  LedCtrlArray[i].Mode = LED_MODE_OFF;
+        		  DOCtrlArray[i].Mode = DO_MODE_OFF;
         	  }
           }
         }
         
-        LedCtrlArray[i].TimeCnt++;
+        DOCtrlArray[i].TimeCnt++;
 
         break;
     }
   }
 }
 
-LedCmd_e Led_CmdGet(LedIdx_e Idx)
+DOCmd_e DO_CmdGet(DOIdx_e Idx)
 {
-  return LedCtrlArray[Idx].Cmd; 
+  return DOCtrlArray[Idx].Cmd;
 }
 
 /**/
@@ -242,21 +242,21 @@ void SocLightModeSet( SocDisplayMode_e ModeIn)
 {
   SocLightCtrl.DisplayMode = ModeIn;
   SocLightCtrl.ReqFlag  = 1;
-  /* Force to clear the LED indication first */
+  /* Force to clear the DO indication first */
   for (uint8_t i = 0; i < 4 ; i++)
   {
     for (uint8_t j = 0; j < 3; j++)
     {
-	  Led_TurnOffReq((LED_IDX_SOC1_R + j) + (i * 3));
+	  DO_TurnOffReq((DO_IDX_SOC1_R + j) + (i * 3));
     }
   }
 }
 
-void SocCtrlSet(LedRGBIdx_e ColorIn, LedMode_e ModeIn, LedBlinkConfig_t LedConfig)
+void SocCtrlSet(DORGBIdx_e ColorIn, DOMode_e ModeIn, DOBlinkConfig_t DOConfig)
 {
   SocLightCtrl.ColorReq = ColorIn;
-  SocLightCtrl.LedMode = ModeIn;
-  SocLightCtrl.BlinkConfig = LedConfig;
+  SocLightCtrl.DOMode = ModeIn;
+  SocLightCtrl.BlinkConfig = DOConfig;
   SocLightCtrl.ReqFlag  = 1;
 }
 /*
@@ -277,27 +277,27 @@ void SocValueSet( uint8_t SocIn)
   SocLightCtrl.Soc = SocIn;
 }
 
-void SocIndicationByBLinking(LedIdx_e LedIdxIn)
+void SocIndicationByBLinking(DOIdx_e DOIdxIn)
 {
   if (SocLightCtrl.Soc >= 75)
   {
-    Led_CtrlReq( LedIdxIn, LED_MODE_ON, 0, LED_BLINK_CONFIG_STEADY);
+    DO_CtrlReq( DOIdxIn, DO_MODE_ON, 0, DO_BLINK_CONFIG_STEADY);
   }
   else if ( SocLightCtrl.Soc >= 50 )
   {
-    Led_CtrlReq( LedIdxIn, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_1HZ);
+    DO_CtrlReq( DOIdxIn, DO_MODE_BLINK, DO_NBR_TO_BLINK_FOREVER, DO_BLINK_CONFIG_1HZ);
   }
   else if ( SocLightCtrl.Soc >= 25 )
   {
-    Led_CtrlReq( LedIdxIn, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_2HZ);    
+    DO_CtrlReq( DOIdxIn, DO_MODE_BLINK, DO_NBR_TO_BLINK_FOREVER, DO_BLINK_CONFIG_2HZ);
   }
   else if ( SocLightCtrl.Soc >= 5 )
   {
-    Led_CtrlReq( LedIdxIn, LED_MODE_BLINK, LED_NBR_TO_BLINK_FOREVER, LED_BLINK_CONFIG_4HZ);    
+    DO_CtrlReq( DOIdxIn, DO_MODE_BLINK, DO_NBR_TO_BLINK_FOREVER, DO_BLINK_CONFIG_4HZ);
   }
   else 
   {
-    Led_CtrlReq( LedIdxIn, LED_MODE_OFF, 0, LED_BLINK_CONFIG_STEADY);        
+    DO_CtrlReq( DOIdxIn, DO_MODE_OFF, 0, DO_BLINK_CONFIG_STEADY);
   }
 }
 
@@ -309,7 +309,7 @@ void SocLightCtrl_Do100HzLoop(void)
   {
     if(SocLightCtrl.DisplayMode == SOC_DISPLAY_MODE_SOC_LED_ARRAY)
     {
-      /* decide the # of LED to turn on */
+      /* decide the # of DO to turn on */
       ScaledSoc = ( SocLightCtrl.Soc ) / 25;
 
       if(SocLightCtrl.Soc > 0)
@@ -317,29 +317,117 @@ void SocLightCtrl_Do100HzLoop(void)
         ScaledSoc += 1;
       }
 
-      /* Light the LED according to number, blink pattern and color selected by user */
+      /* Light the DO according to number, blink pattern and color selected by user */
       for(uint8_t i = 0; i < 4 ; i++)
       {
         for(uint8_t j = 0; j < 3; j++)
         {
-        Led_TurnOffReq((LED_IDX_SOC1_R + j) + (i * 3));
+        	DO_TurnOffReq((DO_IDX_SOC1_R + j) + (i * 3));
         }
 
         if( i < ScaledSoc )
         {
-        Led_CtrlReq((LED_IDX_SOC1_R + SocLightCtrl.ColorReq + i * 3), SocLightCtrl.LedMode, 0, SocLightCtrl.BlinkConfig);
+        	DO_CtrlReq((DO_IDX_SOC1_R + SocLightCtrl.ColorReq + i * 3), SocLightCtrl.DOMode, 0, SocLightCtrl.BlinkConfig);
         }
       }
     }
     else if(SocLightCtrl.DisplayMode == SOC_DISPLAY_MODE_SOC_SINGLE_LED)
     {
-      SocIndicationByBLinking(LED_IDX_REAR);
+      SocIndicationByBLinking(DO_IDX_REAR);
     }
 
     SocLightCtrl.ReqFlag = 0;
   }
-
-
 }
 
-/*=============== LED Indication control End ===============*/
+
+
+
+/*=============== DO Indication control End ===============*/
+
+uint16_t KillSwErrorCnt = 0;
+uint8_t DIO_KillSwState = 0;
+
+/*
+ * Description:
+ * 	From P1 stage, the KillSW-DO will connect to KillSw-DI through the Kill Switch,
+ * once the signal from DI signal is different from DO command for a certain time period,
+ * we will regard the KILL switch is opened
+ * Params:
+ * 	NULL
+ */
+void DIO_KillSWSignalCheck(void)
+{
+	if(KillSwErrorCnt < 20)
+	{
+		if((BtnTable[BTN_IDX_KILL_SW].EvtRecord != BTN_EVENT_INITIALIZING) &&
+		   (BtnTable[BTN_IDX_KILL_SW].Now != DOCtrlArray[DO_IDX_KILLSW].Cmd))
+		{
+			KillSwErrorCnt++;
+		}
+		else
+		{
+			KillSwErrorCnt = 0;
+		}
+	}
+}
+
+/*
+ * Description:
+ * 	Returns the Kill Switch status
+ * Params:
+ * (Output) : if the KillSW is opened, return "DIO_KILL_SWITCH_STATE_OPEN",
+ *  		  otherwise return "DIO_KILL_SWITCH_STATE_CLOSED"
+ */
+
+DIO_KillSwState_e DIO_KillSwStateGet(void)
+{
+	DIO_KillSwState_e ret = DIO_KILL_SWITCH_STATE_OPEN;
+
+	if(KillSwErrorCnt < 20)
+	{
+		ret = DIO_KILL_SWITCH_STATE_CLOSED;
+	}
+	return ret;
+}
+
+
+
+/*
+ * Description:
+ * Perform all required routine(100hz) tasks of Digital input and output module,
+ * Params:
+ * N/A
+ */
+void DIO_Do100HzLoop(void)
+{
+	/* Perform routine tasks for digital input signal*/
+	Btn_Do100HzLoop();
+
+	/* Perform routine tasks for digital output signal*/
+	DO_Do100HzLoop();
+
+	/* Check Kill switch status by*/
+	DIO_KillSWSignalCheck();
+}
+
+
+/*
+ * Description:
+ * Perform all required initial tasks of Digital input and output module,
+ * Params:
+ * N/A
+ */
+void DIO_Init(void)
+{
+	/* Perform routine tasks for digital input signal*/
+	Btn_Init();
+
+	/* Perform routine tasks for digital output signal*/
+	// N/A
+
+	/* others */
+	/* set kill switch output signal*/
+	KillSwErrorCnt = 0;
+	DO_CtrlReq(DO_IDX_KILLSW, DO_MODE_BLINK, DO_NBR_TO_BLINK_FOREVER, DO_BLINK_CONFIG_5HZ);
+}

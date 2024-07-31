@@ -66,7 +66,7 @@ typedef enum
 	Target_EFlash	=1,
 	Target_RAM		=2,
 	Target_PSB		=3,
-}TargetDefine_e;
+} TargetDefine_e;
 
 typedef enum{
 	VEHICLE_STATE_POWER_OFF = 0,
@@ -82,7 +82,7 @@ typedef enum{
 	VEHICLE_STATE_FWUPDATE,
 	VEHICLE_STATE_CHARGE,
 	VEHICLE_STATE_LIMPHOME,		/* Not used in E10-P0, will switch to warning state */
-}VEHICLE_STATE_e;
+} VEHICLE_STATE_e;
 
 typedef enum{
 	INV_OP_INITIALIZING,
@@ -92,7 +92,13 @@ typedef enum{
 	INV_OP_LIMPHOME,
 	INV_OP_ALARM,
 	INV_OP_POWER_OFF,
-}INV_OP_STATE_e; // INV operation
+} INV_OP_STATE_e; // INV operation
+
+typedef enum
+{
+	DRIVE_SERVO_CTRL_OFF,
+	DRIVE_SERVO_CTRL_ON,
+} drive_ServoCtrl_e;
 
 // Define the number of different data index
 #define HW_VER_NUM_IDX		7 // PCU hardware version
@@ -155,6 +161,11 @@ extern void drive_ThrottleGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DcBusGainInit( DriveParams_t *d, AdcStation *a );
 extern void drive_DoExtFlashTableRst( uint32_t *Setup, uint32_t *Ena, uint32_t *BackUpExMemEna, const System_Table_t_Linker *Ts, SystemParams_t *pSysT, const PCU_Table_t_Linker *Tp, PCUParams_t *pPcuT );
 extern void drive_DoHWOCPIRQ(void);
+extern int32_t drive_GetStatus(uint16_t AxisID, uint16_t no);
+extern void drive_ServoCtrlReq(drive_ServoCtrl_e CmdIn);
+extern void drive_AlarmEnableReq(uint8_t AlarmId, FunctionalState Enable);
+extern void drive_GlobalAlarmEnableReq(FunctionalState Enable);
+
 /*
  * Version Read #define
  */
@@ -226,12 +237,6 @@ enum Boot_Trig_Enum{
 	BOOT_DIS = 0,
 	BOOT_ENA
 };
-
-#define VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG   0x01
-#define VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG 0x02
-#define VEHICLE_SM_CTRL_ALL_BTN_RELEASED_FLAG     (VEHICLE_SM_CTRL_BOOST_BTN_RELEASED_FLAG | VEHICLE_SM_CTRL_REVERSE_BTN_RELEASED_FLAG)
-
-
 
 /*
  * Boot-loader Function Variable

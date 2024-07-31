@@ -100,6 +100,25 @@ typedef union
   CanIdField_t Bits;
 } CanIdField_u;
 
+typedef enum
+{
+	BAT_INFO_IDX_DC_VOLT_NOW,		/* float, unit = V */
+	BAT_INFO_IDX_DC_CURR_NOW,		/* float, unit = A */
+	BAT_INFO_IDX_CAPACITY_REMAIN,	/* float, unit = AH */
+	BAT_INFO_IDX_DISCHARGE_CURR_LIMIT,	/* float, unit = A */
+	BAT_INFO_IDX_CHARGE_CURR_LIMIT,	/* float, unit = A */
+	BAT_INFO_IDX_REGEN_CURR_LIMIT,	/* float, unit = A */
+	BAT_INFO_IDX_MAIN_SM,
+	BAT_INFO_IDX_PRCH_SM,
+	BAT_INFO_IDX_FLAG_ALARM,
+	BAT_INFO_IDX_FLAG_WARNING,
+	BAT_INFO_IDX_FLAG_SHUTDOWN_REQ,
+	BAT_INFO_IDX_FLAG_BALANCE_BUSY,
+	BAT_INFO_IDX_FLAG_CHARGE_BUSY,
+	BAT_INFO_IDX_SOC,
+	BAT_INFO_IDX_MAX,
+} BatInfoIdx_e;
+
 typedef struct
 {
 	float DCVolt;			    /* unit = V */
@@ -135,6 +154,7 @@ typedef struct
   0.0f,                       /*ChrgLimit*/ \
   0.0f,                       /*RgnLimit*/ \
   BAT_MAIN_SM_OFF,            /*MainSM*/ \
+  BAT_ST_BATT_PRCH_OFF,		  /*PrchSM*/\
   {0},						  /*Flags*/\
   0,                          /*Soc*/ \
 }                                   \
@@ -402,33 +422,14 @@ typedef struct
 } BatCtrl_t;
 
 extern void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData);
+extern void Bat_InfoReset(void);
 extern void Bat_Do100HzLoop (void);
-extern BatMainSM_e Bat_MainSMGet (Bat_Idx Idx);
-extern uint8_t Bat_SocGet (Bat_Idx Idx);
+extern void Bat_ShutdownReq(void);
+extern void Bat_InfoGet(void* pOut, BatInfoIdx_e InfoIdxIn, Bat_Idx BatIdxIn);
 extern void Bat_CanHandleLoad(ExtranetCANStation_t *pIn);
-
-typedef void (*functypBat_CanMsgLoad)(uint32_t, void*);
-typedef void (*functypBat_Do100HzLoop)(void);
-typedef BatMainSM_e (*functypBat_MainSMGet)(void);
-typedef uint8_t (*functypBat_SocGet) (uint32_t);
-typedef void (*functypBat_CanHandleLoad)(void *);
-
-typedef struct
-{
-	functypBat_CanMsgLoad CanMsgLoad;
-	functypBat_Do100HzLoop Do100HzLoop;
-	functypBat_MainSMGet MainSMGet;
-	functypBat_CanHandleLoad CanHandleLoad;
-} BatStation_t;
-
-#define BAT_STATION_DEFAULT	\
-{	\
-		(functypBat_CanMsgLoad)Bat_CanMsgLoad,		/*CanMsgLoad*/ \
-		(functypBat_Do100HzLoop)Bat_Do100HzLoop,	/*Do100HzLoop*/ \
-		(functypBat_MainSMGet)Bat_MainSMGet,		/*MainSMGet*/ \
-		(functypBat_CanHandleLoad)Bat_CanHandleLoad,/*CanHandleLoad*/ \
-}	\
-
-extern BatStation_t BatStation;
+extern BatMainSM_e Bat_MainSMGet (Bat_Idx Idx);
+extern Bat_stBattPreChrgSt_e Bat_PrchSMGet (Bat_Idx Idx);
+extern uint8_t Bat_SocGet (Bat_Idx Idx);
+extern uint8_t Bat_ShutdownReqFlgGet(Bat_Idx Idx);
 
 #endif /* INC_BATCTRL_H_ */

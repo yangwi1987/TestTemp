@@ -54,6 +54,8 @@ typedef void (*functypeAlarmDetect_RegisterAxisAlarm)(void*, uint16_t, uint16_t 
 typedef void (*functypeAlarmDetect_DoCurrentLoop)(void*);
 typedef void (*functypeAlarmDetect_DoPLCLoop)(void*);
 typedef void (*functypeAlarmDetect_Do100HzLoop)(void*);
+typedef void (*functypeAlarmDetect_EnableReq)( void*, uint16_t, FunctionalState);
+
 
 // add SetAlarmThreshold to change threshold from external flash
 typedef struct {
@@ -104,6 +106,7 @@ typedef struct {
 	functypeAlarmDetect_DoCurrentLoop DoCurrentLoop;
 	functypeAlarmDetect_DoPLCLoop DoPLCLoop;
 	functypeAlarmDetect_Do100HzLoop Do100HzLoop;
+	functypeAlarmDetect_EnableReq EnableReq;
 } AlarmDetect_t;
 
 void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStation,
@@ -112,6 +115,7 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 void AlarmDetect_DoCurrentLoop( AlarmDetect_t *v );
 void AlarmDetect_DoPLCLoop( AlarmDetect_t *v );
 void AlarmDetect_Do100HzLoop( AlarmDetect_t *v );
+void AlarmDetect_EnableReq( AlarmDetect_t *v, uint16_t AlarmID, FunctionalState EnableIn);
 
 #define ALARM_DETECT_DEFAULT { \
 	0, /* AxisID */ \
@@ -160,6 +164,9 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v );
 	0, /* RegisterAxisAlarm */ \
 	(functypeAlarmDetect_DoCurrentLoop)AlarmDetect_DoCurrentLoop, \
 	(functypeAlarmDetect_DoPLCLoop)AlarmDetect_DoPLCLoop, \
-	(functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop}
+	(functypeAlarmDetect_Do100HzLoop)AlarmDetect_Do100HzLoop,\
+	(functypeAlarmDetect_EnableReq)AlarmDetect_EnableReq,	\
+}	\
+
 
 #endif /* INC_ALARMDETECT_H_ */

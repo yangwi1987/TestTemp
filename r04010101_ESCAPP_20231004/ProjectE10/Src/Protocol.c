@@ -83,7 +83,7 @@ uint8_t CAN_RxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANRxInterf
   }
   else
   {
-	  BatStation.CanMsgLoad(IdIn, pDataIn);
+	  Bat_CanMsgLoad(IdIn, pDataIn);
 	  v->ReceivedCANID |= RECEIVED_BAT_ID_1;
   }
   return lStatus;
@@ -96,6 +96,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
   uint8_t lIdx = 0;
   uint16_t u16Temp=0;
   int16_t i16Temp=0;
+  uint8_t u8Temp = 0;
 
 
   for(lIdx=0; lIdx < 8; lIdx++)
@@ -270,7 +271,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
     	  //Todo: input SOC value
     	  p->InvLogInfo7.MainBatSoc = 0;
     	  p->InvLogInfo7.ServoOnOffState = v->ServoOnOffState;
-    	  p->InvLogInfo7.BatMainSm = BatStation.MainSMGet();
+    	  p->InvLogInfo7.BatMainSm = Bat_MainSMGet(BAT_IDX_MASTER);
     	  p->InvLogInfo7.E5V = (uint8_t)( 40.0f * v->Debugf[IDX_E5V] );
     	  p->InvLogInfo7.ES5V = (uint8_t)( 40.0f * v->Debugf[IDX_ES5V] );
     	  p->InvLogInfo7.HWID_ID1First8bits = (uint8_t)( v->HWID[0] >> 4 );

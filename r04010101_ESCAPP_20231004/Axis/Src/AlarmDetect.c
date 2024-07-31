@@ -316,3 +316,138 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 
 }
 
+void AlarmDetect_EnableReq( AlarmDetect_t *v, uint16_t AlarmID, FunctionalState EnableIn)
+{
+	switch (AlarmID)
+	{
+		default:
+			break;
+		case ALARMID_CAN1_TIMEOUT:
+			v->CAN1Timeout.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_CAN0_TIMEOUT:
+			v->CAN0Timeout.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_POWER_TRANSISTOR_OC:
+			v->POWER_TRANSISTOR_OC.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_BUFFER_IC_ERROR:
+			v->BUF_IC_FB.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_MOTOR_OVER_SPEED:
+			v->OSP.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OVER_VOLTAGE_BUS:
+			v->OVP_Bus.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_UNDER_VOLTAGE_BUS:
+			v->UVP_Bus.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_UNDER_VOLTAGE_13V:
+			v->UVP_13V.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+		case ALARMID_IU_OCP:
+			v->OCP_Iu.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_IV_OCP:
+			v->OCP_Iv.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_IW_OCP:
+			v->OCP_Iw.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_UNDER_VOLTAGE_E5V:
+			v->UVP_E5V.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_UNDER_VOLTAGE_ES5V:
+			v->UVP_EA5V.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_UNDER_VOLTAGE_EA5V:
+			v->UVP_ES5V.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_ACC_PEDAL_BREAK:
+			v->ACC_PEDAL_SENSOR_BREAK.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_ACC_PEDAL_SHORT:
+			v->ACC_PEDAL_SENSOR_SHORT.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_PCU_0:
+			v->OTP_PCU_0.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_PCU_1:
+			v->OTP_PCU_1.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_PCU_2:
+			v->OTP_PCU_2.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_MOTOR_0:
+			v->OTP_Motor_0.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_BREAK_NTC_PCU_0:
+			v->BREAK_NTC_PCU_0.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_BREAK_NTC_PCU_1:
+			v->BREAK_NTC_PCU_1.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_BREAK_NTC_PCU_2:
+			v->BREAK_NTC_PCU_2.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_BREAK_NTC_MOTOR_0:
+			v->BREAK_NTC_Motor_0.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_SHORT_NTC_PCU_0:
+			v->SHORT_NTC_PCU_0.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_SHORT_NTC_PCU_1:
+			v->SHORT_NTC_PCU_1.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_SHORT_NTC_PCU_2:
+			v->SHORT_NTC_PCU_2.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_SHORT_NTC_MOTOR_0:
+			v->SHORT_NTC_Motor_0.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_PCU_0_WARNING:
+			v->OTP_PCU_0_WARNING.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_PCU_1_WARNING:
+			v->OTP_PCU_1_WARNING.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_PCU_2_WARNING:
+			v->OTP_PCU_2_WARNING.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+
+		case ALARMID_OT_MOTOR_0_WARNING:
+			v->OTP_Motor_0_WARNING.AlarmInfo.AlarmEnable = EnableIn;
+			break;
+	}
+}
+

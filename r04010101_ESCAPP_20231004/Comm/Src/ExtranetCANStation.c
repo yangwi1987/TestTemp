@@ -13,6 +13,8 @@ const CanModuleConfig_t CANModuleConfigExtra =
 		FDCAN_IT_GROUP_RX_FIFO0,	FDCAN_IT_LIST_RX_FIFO0,	FDCAN_INTERRUPT_LINE0,	FDCAN_RX_FIFO0
 };
 
+ExtranetCANStation_t ExtCanStation = EXTRANET_CAN_STATION_DEFAULT;
+
 void ExtranetCANStation_Init( ExtranetCANStation_t *v, const CANProtocol *p, FDCAN_HandleTypeDef *u)
 {
 	HAL_FDCAN_Stop(v->phfdcan);

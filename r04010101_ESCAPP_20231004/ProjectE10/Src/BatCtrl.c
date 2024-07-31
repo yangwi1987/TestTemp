@@ -3,8 +3,9 @@
 #include "string.h"
 #include "stdlib.h"
 #include "Protocol.h"
+#include "Drive.h"
+#include "VehicleCtrl.h"
 
-BatStation_t BatStation = BAT_STATION_DEFAULT;
 ByteOrderMapping_e BatCommByteOrder = BYTE_ORDER_BIG_ENDIAN;
 BatCtrl_t BatCtrl = {0};
 BatInfo_t BatInfo[BAT_IDX_NUMBER] = {CAN_INFORM_FORM_BAT_DEFAULT, CAN_INFORM_FORM_BAT_DEFAULT, CAN_INFORM_FORM_BAT_DEFAULT};
@@ -40,7 +41,6 @@ void ArrayToSmallEndian(uint8_t *pArrayIn, uint8_t Size)
 		IdxStart++;
 		IdxEnd--;
 	}
-
 }
 
 void Bat_ArrayToSmallEndian(uint8_t *pArrayIn, uint8_t Size)
@@ -54,7 +54,7 @@ void Bat_ArrayToSmallEndian(uint8_t *pArrayIn, uint8_t Size)
 
 BatCanMsgTx_id31E_50_INV_Rvrt_t  BatCanMsgTx_id31E_50_INV = BATCANMSGTX_IDid31E_50_INV_DEFAULT;
 
-void Bat_Id31E_50_INV_Send(void)
+uint8_t Bat_Id31E_50_INV_Send(void)
 {
     /* request both */
     STRUCT_CAN_DATA CANDataTemp;
@@ -66,7 +66,7 @@ void Bat_Id31E_50_INV_Send(void)
 
     CanID.All = 0x31E;
     memset(pTxMsg,0,8);
-    pTxMsg->Byte0.Bit.stInvr = 0;     // Todo: load inverter state from Inveter station
+    pTxMsg->Byte0.Bit.stInvr = Vehicle_MainSMGet();     // Todo: load inverter state from Inveter station
     pTxMsg->Byte0.Bit.flgInvrShdwnRdy = BatCmd.shutdownReq;
     pTxMsg->Byte6.Bit.cntrMsg15 = TxCntr;
     pTxMsg->nrMsgChksXor06 = MsgChksmXorBuild((uint8_t*)pTxMsg + 1, 7);
@@ -84,6 +84,8 @@ void Bat_Id31E_50_INV_Send(void)
     {
     	TxCntr = 0;
     }
+
+    return lStatus;
 }
 
 void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData)
@@ -95,7 +97,6 @@ void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData)
 	uint8_t BattIdx = 0;
 
 	if(MsgChksmXorBuild(pData,8) == 0)
-//	if(1)
 	{
 		switch (Id)
 		{
@@ -142,25 +143,36 @@ void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData)
 	}
 }
 
-
-
+void Bat_InfoReset(void)
+{
+	for(uint8_t i = 0; i < BAT_IDX_NUMBER; i++)
+	{
+		memset(&BatInfo[i], 0, sizeof(BatInfo_t));
+	}
+	BatCtrl.TimerPrescaler = 0;
+}
 
 void Bat_Do100HzLoop (void)
 {
-	static uint32_t TimeCntPrescalor = 0;
 
-
-	if((TimeCntPrescalor % 5) == 0)
+	if((BatCtrl.TimerPrescaler % 5) == 0)
 	{
 		Bat_Id31E_50_INV_Send();
 	}
 
-	TimeCntPrescalor++;
+	BatCtrl.TimerPrescaler++;
 
-	if(TimeCntPrescalor >= 100)
+	if(BatCtrl.TimerPrescaler >= 100)
 	{
-		TimeCntPrescalor = 0;
+		BatCtrl.TimerPrescaler = 0;
 	}
+}
+
+
+
+void Bat_CanHandleLoad(ExtranetCANStation_t *pIn)
+{
+	BatCtrl.pExCANStation = pIn;
 }
 
 BatMainSM_e Bat_MainSMGet (Bat_Idx Idx)
@@ -178,12 +190,79 @@ uint8_t Bat_SocGet (Bat_Idx Idx)
 	return BatInfo[Idx].Soc;
 }
 
+uint8_t Bat_ShutdownReqFlgGet(Bat_Idx Idx)
+{
+	return BatInfo[Idx].Flags.Bit.ShutdownReq;
+}
+
 float Bat_DchrgCurrentLimitGet (Bat_Idx Idx)
 {
 	return BatInfo[Idx].DchrgLimit;
 }
 
-void Bat_CanHandleLoad(ExtranetCANStation_t *pIn)
+void Bat_InfoGet(void* pOut, BatInfoIdx_e InfoIdxIn, Bat_Idx BatIdxIn)
 {
-	BatCtrl.pExCANStation = pIn;
+	if(pOut)
+	{
+		switch(InfoIdxIn)
+		{
+			case BAT_INFO_IDX_DC_VOLT_NOW:
+				*(float*)pOut = BatInfo[BatIdxIn].DCVolt;
+				break;
+
+			case BAT_INFO_IDX_DC_CURR_NOW:
+				*(float*)pOut = BatInfo[BatIdxIn].DcCurrent;
+				break;
+
+			case BAT_INFO_IDX_CAPACITY_REMAIN:
+				*(float*)pOut = BatInfo[BatIdxIn].CapRemain;
+				break;
+
+			case BAT_INFO_IDX_DISCHARGE_CURR_LIMIT:
+				*(float*)pOut = BatInfo[BatIdxIn].DchrgLimit;
+				break;
+
+			case BAT_INFO_IDX_CHARGE_CURR_LIMIT:
+				*(float*)pOut = BatInfo[BatIdxIn].ChrgLimit;
+				break;
+
+			case BAT_INFO_IDX_REGEN_CURR_LIMIT:
+				*(float*)pOut = BatInfo[BatIdxIn].RgnLimit;
+				break;
+
+			case BAT_INFO_IDX_MAIN_SM:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].MainSM;
+				break;
+
+			case BAT_INFO_IDX_PRCH_SM:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].PrchSM;
+				break;
+
+			case BAT_INFO_IDX_FLAG_ALARM:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].Flags.Bit.Alarm;
+				break;
+
+			case BAT_INFO_IDX_FLAG_WARNING:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].Flags.Bit.Warn;
+				break;
+
+			case BAT_INFO_IDX_FLAG_SHUTDOWN_REQ:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].Flags.Bit.ShutdownReq;
+				break;
+
+			case BAT_INFO_IDX_FLAG_CHARGE_BUSY:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].Flags.Bit.ChrgBsy;
+				break;
+
+			case BAT_INFO_IDX_FLAG_BALANCE_BUSY:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].Flags.Bit.BalBsy;
+				break;
+
+			case BAT_INFO_IDX_SOC:
+				*(uint8_t*)pOut = BatInfo[BatIdxIn].Soc;
+				break;
+			default:
+				break;
+		}
+	}
 }
