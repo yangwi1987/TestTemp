@@ -112,10 +112,10 @@ void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData)
 				BatInfo[BattIdx].Flags.Bit.ShutdownReq = pBatCanMsgRx->id30C.Byte1.bits.flgBattShutdownReq;
 				break;
 
-			case 0x30F: //From Master battery
+			case 0x30F: //Summarized info from Master 
 			case 0x318:	//From Slave battery
-			case 0x31A:	//From Summarized info from Master battery
-				BattIdx = (Id==0x30F) ? BAT_IDX_MASTER : (Id == 0x318)? BAT_IDX_SLAVE:BAT_IDX_SUMMERY;
+			case 0x31A:	//From Master battery
+				BattIdx = (Id == 0x31A) ? BAT_IDX_MASTER : (Id == 0x318)? BAT_IDX_SLAVE : BAT_IDX_SUMMERY;
 				BatInfo[BattIdx].DchrgLimit = (float)pBatCanMsgRx->id30F.iDchaLimn;
 				BatInfo[BattIdx].RgnLimit = (float)pBatCanMsgRx->id30F.iRgnLimn;
 				BatInfo[BattIdx].DcCurrent = (float)pBatCanMsgRx->id30F.iBattCurr;
@@ -129,9 +129,9 @@ void Bat_CanMsgLoad(uint32_t Id, uint8_t *pData)
 				break;
 
 			case 0x507:	//From Slave (WHYYYYYYYYYY?????)
-			case 0x508:	//From Master
-			case 0x509: //Summarized info from Master
-				BattIdx = (Id==0x508) ? BAT_IDX_MASTER : (Id==0x507) ? BAT_IDX_SLAVE : BAT_IDX_SUMMERY;
+			case 0x508:	//Summarized info from Master
+			case 0x509: //From Master
+				BattIdx = (Id == 0x509) ? BAT_IDX_MASTER : (Id==0x507) ? BAT_IDX_SLAVE : BAT_IDX_SUMMERY;
 				BatInfo[BattIdx].Soc = pBatCanMsgRx->id507.ratBattSoc;
 				BatInfo[BattIdx].CapRemain = (float)pBatCanMsgRx->id507.qBattSoc * 0.001;
 				break;
