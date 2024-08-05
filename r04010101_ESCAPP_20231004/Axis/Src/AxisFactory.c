@@ -530,7 +530,7 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 
     v->SpeedInfo.Init(&(v->SpeedInfo),v->MotorControl.MotorPara.PM.Polepair);
 
-    GearMode_Init(&v->GearModeVar, ( v->pDriveParams->SystemParams.MaxMotorRPMToEnRev - 32768 ));
+    GearMode_Init(&v->GearModeVar, ( v->pDriveParams->SystemParams.MaxMotorRPMToEnRev));
 
 #if USE_HIGH_RESO_MOTOR_TABLE
     HiResoMotorTable_Init();
