@@ -44,7 +44,7 @@ typedef struct
 	const int16_t MaxTorqueLutTable[21];
 	const int16_t FdlutTable[14][40];
 	const int16_t FqlutTable[14][40];
-	uint16_t Reserved_Table[3952];
+	uint16_t Reserved_Table[3990];
 
 
 	// Param
