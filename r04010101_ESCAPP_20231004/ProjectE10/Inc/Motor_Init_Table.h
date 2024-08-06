@@ -37,12 +37,14 @@ typedef struct
 	const INFO_LUT_1DIM_int16_t_TYPE MaxTorqueLutInfo;
 	
 	// Table
-	const int16_t IdCmdLutTable[31][40];
-	const int16_t IqCmdLutTable[31][40];
+	const int16_t IdCmdLutTable[40][15];
+	const int16_t IqCmdLutTable[40][15];
 	const int16_t AcCurrLimitLutTable[23][27];
 	const int16_t DcCurrLimitLutTable[41][26];
-	const int16_t MaxTorqueLutTable[31];
-	uint16_t Reserved_Table[3820];
+	const int16_t MaxTorqueLutTable[21];
+	const int16_t FdlutTable[14][40];
+	const int16_t FqlutTable[14][40];
+	uint16_t Reserved_Table[3952];
 
 
 	// Param
