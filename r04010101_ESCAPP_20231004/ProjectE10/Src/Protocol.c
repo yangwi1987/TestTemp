@@ -23,7 +23,7 @@ uint8_t CAN_TxDataTranslate( uint32_t IdIn, uint8_t *pDataIn, STRUCT_CANTxInterf
 
 const CANProtocol ExtranetInformInSystemTableExample =
 {
-  10,
+  50,
   10,
   {
 	  CANTXID_INV_LOG_INFO_0, CANTXID_INV_LOG_INFO_1, CANTXID_INV_LOG_INFO_2, CANTXID_INV_LOG_INFO_3, CANTXID_INV_LOG_INFO_4,

@@ -183,7 +183,36 @@ static float FourQuadControl_CalcBackrollTable( FourQuadControl *v )
 	PropulseOut = ( PropulseOut < F4 ) ? PropulseOut : F4;
 	PropulseOut = ( PropulseOut < PropulseMin ) ? PropulseMin : PropulseOut;
 
-	v->DrivePropulsion = Ramp(v->DrivePropulsion, PropulseOut, v->DriveRampReverse);
+	if ( v->DrivePropulsion < 0.0f )
+	{
+		v->DrivePropulsion = Ramp(v->DrivePropulsion, 0.0f, v->DriveRampReverse);
+	}
+	else
+	{
+		v->DrivePropulsion = SmoothCurveChange( PropulseOut, v->DrivePropulsion, &(v->Driving_TNIndex) , &(v->Driving_TNIndexPrevious), v->DriveRisingRamp, v->DriveFallingRamp );
+	}
+
+	return v->DrivePropulsion;
+}
+
+static float FourQuadControl_CalcReverseTable( FourQuadControl *v )
+{
+	DRIVE_TABLE_TYPE *pTable = &(v->DriveCurveNow[v->Driving_TNIndex]);
+	float PropulseOut = 0.0f;
+	float PropulseMin = 0.0f;
+	float Smax = pTable->Para[DRIVE_SPEED_MAX];
+	float ABSMotorRPM = ABS(v->MotorRPM);
+
+	float F1 = ABSMotorRPM * pTable->Para[DRIVE_SLOPE_START] + pTable->Para[DRIVE_PROPULSION_START] ;
+	float F2 = pTable->Para[DRIVE_PROPULSION_MAX] * v->facPnlty;
+	float F3 = ( ABSMotorRPM > 1.0f ) ? v->DrivePowerCmd / ( ABSMotorRPM * RPM_TO_SPEED ): v->DrivePowerCmd;
+	float F4 = ( ABSMotorRPM - Smax ) * pTable->Para[DRIVE_SLOPE_END];
+	PropulseOut = ( F1 < F2 ) ? F1 : F2;
+	PropulseOut = ( PropulseOut < F3 ) ? PropulseOut : F3;
+	PropulseOut = ( PropulseOut < F4 ) ? PropulseOut : F4;
+	PropulseOut = ( PropulseOut < PropulseMin ) ? PropulseMin : PropulseOut;
+
+	v->DrivePropulsion = Ramp(v->DrivePropulsion, -PropulseOut, v->DriveRampReverse);
 	return v->DrivePropulsion;
 }
 
@@ -260,7 +289,6 @@ void FourQuadControl_Switch( FourQuadControl *v )
 void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 {
 	float CalcTorque = 0.0;
-    static float ReverseTorque = 0.0f;
 	//Calculate Four-Quad ScooterPropulsion
 	switch (v->FourQuadState)
 	{
@@ -280,7 +308,6 @@ void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 			}
 			CalcTorque = FourQuadControl_CalcDriveTable(v);
 			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
-			ReverseTorque = CalcTorque;
 			break;
 		}
 		case FourQuadState_BackRoll_II:
@@ -293,16 +320,15 @@ void FourQuadControl_Calc( FourQuadControl *v, uint8_t TriggerLimpHome  )
 		case FourQuadState_Reverse_III:
 		{
 			v->Driving_TNIndex = DRIVE_TABLE_REVERSE_NOW;
-			CalcTorque = -FourQuadControl_CalcDriveTable(v);
+			CalcTorque = FourQuadControl_CalcReverseTable(v);
 			CalcTorque = CalcTorque * DRIVE_PROPULSION_TOLERANCE;
-			ReverseTorque = CalcTorque;
 			break;
 		}
 		case FourQuadState_Regen_IV:
 		{
 			v->Driving_TNIndex = DRIVE_TABLE_REVERSE_NOW;
-			ReverseTorque = Ramp(ReverseTorque, 0.0f, v->DriveRampReverse);
-			CalcTorque = ReverseTorque * DRIVE_PROPULSION_TOLERANCE;
+			v->DrivePropulsion = Ramp(v->DrivePropulsion, 0.0f, v->DriveRampReverse);
+			CalcTorque = v->DrivePropulsion * DRIVE_PROPULSION_TOLERANCE;
 			break;
 		}
 		default:
