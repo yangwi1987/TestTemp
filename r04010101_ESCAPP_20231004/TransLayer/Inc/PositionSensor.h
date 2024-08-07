@@ -14,7 +14,7 @@
 #include "MathFunctionInclude.h"
 #include "PositionLUT.h"
 
-#define DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION 4096 // resolution_pairs set as 0b0100
+#define DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION 262144 // resolution_pairs set as 0b0100
 #define DEFAULT_POLE_PAIRS 5 //read from param int the future
 #define DEFAULT_ABZ_RESOLUTION_PER_ELE_REVOLUSTION DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION / DEFAULT_POLE_PAIRS //819.2 steps per elec revolution, which means 0.439 degrees
 #define DEFAULT_ABNORMAL_SPEED 1570.796f //15000 rpm

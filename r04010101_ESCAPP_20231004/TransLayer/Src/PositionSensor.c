@@ -47,11 +47,12 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
     	  }
     	  else
     	  {
-    		  //TODO: error handle if no valid duty with timeout
-    		  if (( v->DutyFromPwm > 4.5f ) && ( v->DutyFromPwm < 95.5f ))
-		      {
-                  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
-		      }
+                  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION; // debug code, direct enable the encoder module
+//    		  //TODO: error handle if no valid duty with timeout
+//    		  if (( v->DutyFromPwm > 4.5f ) && ( v->DutyFromPwm < 95.5f ))
+//		      {
+//                  v->PositionSensor_StateMachine = PS_SM_PROCESSING_READ_INITI_POSITION;
+//		      }
     	  }
 
     	  break;
