@@ -123,14 +123,14 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 			TIM_BREAKINPUTSOURCE_ENABLE,		\
 			TIM_BREAKINPUTSOURCE_POLARITY_LOW,	/*BKINP = 1 (low active)*/\
 			TIM_OCMODE_PWM2,	/*no use*/		\
-			8501, /*	InitDutyCntChU	*/		\
+			(uint16_t)(((float)SYSTEM_CLK_FREQ/(float)INITIAL_CURRENT_LOOP_FREQ/2.0f) + 0.5f) + 1, /*	InitDutyCntChU	*/		\
 			TIM_OCPOLARITY_LOW,	/*CC1P=1 => low active*/ \
 			TIM_OCNPOLARITY_LOW, /*CC1NP=1 => low active*/ \
 			TIM_OCFAST_DISABLE,					\
 			TIM_OCIDLESTATE_RESET,				\
 			TIM_OCNIDLESTATE_RESET,				\
-			8501, /*	InitDutyCntChV	*/		\
-			8501, /*	InitDutyCntChW	*/		\
+			(uint16_t)(((float)SYSTEM_CLK_FREQ/(float)INITIAL_CURRENT_LOOP_FREQ/2.0f) + 0.5f) + 1, /*	InitDutyCntChV	*/		\
+			(uint16_t)(((float)SYSTEM_CLK_FREQ/(float)INITIAL_CURRENT_LOOP_FREQ/2.0f) + 0.5f) + 1, /*	InitDutyCntChW	*/		\
 			TIM_OSSR_DISABLE,					\
 			TIM_OSSI_DISABLE,					\
 			TIM_LOCKLEVEL_OFF,					\
@@ -258,7 +258,7 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		0,		0,		0,		0,		0},	//P3-01
 				{		0,		0,		0,		0,		0},	//P3-02
 				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved303},	//P3-03 ALARMID_CAN1_COMM_ERROR
-				{		0,		THRE_MAX,		0,		0x45,		&DriveParams.PCUParams.Reserved304},	//P3-04 ALARMID_CAN1_TIMEOUT
+				{		0,		THRE_MAX,		10,		0x45,		&DriveParams.PCUParams.Reserved304},	//P3-04 ALARMID_CAN1_TIMEOUT
 				{		0,		0,		0,		0,		0},	//P3-05
 				{		0,		0,		0,		0,		0},	//P3-06
 				{		0,		0,		0,		0,		0},	//P3-07
@@ -311,15 +311,15 @@ __attribute__((__section__(".PcuBin"),used)) const PCU_Table_t_Linker PCUTable =
 				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved354},	//P3-54 ALARMID_OT_PCU_2
 				{		1,		THRE_MAX,		4065,		0x45,		&DriveParams.PCUParams.Reserved355},	//P3-55 ALARMID_BREAK_NTC_PCU_2
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved356},	//P3-56 ALARMID_SHORT_NTC_PCU_2
-				{		1,		THRE_MAX,		150,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
+				{		1,		THRE_MAX,		135,		0x45,		&DriveParams.PCUParams.Reserved357},	//P3-57 ALARMID_OT_MOTOR_0
 				{		1,		THRE_MAX,		4075,		0x45,		&DriveParams.PCUParams.Reserved358},	//P3-58 ALARMID_BREAK_NTC_MOTOR_0
 				{		1,		THRE_MAX,		200,		0x45,		&DriveParams.PCUParams.Reserved359},	//P3-59 ALARMID_SHORT_NTC_MOTOR_0
 				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved360},	//P3-60 ALARMID_OT_PCU_0_WARNING
 				{		1,		THRE_MAX,		110,		0x45,		&DriveParams.PCUParams.Reserved361},	//P3-61 ALARMID_OT_PCU_1_WARNING
 				{		1,		THRE_MAX,		100,		0x45,		&DriveParams.PCUParams.Reserved362},	//P3-62 ALARMID_OT_PCU_2_WARNING
-				{		1,		THRE_MAX,		130,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
+				{		1,		THRE_MAX,		120,		0x45,		&DriveParams.PCUParams.Reserved363},	//P3-63 ALARMID_OT_MOTOR_0_WARNING
 				{		1,		THRE_MAX,		THRE_MAX,		0x45,		&DriveParams.PCUParams.Reserved364},	//P3-64 ALARMID_MOTORSTALL
-				{		0,		0,		0,		0,		0},	//P3-65
+				{		1,		THRE_MAX,		45,		0x45,		&DriveParams.PCUParams.Reserved365},	//P3-65 ALARMID_UNDER_VOLTAGE_BUS_WARNING
 				{		0,		0,		0,		0,		0},	//P3-66
 				{		0,		0,		0,		0,		0},	//P3-67
 				{		0,		0,		0,		0,		0},	//P3-68

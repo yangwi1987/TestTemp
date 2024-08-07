@@ -411,6 +411,8 @@
 
 #define FN_MF_POS_CALIB_START       963
 
+#define FN_MF_DATA_RECORDER_ACTIVE   964
+
 #define FN_OPEN_POSITION_CMD_ENABLE 970
 #define FN_OPEN_POSITION_CMD        971
 #define FN_CURRENT_ID_CMD           972
@@ -421,6 +423,7 @@
 #define FN_PWM_V_CMD                977
 #define FN_PWM_W_CMD                978
 #define FN_PWM_Mode                 979
+#define FN_PWM_ASC                  980
 
 #define FN_TEST_USAGE				999
 #define PN_MAX						1000

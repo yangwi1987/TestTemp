@@ -114,6 +114,8 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	// Init Alarm Infomation from table
 	v->UVP_Bus.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_UNDER_VOLTAGE_BUS];
 	v->UVP_Bus.Counter = 0;
+	v->UVP_Bus_Warning.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_UNDER_VOLTAGE_BUS_WARNING];
+	v->UVP_Bus_Warning.Counter = 0;
 	v->OVP_Bus.AlarmInfo = SystemTable.AlarmTableInfo[ALARMID_OVER_VOLTAGE_BUS];
 	v->OVP_Bus.Counter = 0;
 	v->OCP_Iu.AlarmInfo  = SystemTable.AlarmTableInfo[ALARMID_IU_OCP];
@@ -186,6 +188,7 @@ void AlarmDetect_Init( AlarmDetect_t *v, uint16_t AxisID, AdcStation *pAdcStatio
 	SetAlarmThreshold(&v->OSP, ALARMID_MOTOR_OVER_SPEED);
 	SetAlarmThreshold(&v->OVP_Bus, ALARMID_OVER_VOLTAGE_BUS);
 	SetAlarmThreshold(&v->UVP_Bus, ALARMID_UNDER_VOLTAGE_BUS);
+	SetAlarmThreshold(&v->UVP_Bus_Warning, ALARMID_UNDER_VOLTAGE_BUS_WARNING);
 	SetAlarmThreshold(&v->UVP_13V, ALARMID_UNDER_VOLTAGE_13V);
 	SetAlarmThreshold(&v->UVP_E5V, ALARMID_UNDER_VOLTAGE_E5V);
 	SetAlarmThreshold(&v->UVP_ES5V, ALARMID_UNDER_VOLTAGE_ES5V);
@@ -242,6 +245,7 @@ void AlarmDetect_DoPLCLoop( AlarmDetect_t *v )
 	if( v->AxisID == 1 )
 	{
 		AlarmDetect_Accumulation( v, &v->UVP_Bus, (int16_t)v->pAdcStation->AdcTraOut.BatVdc );
+		AlarmDetect_Accumulation( v, &v->UVP_Bus_Warning, (int16_t)v->pAdcStation->AdcTraOut.BatVdc );
 		AlarmDetect_Accumulation( v, &v->UVP_13V, (int16_t)v->pAdcStation->AdcTraOut.S13V8 );
 
 		Abnormal = AlarmDetect_Accumulation( v, &v->BREAK_NTC_PCU_0, (int16_t)v->pAdcStation->AdcDmaData[v->pAdcStation->ThermoCh[MOS_NTC_1].AdcGroupIndex][v->pAdcStation->ThermoCh[MOS_NTC_1].AdcRankIndex] );
@@ -304,8 +308,8 @@ void AlarmDetect_Do100HzLoop( AlarmDetect_t *v )
 		}
 		if( ( v->pAdcStation->NTCIsAbnormal & (((uint16_t)1)<<MOTOR_NTC_0_A0) ) == 0 )
 		{
-			AlarmDetect_Accumulation( v, &v->OTP_Motor_0, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0 );
-			AlarmDetect_Accumulation( v, &v->OTP_Motor_0_WARNING, (int16_t)v->pAdcStation->AdcTraOut.MOTOR_NTC_0 );
+			AlarmDetect_Accumulation( v, &v->OTP_Motor_0, (int16_t)MAX3( v->pAdcStation->AdcTraOut.MOTOR_NTC_0,v->pAdcStation->AdcTraOut.MOTOR_NTC_1,v->pAdcStation->AdcTraOut.MOTOR_NTC_2 ));
+			AlarmDetect_Accumulation( v, &v->OTP_Motor_0_WARNING, (int16_t)MAX3( v->pAdcStation->AdcTraOut.MOTOR_NTC_0,v->pAdcStation->AdcTraOut.MOTOR_NTC_1,v->pAdcStation->AdcTraOut.MOTOR_NTC_2 ));
 		}
 		AlarmDetect_Accumulation( v, &v->CAN1Timeout, 1 );
 	}

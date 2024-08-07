@@ -248,7 +248,7 @@ void AdcStation_ReadInjectionGroupValue( AdcStation *v, ADC_HandleTypeDef* hadc 
 	}
 }
 
-void AdcStation_DoCurrentLoop( AdcStation *v )
+__attribute__(( section(".ram_function"))) void AdcStation_DoCurrentLoop( AdcStation *v )
 {
 	v->AdcTraOut.Iu[0] = (float)( v->AdcExeGain[ISE_U_A0].FDta * ( v->AdcRawData.Inj[ISE_U_A0].RawAdcValue - v->AdcExeZeroP[ISE_U_A0] ));
 	v->AdcTraOut.Iv[0] = (float)( v->AdcExeGain[ISE_V_A0].FDta * ( v->AdcRawData.Inj[ISE_V_A0].RawAdcValue - v->AdcExeZeroP[ISE_V_A0] ));

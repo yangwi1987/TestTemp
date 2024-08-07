@@ -339,6 +339,20 @@ typedef enum DebugFloatIdx_e
   IDX_ACC_PEDAL2_VOLT,
   IDX_S13V8,
 
+#if USE_MOTOR_CTRL_DEBUG
+  IDX_ID_CMD_ORI,
+  IDX_IQ_CMD_ORI,
+  IDX_VD_ORI,
+  IDX_VQ_ORI,
+  IDX_DCP_D,
+  IDX_DCP_Q,
+  IDX_VS,
+  IDX_ID_ERR,
+  IDX_IQ_ERR,
+  IDX_DCP_D_ERR,
+  IDX_DCP_Q_ERR,
+#endif
+
   IDC_DEBUG_FLOAT_MAX = 64, /* no more than this value*/
 } DebugFloatIdx_t;
 

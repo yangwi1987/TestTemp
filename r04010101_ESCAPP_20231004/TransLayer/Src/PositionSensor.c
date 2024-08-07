@@ -8,6 +8,11 @@
 #include "PositionSensor.h"
 
 static void PositionSensor_ReadPosViaPWM(PS_t* v);
+// todo 4096 linear table in inverter
+//static float ABZtoMechPos[4096] = ABZtoMechPos_Default;
+//uint16_t tempABZ = 0;
+//float tempMechPosition = 0.0f;
+
 
 void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCompCoefBySpeed)
 {
@@ -18,7 +23,7 @@ void PositionSensor_Init(PS_t* v, uint16_t MechPosZeroOffset, uint16_t MechPosCo
  */
 	FILTER_INIT_BILINEAR_1ORDER_TYPE FilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
 	FilterSettingTmp.BandwithHz = 400.0f;
-	FilterSettingTmp.Period =  0.0001f;
+	FilterSettingTmp.Period =  1.0f / (float)INITIAL_CURRENT_LOOP_FREQ;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	v->CalcMechSpeedLPF.Init(&(v->CalcMechSpeedLPF),&FilterSettingTmp);
 #if USE_REVERVE_MR_DIRECTION
@@ -87,8 +92,12 @@ void PositionSesnor_DoPLCLoop(PS_t* v)
 __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast"))) PositionSensor_ReadPosViaABZ(PS_t* v)
 {
 	float tempMechPosCompensation = 0.0f;
+	static float oldMechSpeedRaw = 0.0f;
 	tempMechPosCompensation = v->MechPosCompCoefBySpeed  * v->MechSpeed;
+//	tempABZ = v->CntFromABZ & 0x0FFF;
+//	tempMechPosition = ABZtoMechPos[tempABZ];
 	v->MechPosition = v->CntFromABZ * _2PI / DEFAULT_ABZ_RESOLUTION_PER_MEC_REVOLUTION + tempMechPosCompensation + v->MechPosZeroOffset;
+
 	if ( v->MechPosition >= _2PI )
 	{
 		v->MechPosition = v->MechPosition - _2PI;
@@ -107,16 +116,21 @@ __attribute__(( section(".ram_function"))) void __attribute__((optimize("Ofast")
 	{
 #endif
 		v->MechSpeedRaw = ( v->MechPosition >= v->PreMechPosition ) ? \
-				                                ( v->MechPosition - v->PreMechPosition ) * 10000.0f : \
-												( v->MechPosition - v->PreMechPosition + _2PI ) * 10000.0f;
+				                                ( v->MechPosition - v->PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
+												( v->MechPosition - v->PreMechPosition + _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
 
 	}
 	else
 	{
 		v->MechSpeedRaw = ( v->MechPosition <= v->PreMechPosition ) ? \
-				                                ( v->MechPosition - v->PreMechPosition ) * 10000.0f : \
-												( v->MechPosition - v->PreMechPosition - _2PI ) * 10000.0f;
+				                                ( v->MechPosition - v->PreMechPosition ) * (float)INITIAL_CURRENT_LOOP_FREQ : \
+												( v->MechPosition - v->PreMechPosition - _2PI ) * (float)INITIAL_CURRENT_LOOP_FREQ;
 	}
+
+
+
+	v->MechSpeedRaw = ABS(v->MechSpeedRaw) > DEFAULT_ABNORMAL_SPEED ? oldMechSpeedRaw : v->MechSpeedRaw;
+	oldMechSpeedRaw = v->MechSpeedRaw;
 
 	v->MechSpeed = Filter_Bilinear1OrderCalc_LPF_inline(&(v->CalcMechSpeedLPF), v->MechSpeedRaw);
 

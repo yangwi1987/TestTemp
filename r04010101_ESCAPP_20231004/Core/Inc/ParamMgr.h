@@ -75,11 +75,11 @@ int32_t ParamMgr_WriteFnRegs( ParamMgr_t *v, uint16_t FN, uint32_t value,uint8_t
 void ParamMgr_LoadCurrentCalibFromSecExtFlash( ExtFlash_t *pExtFlash );
 extern uint16_t ParamMgr_ParaGainHandler( DriveParams_t *v, uint16_t *Var, float *Out );
 
-#if USE_INIT_HIGH_SESSION_AND_SRCURITY
+#if USE_INIT_HIGH_SECURITY
 #define PARAM_MGR_DEFAULT { \
 	0, \
-	Session_0x60_SystemSupplierSpecific, /* Session */ \
-	Session_0x60_SystemSupplierSpecific, /* NextSession */ \
+	Session_0x01_Default, /* Session */ \
+	Session_0x01_Default, /* NextSession */ \
 	DEFAULT_SECURITY_LEVEL, /* Security */ \
 	0, /* ECUSoftResetEnable */ \
 	0, /* pFlashParaReadEnableTable */ \

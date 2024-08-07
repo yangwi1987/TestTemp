@@ -367,7 +367,9 @@ void TIM8_BRK_IRQHandler(void)
 void TIM8_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM8_UP_IRQn 0 */
-
+#if USE_DATA_RECORDER
+	HAL_GPIO_WritePin(Debug_DO1_GPIO_Port, Debug_DO1_Pin, IsRecordActive);
+#endif
 #if  JUDGE_FUNCTION_DELAY
 uint32_t currentTimestamp = DWT->CYCCNT;
 uint32_t delta = currentTimestamp - TIM8INT_Judge_Delay.previousTimestamp;
@@ -469,12 +471,12 @@ void TIM7_DAC_IRQHandler(void)
 #if MEASURE_CPU_LOAD
     Max_100Hz_Load_pct = ((float)Max_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
     Max_PLCLoop_Load_pct = ((float)Max_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
-    Max_CurrentLoop_Load_pct = ((float)Max_CurrentLoop_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
+    Max_CurrentLoop_Load_pct = ((float)Max_CurrentLoop_Cnt * (float)INITIAL_CURRENT_LOOP_FREQ / 1700000.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
 
     Ave_100Hz_Cnt = Ave_100Hz_Cnt - aveLoad_filter_coef * 100.0f* ( Ave_100Hz_Cnt - (float)( EndTimeStamp - CurrentTimeStamp ) );
     Ave_100Hz_Load_pct = ((float)Ave_100Hz_Cnt / 17000.0f );// Max_100Hz_Cnt / 170000000.0f * 100.0f * 100.0f
     Ave_PLCLoop_Load_pct = ((float)Ave_PLCLoop_Cnt / 1700.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 1000.0f
-    Ave_CurrentLoop_Load_pct = ((float)Ave_CurrentLoop_Cnt / 170.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
+    Ave_CurrentLoop_Load_pct = ((float)Ave_CurrentLoop_Cnt * (float)INITIAL_CURRENT_LOOP_FREQ / 1700000.0f );// Max_CurrentLoop_Cnt / 170000000.0f * 100.0f * 10000.0f
 #endif
 
   /* USER CODE END TIM7_DAC_IRQn 1 */
@@ -539,7 +541,7 @@ void FDCAN2_IT1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
+__attribute__(( section(".ram_function"))) void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
 	/* The following are the general injection reading */
 //	AdcStation1.ReadInjectionGroupValue( &AdcStation1, hadc );
@@ -551,7 +553,9 @@ void HAL_ADCEx_InjectedConvCpltCallback(ADC_HandleTypeDef* hadc)
 	// Check if all ADC injection groups are finish and start to do current loop
 	if( AdcStation1.AdcInjGroup == AdcStation1.AdcInjGroupFlag )
 	{
-
+#if USE_DATA_RECORDER
+        HAL_GPIO_WritePin(Debug_DO1_GPIO_Port, Debug_DO1_Pin, GPIO_PIN_RESET);
+#endif
 #if MEASURE_CPU_LOAD_CURRENTLOOP || JUDGE_FUNCTION_DELAY
         uint32_t CurrentTimeStamp = DWT->CYCCNT;
         uint32_t EndTimeStamp = 0;
@@ -666,7 +670,7 @@ void USER_HAL_TIM_IRQHandler( TIM_HandleTypeDef *htim )
 	__HAL_TIM_CLEAR_IT(htim, TIM_IT_UPDATE);
 }
 
-void USER_HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
+__attribute__(( section(".ram_function"))) void USER_HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
 {
 	uint32_t tmp_isr = hadc->Instance->ISR;
 	uint32_t tmp_ier = hadc->Instance->IER;

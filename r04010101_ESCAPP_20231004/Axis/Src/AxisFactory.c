@@ -148,6 +148,35 @@ void AxisFactory_UpdateCANTxInterface( Axis_t *v )
         v->pCANTxInterface->HWID[1] = v->pAdcStation->AdcDmaData[v->pAdcStation->RegCh[HW_ID2].AdcGroupIndex][v->pAdcStation->RegCh[HW_ID2].AdcRankIndex];
         v->pCANTxInterface->ServoOnOffState = v->ServoOnOffState;
 //        v->pCANTxInterface->Debugf[IDX_DC_LIMIT_CANRX_DC_CURR] = v->pCANRxInterface->BatCurrentDrainLimit;
+#if USE_MOTOR_CTRL_DEBUG
+#if USE_COMPLEX_VECTOR_DCP
+        v->pCANTxInterface->Debugf[IDX_ID_CMD_ORI] = v->MotorControl.Cmd.IdCmd;
+        v->pCANTxInterface->Debugf[IDX_IQ_CMD_ORI] = v->MotorControl.Cmd.IqCmd;
+        v->pCANTxInterface->Debugf[IDX_VD_ORI] = v->MotorControl.CurrentControl.IdRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_VQ_ORI] = v->MotorControl.CurrentControl.IqRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_DCP_D] = v->MotorControl.CurrentControl.IdRegulator.Output_Raw;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q] = v->MotorControl.CurrentControl.IqRegulator.Output_Raw;
+        v->pCANTxInterface->Debugf[IDX_VS] = v->MotorControl.VoltCmd.VcmdAmp;
+        v->pCANTxInterface->Debugf[IDX_ID_ERR] = v->MotorControl.CurrentControl.IdRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_IQ_ERR] = v->MotorControl.CurrentControl.IqRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_DCP_D_ERR] = v->MotorControl.CurrentControl.IdRegulator.Uij;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q_ERR] = v->MotorControl.CurrentControl.IqRegulator.Uij;
+#else
+        v->pCANTxInterface->Debugf[IDX_ID_CMD_ORI] = v->MotorControl.Cmd.IdCmd;
+        v->pCANTxInterface->Debugf[IDX_IQ_CMD_ORI] = v->MotorControl.Cmd.IqCmd;
+        v->pCANTxInterface->Debugf[IDX_VD_ORI] = v->MotorControl.CurrentControl.IdRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_VQ_ORI] = v->MotorControl.CurrentControl.IqRegulator.Output;
+        v->pCANTxInterface->Debugf[IDX_DCP_D] = v->MotorControl.CurrentControl.Decoupling.PIDWayId.Output;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q] = v->MotorControl.CurrentControl.Decoupling.PIDWayIq.Output;
+        v->pCANTxInterface->Debugf[IDX_VS] = v->MotorControl.VoltCmd.VcmdAmp;
+        v->pCANTxInterface->Debugf[IDX_ID_ERR] = v->MotorControl.CurrentControl.IdRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_IQ_ERR] = v->MotorControl.CurrentControl.IqRegulator.Error;
+        v->pCANTxInterface->Debugf[IDX_DCP_D_ERR] = v->MotorControl.CurrentControl.Decoupling.PIDWayId.Error;
+        v->pCANTxInterface->Debugf[IDX_DCP_Q_ERR] = v->MotorControl.CurrentControl.Decoupling.PIDWayIq.Error;
+#endif
+#endif
+
+
     }
 
 }
@@ -447,8 +476,7 @@ void AxisFactory_GetUiCmd( Axis_t *v )
 			v->TorqCommandGenerator.MotorSpeed = v->SpeedInfo.MotorMechSpeedRad;
 
 			// Decide the Torque Output( TO DO: Negative Torque )
-			TempTorqueCommandOut = ((float)( DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768 )) * 0.1f;
-			TempTorqueCommandOut = ( TempTorqueCommandOut >= 0.0f ) ? TempTorqueCommandOut : 0.0f;
+			TempTorqueCommandOut = (( (float)DriveFnRegs[ FN_TORQ_COMMAND - FN_BASE ] - 32768.0f )) * 0.1f;
 			v->FourQuadCtrl.TorqueCommandOut = TempTorqueCommandOut;
 			v->ThrotMapping.PercentageOut = 1.0f;
 
@@ -546,7 +574,7 @@ void AxisFactory_Init( Axis_t *v, uint16_t AxisIndex )
 #endif
 }
 
-void AxisFactory_DoCurrentLoop( Axis_t *v )
+__attribute__(( section(".ram_function"))) void AxisFactory_DoCurrentLoop( Axis_t *v )
 {
     uint16_t AxisIndex = AXIS_ID_TO_AXIS_INDEX( v->AxisID );
 
@@ -562,9 +590,18 @@ void AxisFactory_DoCurrentLoop( Axis_t *v )
         v->MotorControl.Process( &v->MotorControl, v->MotorCtrlMode);
 
         // Update Pwm
-        v->pPwmStation->DutyCmd.Duty[CH_PWM_UP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[0];
-        v->pPwmStation->DutyCmd.Duty[CH_PWM_VP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[1];
-        v->pPwmStation->DutyCmd.Duty[CH_PWM_WP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2];
+        if ( v->pPwmStation->ASC_Enable == 0 )
+        {
+            v->pPwmStation->DutyCmd.Duty[CH_PWM_UP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[0];
+            v->pPwmStation->DutyCmd.Duty[CH_PWM_WP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[1];
+            v->pPwmStation->DutyCmd.Duty[CH_PWM_VP] = v->MotorControl.PwmDutyCmd.DutyLimitation.Duty[2];
+        }
+        else
+        {
+            v->pPwmStation->DutyCmd.Duty[CH_PWM_UP] = 0.0f;
+            v->pPwmStation->DutyCmd.Duty[CH_PWM_WP] = 0.0f;
+            v->pPwmStation->DutyCmd.Duty[CH_PWM_VP] = 0.0f;
+        }
 
         v->pPwmStation->AxisDutyToPwmCount( v->pPwmStation, AxisIndex, v->MotorControl.PwmDutyCmd.DutyLimitation.PwmMode);
 
@@ -647,7 +684,9 @@ void AxisFactory_DoPLCLoop( Axis_t *v )
 
     // Change MinTime and calculate new VbusGain
     v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime = ( v->SpeedInfo.ElecSpeedAbs > v->MotorControl.DriverPara.Mosfet.MinTimeEleSpeedAbs ) ? 0.0f : MotorDefault.MosfetDriverLowerBridgeMinTime;
-    v->MotorControl.TorqueToIdq.VbusGain = 1 - 2 * ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
+    //After MinTimeEleSpeedAbs(default 1000rpm),LowerBridgeMinTime is 0, original VbusGainForFW was 92%, add a 2% offset then it become 90%.
+    v->MotorControl.TorqueToIdq.VbusGainForFW = 1.0f - 0.02f - 2.0f * ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
+    v->MotorControl.TorqueToIdq.VbusGainForVsaturation = 1.0f;// - ( v->MotorControl.DriverPara.Mosfet.DeadTime * 2 + v->MotorControl.DriverPara.Mosfet.LowerBridgeMinTime ) * v->MotorControl.CurrentControl.PwmHz;
 
     if( v->ServoOn )
     {

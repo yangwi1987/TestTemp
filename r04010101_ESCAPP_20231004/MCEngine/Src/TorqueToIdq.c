@@ -54,11 +54,11 @@ void TorqueToIdq_GetAllowFluxRec( TORQUE_TO_IDQ_TYPE *p, float EleSpeedInput, fl
 
 	if ( VbusUsedTmp <= GUARANTEED_VBUS_FOR_PERFORMANCE )
 	{
-		p->VbusUsed = VbusUsedTmp * p->VbusGain;
+		p->VbusUsed = VbusUsedTmp * p->VbusGainForIcmd;
 	}
 	else
 	{
-		p->VbusUsed = GUARANTEED_VBUS_FOR_PERFORMANCE * p->VbusGain;
+		p->VbusUsed = GUARANTEED_VBUS_FOR_PERFORMANCE * p->VbusGainForIcmd;
 	}
 	VphaseUsed = p->VbusUsed * DIVIDE_SQRT3;
 

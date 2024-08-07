@@ -10,6 +10,7 @@
 inline void MotorControl_CurrentControlSetRegulatorParameter( CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float IdHz, float IqHz, float PwmPeriod );
 void MotorControl_FluxWeakeningSetRegulatorParameter( CURRENT_CONTROL_FLUX_WEAKENING_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float Bandwith, float PwmPeriod, float Ilimit, float IdKp, float IqKp );
 inline void MotorControl_SixWaveRegulatorParameter( SIX_WAVE_120_CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float PwmPeriod , float Hz);
+void MotorControl_CalcPMFOCDCPPID( float *Ki, float Hz, float Period, float L, float Res);
 ROTOR_TO_STATOR_TYPE IstatorCmd = ROTOR_TO_STATOR_DEFAULT;
 STATOR_TO_PHASE_TYPE IphaseCmd = STATOR_TO_PHASE_DEFAULT;
 
@@ -22,6 +23,7 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 {
 
 	float VbusLimit = 0.0f;
+	float VsSaturation = 0.0f;
 	float DevideVbus = 0.0f;
 	float SinValue = 0.0f;
 	float CosValue = 0.0f;
@@ -29,8 +31,9 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 	//Assign the related feedback and limitation from Sensor to Control	: 1.6us
 	COORDINATE_TRANSFER_Phase_to_Stator_Calc( (p->SensorFb.Iu), (p->SensorFb.Iv), (p->SensorFb.Iw), (&StatorCurrFbTmp) );
 
-	DevideVbus = 1.0f / p->SensorFb.Vbus;
-	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGain); // 0.577350269f line voltage to phase
+	DevideVbus = p->SensorFb.Vbus > 32.0f ? 1.0f / p->SensorFb.Vbus : 0.03125f;  // Vbus value limit for PWM calculation
+	VbusLimit = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGainForFW); // 0.577350269f line voltage to phase
+	VsSaturation = 0.577350269f * (p->SensorFb.Vbus * p->TorqueToIdq.VbusGainForVsaturation);
 	if (( FunctionMode == FUNCTION_MODE_NORMAL_CURRENT_CONTROL ))
 	{
 		//CmdFrom = CMD_FROM_FOC_CTRL;
@@ -55,7 +58,18 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue );
 //		COORDINATE_TRANSFER_GetSinCos_LT((uint16_t)(p->CurrentControl.EleAngle * 651.8986f ), &SinValue, &CosValue);  //
 		COORDINATE_TRANSFER_Stator_to_Rotor_Calc( (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
-
+#if USE_COMPLEX_VECTOR_DCP
+		float EleSpeedTmp = 0.0f;
+		float IderrorTmp = 0.0f;
+		float IqerrorTmp = 0.0f;
+		EleSpeedTmp = p->CurrentControl.EleSpeed;
+		IderrorTmp = p->CurrentControl.IdCmd - p->CurrentControl.RotorCurrFb.D;
+		IqerrorTmp = p->CurrentControl.IqCmd - p->CurrentControl.RotorCurrFb.Q;
+		Pid_PiComplexVectorControl( IderrorTmp, -( EleSpeedTmp * IqerrorTmp), VsSaturation, &(p->CurrentControl.IdRegulator ));
+		Pid_PiComplexVectorControl( IqerrorTmp, ( EleSpeedTmp * IderrorTmp), VsSaturation, &(p->CurrentControl.IqRegulator ));
+		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output;
+		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output;
+#else
 		//CtrlMode = CTRL_MODE_CURRENT_CONTROL;
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
 		p->CurrentControl.IqRegulator.CalcNoLimit( p->CurrentControl.IqCmd, p->CurrentControl.RotorCurrFb.Q, &(p->CurrentControl.IqRegulator) );
@@ -66,24 +80,31 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->CurrentControl.Decoupling.PIDWayIq.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IdCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.D), &(p->CurrentControl.Decoupling.PIDWayIq) );
 		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
 		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
-
+#endif
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 
 		//PwmMode = PWM_MODE_SVPWM;
 		//Limit voltage command Vdq : 2us = 16.6us-14.6us
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if( p->VoltCmd.VcmdAmp > VbusLimit )
+
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
+			float VgainSatCmd = 0.0f;
+			float VgainSatFluxWeakening = 0.0f;
 
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
-
+			VgainSatCmd = VsSaturation / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= VgainSatCmd; // limit to 93.5%
+			p->VoltCmd.VqCmd *= VgainSatCmd; // limit to 93.5%
+			VgainSatFluxWeakening = VgainSatCmd * 1.048f; // limit to 97.988%.
+#if USE_COMPLEX_VECTOR_DCP
+			p->CurrentControl.IdRegulator.Uij *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Uij *= VgainSatFluxWeakening;
+#else
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IdRegulator.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Ui *= VgainSatFluxWeakening;
+#endif
 		}
 		//Vdq to Vab : 8.6us = 24.2us - 16.6us
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
@@ -91,14 +112,8 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
-		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) * p->CurrentControl.PwmHz;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
+		p->PwmDutyCmd.MaxDuty = 1.0f;
+		p->PwmDutyCmd.MinDuty = 0.0f;
 
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
@@ -139,6 +154,19 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->CurrentControl.EleAngle), SinValue, CosValue )
 		COORDINATE_TRANSFER_Stator_to_Rotor_Calc(  (p->CurrentControl.StatorCurrFb.Alpha), (p->CurrentControl.StatorCurrFb.Beta), SinValue, CosValue, (&(p->CurrentControl.RotorCurrFb)) );
 
+#if USE_COMPLEX_VECTOR_DCP
+		float EleSpeedTmp = 0.0f;
+		float IderrorTmp = 0.0f;
+		float IqerrorTmp = 0.0f;
+		EleSpeedTmp = p->CurrentControl.EleSpeed;
+		IderrorTmp = p->CurrentControl.IdCmd - p->CurrentControl.RotorCurrFb.D;
+		IqerrorTmp = p->CurrentControl.IqCmd - p->CurrentControl.RotorCurrFb.Q;
+		Pid_PiComplexVectorControl( IderrorTmp, -( EleSpeedTmp * IqerrorTmp), VsSaturation, &(p->CurrentControl.IdRegulator ));
+		Pid_PiComplexVectorControl( IqerrorTmp, ( EleSpeedTmp * IderrorTmp), VsSaturation, &(p->CurrentControl.IqRegulator ));
+		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output;
+		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output;
+#else
+		//CtrlMode = CTRL_MODE_CURRENT_CONTROL;
 		p->CurrentControl.IdRegulator.CalcNoLimit( p->CurrentControl.IdCmd, p->CurrentControl.RotorCurrFb.D, &(p->CurrentControl.IdRegulator) );
 		p->CurrentControl.IqRegulator.CalcNoLimit( p->CurrentControl.IqCmd, p->CurrentControl.RotorCurrFb.Q, &(p->CurrentControl.IqRegulator) );
 
@@ -148,20 +176,28 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->CurrentControl.Decoupling.PIDWayIq.CalcNoLimit( (EleSpeedTmp * p->CurrentControl.IdCmd), (EleSpeedTmp * p->CurrentControl.RotorCurrFb.D), &(p->CurrentControl.Decoupling.PIDWayIq) );
 		p->VoltCmd.VdCmd = p->CurrentControl.IdRegulator.Output - p->CurrentControl.Decoupling.PIDWayId.Output;
 		p->VoltCmd.VqCmd = p->CurrentControl.IqRegulator.Output + p->CurrentControl.Decoupling.PIDWayIq.Output;
+#endif
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
+			float VgainSatCmd = 0.0f;
+			float VgainSatFluxWeakening = 0.0f;
 
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
+			VgainSatCmd = VsSaturation / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= VgainSatCmd; // limit to 93.5%
+			p->VoltCmd.VqCmd *= VgainSatCmd; // limit to 93.5%
+			VgainSatFluxWeakening = VgainSatCmd * 1.048f; // limit to 97.988%.
+#if USE_COMPLEX_VECTOR_DCP
+			p->CurrentControl.IdRegulator.Uij *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Uij *= VgainSatFluxWeakening;
+#else
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IdRegulator.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Ui *= VgainSatFluxWeakening;
+#endif
 		}
 
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
@@ -170,13 +206,13 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		//Calcuclate the PWM duty command : 5.8us = 30us - 24.2us
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 		//Calculate the duty limitation : with div 131cycle ~ 0.77us, with multi 125cycle ~ 0.735us
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
+//		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+//		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+//		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+//		{
+//			p->PwmDutyCmd.MaxDuty = 1.0f;
+//			p->PwmDutyCmd.MinDuty = 0.0f;
+//		}
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
 		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
@@ -199,17 +235,24 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 		p->VoltCmd.VqCmd = p->VfControl.VoltAmp;
 		p->VoltCmd.EleCompAngle = p->CurrentControl.EleAngle + p->CurrentControl.EleSpeed * p->CurrentControl.PwmPeriod * 1.5f;
 		p->VoltCmd.VcmdAmp = sqrtf( p->VoltCmd.VdCmd * p->VoltCmd.VdCmd + p->VoltCmd.VqCmd * p->VoltCmd.VqCmd );
-		if ( p->VoltCmd.VcmdAmp > VbusLimit)
+		if ( p->VoltCmd.VcmdAmp > VsSaturation)
 		{
-			float Vgain = 0.0f;
-			Vgain = VbusLimit / p->VoltCmd.VcmdAmp;
-			p->VoltCmd.VdCmd *= Vgain;
-			p->VoltCmd.VqCmd *= Vgain;
+			float VgainSatCmd = 0.0f;
+			float VgainSatFluxWeakening = 0.0f;
 
-			p->CurrentControl.Decoupling.PIDWayId.Ui *= Vgain;
-			p->CurrentControl.Decoupling.PIDWayIq.Ui *= Vgain;
-			p->CurrentControl.IdRegulator.Ui *= Vgain;
-			p->CurrentControl.IqRegulator.Ui *= Vgain;
+			VgainSatCmd = VsSaturation / p->VoltCmd.VcmdAmp;
+			p->VoltCmd.VdCmd *= VgainSatCmd; // limit to 93.5%
+			p->VoltCmd.VqCmd *= VgainSatCmd; // limit to 93.5%
+			VgainSatFluxWeakening = VgainSatCmd * 1.048f; // limit to 97.988%.
+#if USE_COMPLEX_VECTOR_DCP
+			p->CurrentControl.IdRegulator.Uij *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Uij *= VgainSatFluxWeakening;
+#else
+			p->CurrentControl.Decoupling.PIDWayId.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.Decoupling.PIDWayIq.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IdRegulator.Ui *= VgainSatFluxWeakening;
+			p->CurrentControl.IqRegulator.Ui *= VgainSatFluxWeakening;
+#endif
 		}
 
 		COORDINATE_TRANSFER_GET_SIN_COS( (p->VoltCmd.EleCompAngle), SinValue, CosValue )
@@ -217,13 +260,13 @@ __attribute__(( section(".ram_function"))) void MotorControl_Algorithm( MOTOR_CO
 
 		GENERATE_PWM_DUTY_SVPWM_Calc( (p->VoltCmd.StatorVoltCmd.Alpha), (p->VoltCmd.StatorVoltCmd.Beta), (DevideVbus), (&(p->Svpwm)) );
 
-		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
-		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
-		if ( p->PwmDutyCmd.MinDuty > 1.0f)
-		{
-			p->PwmDutyCmd.MaxDuty = 1.0f;
-			p->PwmDutyCmd.MinDuty = 0.0f;
-		}
+//		p->PwmDutyCmd.MinDuty = ( p->DriverPara.Mosfet.LowerBridgeMinTime + p->DriverPara.Mosfet.DeadTime ) / p->CurrentControl.PwmPeriod;
+//		p->PwmDutyCmd.MaxDuty = 1.0f - p->PwmDutyCmd.MinDuty;
+//		if ( p->PwmDutyCmd.MinDuty > 1.0f)
+//		{
+//			p->PwmDutyCmd.MaxDuty = 1.0f;
+//			p->PwmDutyCmd.MinDuty = 0.0f;
+//		}
 		COORDINATE_TRANSFER_Rotor_to_Stator_Calc( (p->CurrentControl.IdCmd), (p->CurrentControl.IqCmd), SinValue, CosValue,  (&(IstatorCmd)) );
 		COORDINATE_TRANSFER_Stator_to_Phase_Calc( (IstatorCmd.Alpha), (IstatorCmd.Beta), (&(IphaseCmd)) );
 		p->CompDuty.Compensation( &p->CompDuty, IphaseCmd.U, IphaseCmd.V, IphaseCmd.W );
@@ -310,9 +353,10 @@ void MotorControl_CleanParameter( MOTOR_CONTROL_TYPE *p )
 	p->Cmd.SixWaveCurrCmd = 0.0f;
 
 	//ComplexVector
+#if !USE_COMPLEX_VECTOR_DCP
 	p->CurrentControl.Decoupling.PIDWayId.Clean( &(p->CurrentControl.Decoupling.PIDWayId) );
 	p->CurrentControl.Decoupling.PIDWayIq.Clean( &(p->CurrentControl.Decoupling.PIDWayIq) );
-
+#endif
 	//Sensorless
 //	p->Sensorless.Clean(&(p->Sensorless),0.0f,0.0f);
 
@@ -353,10 +397,12 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 
 	//Initialize the PWM module of current control
 	MotorControl_CurrentControlSetRegulatorParameter( &(p->CurrentControl), &(p->MotorPara), p->CurrentControl.PwmPeriod, IdHz, IqHz );
+#if !USE_COMPLEX_VECTOR_DCP
 	p->ControlInitStatus = p->CurrentControl.IdRegulator.Init( p->CurrentControl.PwmPeriod, p->CurrentControl.IdRegulator.Kp, p->CurrentControl.IdRegulator.Ki, 1.0f, -1.0f, &(p->CurrentControl.IdRegulator) );
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_ID_REGULATOR;
 	p->ControlInitStatus = p->CurrentControl.IqRegulator.Init( p->CurrentControl.PwmPeriod, p->CurrentControl.IqRegulator.Kp, p->CurrentControl.IqRegulator.Ki, 1.0f, -1.0f, &(p->CurrentControl.IqRegulator) );
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_IQ_REGULATOR;
+#endif
 
 	//Clean the parameters of current control (only once)
 	p->CurrentControl.EleAngle = 0.0f;
@@ -364,7 +410,7 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	p->VoltCmd.EleCompAngle = 0.0f;
 
 	//20191212 Flux Weakening
-	MotorControl_FluxWeakeningSetRegulatorParameter( &(p->CurrentControl.FluxWeakening), &(p->MotorPara), 20.0f, p->CurrentControl.PwmPeriod, pSetting->Ilimit, p->CurrentControl.IdRegulator.Kp, p->CurrentControl.IqRegulator.Kp );
+	MotorControl_FluxWeakeningSetRegulatorParameter( &(p->CurrentControl.FluxWeakening), &(p->MotorPara), pSetting->FWHz, p->CurrentControl.PwmPeriod, pSetting->Ilimit, p->CurrentControl.IdRegulator.Kp, p->CurrentControl.IqRegulator.Kp );
 	p->ControlInitStatus = p->CurrentControl.FluxWeakening.Init( &(p->CurrentControl.FluxWeakening), pSetting->Ilimit, p->CurrentControl.FluxWeakening.FluxWeakeningRegulator.LowerLimit, p->CurrentControl.PwmPeriod, p->CurrentControl.FluxWeakening.FluxWeakeningRegulator.Kp , p->CurrentControl.FluxWeakening.FluxWeakeningRegulator.Ki);
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_FLUX_WEAKENING_REGULATOR;
 
@@ -389,8 +435,9 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	FilterSettingTmp.Period = 0.001f;
 	FilterSettingTmp.Type = FILTER_TYPE_LPF;
 	Filter_Bilinear1OrderInit( &(p->TorqueToIdq.EleSpeedFilter), &FilterSettingTmp );
-	p->TorqueToIdq.VbusGain = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
-
+//	p->TorqueToIdq.VbusGainForIcmd = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+//	p->TorqueToIdq.VbusGainForFW = 1 - 2 * (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
+//	p->TorqueToIdq.VbusGainForVsaturation = 1 - (p->DriverPara.Mosfet.DeadTime * 2 + p->DriverPara.Mosfet.LowerBridgeMinTime) / p->CurrentControl.PwmPeriod;
 	//20200702 Six Wave Init;
 	p->SensorFb.HallSignal = ( p->SensorFb.HallSignal == 0) ? 5 : p->SensorFb.HallSignal;
 	p->SensorFb.TestHallSignal = 5;
@@ -400,11 +447,31 @@ uint16_t MotorControl_InitParameter( MOTOR_CONTROL_TYPE *p, MOTOR_CONTROL_PARAME
 	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_SIX_WAVE;
 
 	//Decoupling
-	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IqRegulator.Kp, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
-	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.IdRegulator.Kp, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
 
+	IdHz = pSetting->IdDCPHz;
+	IqHz = pSetting->IqDCPHz;
+#if USE_COMPLEX_VECTOR_DCP
+	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.IdRegulator.Kij), IdHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Lq, p->MotorPara.PM.Res);
+	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.IqRegulator.Kij), IqHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Ld, p->MotorPara.PM.Res);
+	p->ControlInitStatus = p->CurrentControl.IdRegulator.Init( p->CurrentControl.PwmPeriod, p->CurrentControl.IdRegulator.Kp, p->CurrentControl.IdRegulator.Ki, p->CurrentControl.IdRegulator.Kij, 1, &(p->CurrentControl.IdRegulator) );
+	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_ID_REGULATOR;
+	p->ControlInitStatus = p->CurrentControl.IqRegulator.Init( p->CurrentControl.PwmPeriod, p->CurrentControl.IqRegulator.Kp, p->CurrentControl.IqRegulator.Ki, p->CurrentControl.IqRegulator.Kij, 1, &(p->CurrentControl.IqRegulator) );
+	if (( p->ControlInitStatus & 0x8000 ) !=0 ) return CONTROL_INIT_STATUS_NUMBER_IQ_REGULATOR;
+	#else
+	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.Decoupling.PIDWayId.Ki), IdHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Lq, p->MotorPara.PM.Res);
+	MotorControl_CalcPMFOCDCPPID( &(p->CurrentControl.Decoupling.PIDWayIq.Ki), IqHz, p->CurrentControl.PwmPeriod, p->MotorPara.PM.Ld, p->MotorPara.PM.Res);
+	p->CurrentControl.Decoupling.PIDWayId.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayId.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayId) );
+	p->CurrentControl.Decoupling.PIDWayIq.Init( p->CurrentControl.PwmPeriod, 0.0f, p->CurrentControl.Decoupling.PIDWayIq.Ki, 1.0f, -1.0f, &(p->CurrentControl.Decoupling.PIDWayIq) );
+#endif
 	//Compensation Deadtime
-	p->CompDuty.Init(&(p->CompDuty),0.0125f,5.0f,0.0125f,5.0f);
+	p->CompDuty.Init(&(p->CompDuty),pSetting->DeadtimeDutyP,pSetting->DeadtimeSlopeP,pSetting->DeadtimeDutyN,pSetting->DeadtimeSlopeN);
+
+	//Vbus filter
+	FILTER_INIT_BILINEAR_1ORDER_TYPE VbusFilterSettingTmp = FILTER_INIT_BILINEAR_1ORDER_DEFAULT;
+	VbusFilterSettingTmp.BandwithHz = pSetting->VbusHz;
+	VbusFilterSettingTmp.Period = p->CurrentControl.PwmPeriod;
+	VbusFilterSettingTmp.Type = FILTER_TYPE_LPF;
+	Filter_Bilinear1OrderInit( &(p->SensorFb.VbusFilter), &VbusFilterSettingTmp );
 
 	p->StartUpWay = FUNCTION_MODE_NORMAL_CURRENT_CONTROL;
 
@@ -421,6 +488,14 @@ void MotorControl_CalcPMFOCPID( float *Kp, float *Ki, float Hz, float Period, fl
 	(*Ki) = ((Z1 - 1)*(Res - Res*Z2))/(Period*(expf(-Period*Res/L) - 1));
 }
 
+void MotorControl_CalcPMFOCDCPPID( float *Ki, float Hz, float Period, float L, float Res)
+{
+	float P1 = Hz * _2PI;
+	float P2 = Res/L;
+	float Z1 = expf(-P1*Period);
+	float Z2 = expf(-P2*Period);
+	(*Ki) = -(Res*expf(-Period*Res/L) - Res*Z1*Z2)/(expf(-Period*Res/L) - 1);
+}
 
 void MotorControl_CurrentControlSetRegulatorParameter( CURRENT_CONTROL_TYPE *pSet, MOTOR_PARAMETER_TYPE* pMotor, float PwmPeriod , float IdHz, float IqHz)
 {

@@ -78,6 +78,7 @@ typedef struct{
 
 typedef struct{
 	uint16_t PwmMode;
+	uint8_t ASC_Enable;
 	float Duty2PwmCountGain;
 	uint32_t RepetCounter; // = RCR bit in timer register
 	uint32_t PWMPeriodCnt; // = (ARR bit in timer register + 1)
@@ -99,6 +100,7 @@ void PwmStation_AxisChannelMapping( PwmStation *v, uint16_t AxisID, const PWM_ST
 uint16_t PwmStation_AxisDutyToPwmCount( PwmStation *v, uint16_t AxisID, uint16_t PwmMode );
 
 #define PWM_STATION_DEFAULT { \
+	0, \
 	0, \
 	0.0f, \
 	INITIAL_REPET_COUNTER, /* RepetCounter */ \
